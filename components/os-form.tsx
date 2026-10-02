@@ -713,7 +713,28 @@ function OSFormImpl({
     }, 0);
   }, [motorsList]);
 
-  const handleRemoveMotor = useCallback((index: number) => {
+  // Posição do motor ao qual o serviço está ligado, seguindo a mesma regra do relatório:
+  // 'all' ou null = serviço comum (null), ausente = primeiro motor (0), '0', '1'... = posição.
+  const getServiceMotorIndex = (s: ServiceItem): number | null => {
+    const raw = s.motorId as string | null | undefined;
+    if (raw === 'all' || raw === null) return null;
+    const idx = Number(raw ?? '0');
+    return Number.isInteger(idx) && idx >= 0 ? idx : null;
+  };
+
+  // Motor aguardando confirmação de remoção (tem serviços ligados a ele)
+  const [motorIndexToRemove, setMotorIndexToRemove] = useState<number | null>(null);
+
+  const removeMotorAt = useCallback((index: number, linkedServices: 'remove' | 'keep-common' | 'unchanged') => {
+    // motorId é a posição do motor: os serviços dos motores seguintes descem uma posição
+    if (linkedServices !== 'unchanged') {
+      setServices(prev => prev.flatMap(s => {
+        const motorIdx = getServiceMotorIndex(s);
+        if (motorIdx === null || motorIdx < index) return [s];
+        if (motorIdx === index) return linkedServices === 'remove' ? [] : [{ ...s, motorId: 'all' }];
+        return [{ ...s, motorId: String(motorIdx - 1) }];
+      }));
+    }
     setMotorsList(prev => prev.filter((_, idx) => idx !== index));
     if (editingIndex === index) {
       setEditingIndex(null);
@@ -724,6 +745,23 @@ function OSFormImpl({
       setEditingIndex(prev => prev! - 1);
     }
   }, [editingIndex]);
+
+  const handleRemoveMotor = useCallback((index: number) => {
+    // Único motor: os serviços ficam como estão, para que trocar o motor mantenha todos eles
+    if (motorsList.length === 1) {
+      removeMotorAt(index, 'unchanged');
+      return;
+    }
+    if (services.some(s => getServiceMotorIndex(s) === index)) {
+      setMotorIndexToRemove(index);
+      return;
+    }
+    removeMotorAt(index, 'keep-common');
+  }, [motorsList.length, services, removeMotorAt]);
+
+  const servicesLinkedToMotorToRemove = motorIndexToRemove === null
+    ? []
+    : services.filter(s => getServiceMotorIndex(s) === motorIndexToRemove);
 
   const calculateMotorDropdownPosition = useCallback(() => {
     if (motorTriggerRef.current) {
@@ -4313,6 +4351,50 @@ function OSFormImpl({
               }}
             >
               Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={motorIndexToRemove !== null} onOpenChange={(open) => { if (!open) setMotorIndexToRemove(null); }}>
+        <DialogContent className="max-w-sm z-[1100]" overlayClassName="z-[1099]">
+          <DialogHeader>
+            <DialogTitle>Remover Motor</DialogTitle>
+            <DialogDescription>
+              O motor <strong>{motorIndexToRemove !== null ? motorsList[motorIndexToRemove]?.model : ''}</strong> tem
+              {servicesLinkedToMotorToRemove.length === 1 ? ' 1 serviço ligado' : ` ${servicesLinkedToMotorToRemove.length} serviços ligados`}.
+              O que fazer com {servicesLinkedToMotorToRemove.length === 1 ? 'ele' : 'eles'}?
+            </DialogDescription>
+          </DialogHeader>
+          <ul className="max-h-40 overflow-y-auto space-y-1 text-xs font-bold uppercase text-foreground">
+            {servicesLinkedToMotorToRemove.map(s => (
+              <li key={s.id} className="flex justify-between gap-2 rounded-md bg-secondary/40 px-2.5 py-1.5">
+                <span className="truncate">{s.name}</span>
+                <span className="text-muted-foreground shrink-0 normal-case">x{s.quantity || 1}</span>
+              </li>
+            ))}
+          </ul>
+          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
+            <Button
+              onClick={() => {
+                if (motorIndexToRemove !== null) removeMotorAt(motorIndexToRemove, 'keep-common');
+                setMotorIndexToRemove(null);
+              }}
+              className="bg-primary text-primary-foreground font-bold"
+            >
+              Manter como serviços comuns
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (motorIndexToRemove !== null) removeMotorAt(motorIndexToRemove, 'remove');
+                setMotorIndexToRemove(null);
+              }}
+            >
+              Remover os serviços junto
+            </Button>
+            <Button variant="outline" onClick={() => setMotorIndexToRemove(null)}>
+              Cancelar
             </Button>
           </DialogFooter>
         </DialogContent>
