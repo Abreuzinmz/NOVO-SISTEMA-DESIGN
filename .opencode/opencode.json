@@ -1,0 +1,15 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "pencil": {
+      "type": "local",
+      "command": [
+        "C:\\Users\\Abreuzin\\AppData\\Local\\Programs\\Pencil\\resources\\app.asar.unpacked\\out\\mcp-server-windows-x64.exe",
+        "--app",
+        "desktop"
+      ],
+      "enabled": true,
+      "env": {}
+    }
+  }
+}

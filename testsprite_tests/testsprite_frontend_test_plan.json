@@ -1,0 +1,466 @@
+[
+  {
+    "id": "TC001",
+    "title": "Create a complete service order for an existing client",
+    "description": "Verifies that a user can create and save a new work order with client selection, motor details, parts, service items, and payment details, and that the new order is available afterward.",
+    "category": "New Work Order Creation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the new service order flow"
+      },
+      {
+        "type": "action",
+        "description": "Select an existing client from the suggestions"
+      },
+      {
+        "type": "action",
+        "description": "Select a motor model and enter a valid displacement"
+      },
+      {
+        "type": "action",
+        "description": "Choose received parts and additional parts needed"
+      },
+      {
+        "type": "action",
+        "description": "Add service items and assign values"
+      },
+      {
+        "type": "action",
+        "description": "Record an initial payment and discount"
+      },
+      {
+        "type": "action",
+        "description": "Save the service order"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the service order is created"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new order can be reopened"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "View and conclude an order from the modal",
+    "description": "This verifies that a user can open an existing order, review its details, and conclude it successfully from the modal view.",
+    "category": "Service Order Modal Viewer",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open an order from the dashboard or history list"
+      },
+      {
+        "type": "action",
+        "description": "Review the order details in the modal"
+      },
+      {
+        "type": "action",
+        "description": "Conclude the order"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the order is marked as concluded"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the modal no longer shows the order as open"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Open an order, review details, edit it, and conclude it",
+    "description": "Verifies that a user can open an existing service order, inspect its details, update fields, save changes, and conclude the order from the modal.",
+    "category": "New Work Order Creation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open an existing service order from the dashboard or history"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the order details modal is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the financial breakdown and line items are visible"
+      },
+      {
+        "type": "action",
+        "description": "Edit one or more order fields"
+      },
+      {
+        "type": "action",
+        "description": "Save the order changes"
+      },
+      {
+        "type": "action",
+        "description": "Conclude the order"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the order is concluded"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Edit and save order changes from the modal",
+    "description": "This verifies that a user can open an existing order, update its data, and save the changes from the modal.",
+    "category": "Service Order Modal Viewer",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open an order from the dashboard or history list"
+      },
+      {
+        "type": "action",
+        "description": "Start editing the order"
+      },
+      {
+        "type": "action",
+        "description": "Update the order data"
+      },
+      {
+        "type": "action",
+        "description": "Save the changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the updated order details are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the order remains accessible from the modal"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Register a new client with complete details",
+    "description": "Verifies that a user can create a client record with identity, contact, city, and type information and save it successfully.",
+    "category": "Client Registration",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the clients section"
+      },
+      {
+        "type": "action",
+        "description": "Start adding a new client"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the name field with a new client name"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the document field with a valid document number"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the phone field with a valid phone number"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the WhatsApp field with a valid WhatsApp number"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the city field with a city name"
+      },
+      {
+        "type": "action",
+        "description": "Select the client type"
+      },
+      {
+        "type": "action",
+        "description": "Save the client record"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the client is created"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the client appears in the client list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "Validate required fields when creating a service order",
+    "description": "Verifies that trying to save a new work order with missing required information shows validation feedback and allows the user to complete and save it.",
+    "category": "New Work Order Creation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the new service order flow"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to save the order without completing the required fields"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify validation feedback is visible"
+      },
+      {
+        "type": "action",
+        "description": "Complete the missing required order information"
+      },
+      {
+        "type": "action",
+        "description": "Save the service order"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the service order is created"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC010",
+    "title": "Search and open a client record from the clients list",
+    "description": "Verifies that a user can search for a client, see filtered results, and open the client overview and history.",
+    "category": "Client Search and Filter",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the clients section"
+      },
+      {
+        "type": "action",
+        "description": "Enter a client search term"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the filtered client results are shown"
+      },
+      {
+        "type": "action",
+        "description": "Open a client from the filtered results"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the client overview is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the client history is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC011",
+    "title": "Open a client history and jump to a related service order",
+    "description": "Verifies that a user can move from a client record to its history and then open a related order for review.",
+    "category": "Client Search and Filter",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the clients section"
+      },
+      {
+        "type": "action",
+        "description": "Search for a client with existing history"
+      },
+      {
+        "type": "action",
+        "description": "Open the client record"
+      },
+      {
+        "type": "action",
+        "description": "Open a related service order from the client history"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the service order details modal is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the order line items are visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC012",
+    "title": "Show validation for an incomplete client registration",
+    "description": "Verifies that required client fields must be completed and that validation feedback appears before the client can be saved.",
+    "category": "Client Registration",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the clients section"
+      },
+      {
+        "type": "action",
+        "description": "Start adding a new client"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to save the client with required information missing"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify validation feedback is visible"
+      },
+      {
+        "type": "action",
+        "description": "Complete the missing client information"
+      },
+      {
+        "type": "action",
+        "description": "Save the client record"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the client is created"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC013",
+    "title": "Print an order report from the modal",
+    "description": "This verifies that a user can open an existing order and access the printable report flow from the modal.",
+    "category": "Service Order Modal Viewer",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open an order from the dashboard or history list"
+      },
+      {
+        "type": "action",
+        "description": "Open the print report flow"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a printable report view is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the order report content is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC017",
+    "title": "Prevent concluding an invalid order",
+    "description": "This verifies that a user attempting to conclude an order with missing required information sees validation feedback and can complete the action after correcting the data.",
+    "category": "Service Order Modal Viewer",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open an order from the dashboard or history list"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to conclude the order with incomplete information"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a validation error is visible"
+      },
+      {
+        "type": "action",
+        "description": "Correct the missing information"
+      },
+      {
+        "type": "action",
+        "description": "Conclude the order"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the order is marked as concluded"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC018",
+    "title": "Handle an empty client search result",
+    "description": "Verifies that searching for unmatched client terms shows an empty state instead of results.",
+    "category": "Client Search and Filter",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Open the clients section"
+      },
+      {
+        "type": "action",
+        "description": "Enter a search term that matches no clients"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an empty state message is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no client results are shown"
+      }
+    ],
+    "priority": "Low"
+  }
+]

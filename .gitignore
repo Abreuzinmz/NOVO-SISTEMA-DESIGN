@@ -1,0 +1,21 @@
+node_modules/
+.next/
+*.tsbuildinfo
+next-env.d.ts
+.env.local
+.env.production
+.env*.local
+
+# Electron build outputs
+dist/
+out/
+
+# Database files
+*.db
+
+# Data backups (contain real customer PII - never commit)
+backups/
+backup_*.json
+scratch/*.json
+
+testsprite_tests\tmp\config.json
