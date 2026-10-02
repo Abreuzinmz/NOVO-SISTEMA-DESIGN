@@ -4696,8 +4696,11 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 }
 
 export function OSForm(props: React.ComponentProps<typeof OSFormImpl>) {
+  // Remonta o formulário sempre que muda a O.S. em edição (ou volta para "nova"),
+  // para que o estado de uma edição anterior não apareça em outra O.S.
+  const formKey = props.order ? `edit-${props.order.id}` : 'new';
   return (
-    <ErrorBoundary>
+    <ErrorBoundary key={formKey}>
       <OSFormImpl {...props} />
     </ErrorBoundary>
   );
