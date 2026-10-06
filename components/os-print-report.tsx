@@ -752,8 +752,12 @@ export function OSPrintReport({
             <div className="osc-os-title">O.S. Nº</div>
             <div className="osc-os-number">{formattedOsNum}</div>
             <div className="osc-os-date-row">
-              <span className="osc-os-date-label">📅 DATA DE EMISSÃO:</span>
+              <span className="osc-os-date-label">📅 ENTRADA:</span>
               <span className="osc-os-date-value">{getFormattedEmissionDate()}</span>
+            </div>
+            <div className="osc-os-date-row">
+              <span className="osc-os-date-label">EMISSÃO:</span>
+              <span className="osc-os-date-value">{new Date().toLocaleDateString('pt-BR')}</span>
             </div>
           </div>
         </div>
@@ -775,13 +779,18 @@ export function OSPrintReport({
               </div>
             </div>
 
-            {/* Card 2: CPF */}
+            {/* Card 2: CPF ou CNPJ, conforme o documento */}
             <div className="osc-client-card">
               <div className="osc-client-card-icon">
                 <CreditCard />
               </div>
               <div className="osc-client-card-info">
-                <span className="osc-client-card-label">CPF</span>
+                <span className="osc-client-card-label">
+                  {(() => {
+                    const digits = (client?.document || '').replace(/\D/g, '');
+                    return digits.length === 14 ? 'CNPJ' : digits.length === 11 ? 'CPF' : 'CPF/CNPJ';
+                  })()}
+                </span>
                 <span className="osc-client-card-value">
                   {client?.document?.trim() || ''}
                 </span>

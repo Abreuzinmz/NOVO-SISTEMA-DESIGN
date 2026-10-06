@@ -1115,9 +1115,9 @@ export function OSViewModal({
                     <Button
                       onClick={() => setIsEditingStatus(true)}
                       variant="outline"
-                      className="h-8 px-3 rounded-lg border-border bg-background hover:bg-secondary text-foreground font-black text-[10px] uppercase tracking-wider gap-1.5 shadow-sm"
+                      className="h-8 px-3 rounded-lg border-border bg-background hover:bg-secondary text-foreground font-semibold text-sm gap-1.5 shadow-sm"
                     >
-                      <Pencil className="w-3.5 h-3.5" /> EDITAR
+                      <Pencil className="w-3.5 h-3.5" /> Alterar status
                     </Button>
                     <div className="flex flex-col items-end gap-1.5">
                       <div className="flex items-center gap-2">
@@ -1134,6 +1134,14 @@ export function OSViewModal({
                       <span className="text-xs font-bold text-foreground">
                         Abertura: {order.arrivalDate ? new Date(order.arrivalDate + 'T12:00:00').toLocaleDateString('pt-BR') : new Date(order.createdAt).toLocaleDateString('pt-BR')}
                       </span>
+                      {!order.finished && order.serviceStatus !== 'Levou' && order.deliveryDate && (
+                        <>
+                          <span className="text-xs font-bold text-muted-foreground/40">•</span>
+                          <span className="text-xs font-bold text-foreground">
+                            Previsão: {new Date(order.deliveryDate + 'T12:00:00').toLocaleDateString('pt-BR')}
+                          </span>
+                        </>
+                      )}
                       {order.finished && (order.finishedAt || order.deliveryDate) && (
                         <>
                           <span className="text-xs font-bold text-muted-foreground/40">•</span>
@@ -1332,7 +1340,7 @@ export function OSViewModal({
                 {/* Bottom Section: Services List */}
                 <div className="border border-neutral-300 dark:border-neutral-800 rounded-xl bg-background overflow-hidden shadow-sm">
                   <div className="bg-secondary/30 px-4 py-3 border-b border-neutral-300 dark:border-neutral-800 flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300">SERVIÇOS EXECUTADOS</span>
+                    <span className="text-xs font-bold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">Serviços</span>
                     <span className="text-[10px] font-black text-neutral-700 dark:text-neutral-300 bg-secondary/60 px-2 py-0.5 rounded border border-neutral-300 dark:border-neutral-800">
                       {isEditing ? editServices.length : order.services.length} itens
                     </span>
@@ -1404,28 +1412,47 @@ export function OSViewModal({
                     </div>
                   ) : (
                     <div className="divide-y divide-neutral-200 dark:divide-neutral-800/80">
-                      {order.services.map((s) => (
-                        <div key={s.id} className="flex justify-between items-center px-4 py-3 text-sm hover:bg-secondary/20 transition-colors">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="font-black uppercase tracking-tight text-foreground truncate">
-                              {s.id === 'eix-retificar' && s.measure ? `Retificar Eixo — ${s.measure}` : s.name}
+                      {(() => {
+                        // Com 2+ motores, separa os serviços como no relatório: comuns, motor 1, motor 2...
+                        const renderService = (s: ServiceItem) => (
+                          <div key={s.id} className="flex justify-between items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary/20 transition-colors">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-xs font-semibold text-muted-foreground tabular-nums shrink-0 w-7">{s.quantity || 1}×</span>
+                              <span className="font-bold uppercase text-foreground break-words">
+                                {s.id === 'eix-retificar' && s.measure ? `Retificar Eixo — ${s.measure}` : s.name}
+                              </span>
+                              {s.measure && s.id !== 'eix-retificar' && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold uppercase bg-primary/10 text-primary border border-neutral-300 dark:border-neutral-700">
+                                  {s.measure}
+                                </span>
+                              )}
+                            </div>
+                            <span className="font-mono font-bold text-foreground shrink-0 tabular-nums">
+                              {(s.value * (s.quantity || 1)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                             </span>
-                            {s.measure && s.id !== 'eix-retificar' && (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-neutral-300 dark:border-neutral-750">
-                                {s.measure}
-                              </span>
-                            )}
-                            {s.quantity > 1 && (
-                              <span className="text-[10px] font-black px-1.5 py-0.5 bg-secondary/80 rounded border border-neutral-300 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300">
-                                ×{s.quantity}
-                              </span>
-                            )}
                           </div>
-                          <span className="font-mono font-black text-[#10B981] tracking-tight shrink-0">
-                            {(s.value * s.quantity).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                          </span>
-                        </div>
-                      ))}
+                        );
+                        if (motors.length < 2) return order.services.map(renderService);
+                        const isCommon = (s: ServiceItem) => s.motorId === 'all' || (s.motorId as unknown) === null;
+                        const motorIndexOf = (s: ServiceItem) => Number(s.motorId ?? '0');
+                        const groups: { title: string; items: ServiceItem[] }[] = [
+                          { title: 'Comuns a todos os motores', items: order.services.filter(isCommon) },
+                          ...motors.map((m, idx) => ({
+                            title: `Motor ${idx + 1}: ${[m.model, m.displacement, m.cylinders].filter(Boolean).join(' ')}`,
+                            items: order.services.filter(s => !isCommon(s) && motorIndexOf(s) === idx),
+                          })),
+                          {
+                            title: 'Sem motor definido',
+                            items: order.services.filter(s => !isCommon(s) && !(motorIndexOf(s) >= 0 && motorIndexOf(s) < motors.length)),
+                          },
+                        ];
+                        return groups.filter(g => g.items.length > 0).map(g => (
+                          <div key={g.title}>
+                            <div className="px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-muted-foreground bg-secondary/20">{g.title}</div>
+                            {g.items.map(renderService)}
+                          </div>
+                        ));
+                      })()}
                       {order.services.length === 0 && (
                         <div className="px-4 py-8 text-center text-xs text-neutral-500 dark:text-neutral-400 font-bold uppercase tracking-widest italic">
                           Nenhum serviço registrado
@@ -1883,35 +1910,35 @@ export function OSViewModal({
                 variant="ghost"
                 size="sm"
                 disabled={isEditingStatus}
-                onClick={() => setIsPreviewOpen(true)}
-                className="h-8 px-3 rounded-md text-muted-foreground hover:text-foreground gap-2 text-[10px] font-black uppercase tracking-wider disabled:opacity-50"
+                onClick={async () => {
+                  if (!order) return;
+                  if (groupedPayment) {
+                    setIsDeleteGroupedConfirmOpen(true);
+                  } else if (onDelete) {
+                    onDelete(order.id);
+                  } else {
+                    const ok = await confirmDialog.confirm({
+                      title: `Excluir O.S. #${order.osNumber || order.id}?`,
+                      description: "Esta ação não pode ser desfeita.",
+                    });
+                    if (!ok) return;
+                    deleteOrder(order.id);
+                    onClose();
+                  }
+                }}
+                className="h-9 px-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 gap-2 text-sm font-semibold disabled:opacity-50"
               >
-                <Printer className="w-4 h-4 stroke-[2]" /> IMPRIMIR RELATÓRIO
+                <Trash2 className="w-4 h-4 stroke-[2]" /> Excluir O.S.
               </Button>
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
                   disabled={isEditingStatus}
-                  onClick={async () => {
-                    if (!order) return;
-                    if (groupedPayment) {
-                      setIsDeleteGroupedConfirmOpen(true);
-                    } else if (onDelete) {
-                      onDelete(order.id);
-                    } else {
-                      const ok = await confirmDialog.confirm({
-                        title: `Excluir O.S. #${order.osNumber || order.id}?`,
-                        description: "Esta ação não pode ser desfeita.",
-                      });
-                      if (!ok) return;
-                      deleteOrder(order.id);
-                      onClose();
-                    }
-                  }}
-                  className="h-8 px-3 rounded-md text-[#FF5A5F] hover:bg-[#FF5A5F]/10 gap-2 text-[10px] font-black uppercase tracking-wider disabled:opacity-50"
+                  onClick={() => setIsPreviewOpen(true)}
+                  className="h-9 px-3 rounded-lg text-foreground gap-2 text-sm font-semibold disabled:opacity-50"
                 >
-                  <Trash2 className="w-4 h-4 stroke-[2]" /> EXCLUIR O.S.
+                  <Printer className="w-4 h-4 stroke-[2]" /> Imprimir
                 </Button>
                 {onEdit && (
                   <Button
@@ -1919,18 +1946,18 @@ export function OSViewModal({
                     size="sm"
                     disabled={isEditingStatus}
                     onClick={() => order && onEdit?.(order)}
-                    className="h-8 px-3 rounded-md border-neutral-300 dark:border-neutral-800 bg-background hover:bg-secondary text-foreground gap-2 text-[10px] font-black uppercase tracking-wider disabled:opacity-50"
+                    className="h-9 px-3 rounded-lg border-neutral-300 dark:border-neutral-800 bg-background hover:bg-secondary text-foreground gap-2 text-sm font-semibold disabled:opacity-50"
                   >
-                    <Edit className="w-4 h-4 stroke-[2]" /> EDITAR O.S.
+                    <Edit className="w-4 h-4 stroke-[2]" /> Editar O.S.
                   </Button>
                 )}
                 {order && order.paymentStatus === 'Pago' && !order.finished && (
                   <Button
                     onClick={handleConcluir}
                     disabled={isEditingStatus}
-                    className="h-8 px-3 rounded-md bg-[#10B981] hover:bg-[#10B981]/90 text-white font-black text-[10px] uppercase tracking-wider gap-2 shadow-sm disabled:opacity-50"
+                    className="solid-btn h-9 px-4 rounded-lg font-bold text-sm gap-2 shadow-sm disabled:opacity-50"
                   >
-                    <CheckCircle2 className="w-4 h-4 stroke-[2.5]" /> CONCLUIR
+                    <CheckCircle2 className="w-4 h-4 stroke-[2.5]" /> Finalizar O.S.
                   </Button>
                 )}
               </div>

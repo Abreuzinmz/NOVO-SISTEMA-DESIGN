@@ -2485,7 +2485,8 @@ function OSFormImpl({
                             value={osNumber}
                             onChange={e => setOsNumber(e.target.value)}
                             className="w-full h-12 pl-7 pr-3 font-mono text-sm font-bold rounded-xl bg-slate-100 dark:bg-white/5 border border-transparent text-slate-800 dark:text-slate-200 focus:outline-none focus:bg-white focus:border-slate-300 dark:focus:bg-transparent dark:focus:border-white/20 transition-all os-number-input"
-                            placeholder="1001"
+                            placeholder={String(Math.max(1000, ...orders.map(o => Number(o.osNumber || o.id) || 0)) + 1)}
+                            title="Deixe em branco para usar o próximo número livre"
                             disabled={!!order || readOnly}
                           />
                         </div>
@@ -2496,9 +2497,9 @@ function OSFormImpl({
                         <button
                           type="button"
                           onClick={handleAutoGenerateOS}
-                          className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors whitespace-nowrap cursor-pointer"
+                          className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors whitespace-nowrap cursor-pointer underline-offset-2 hover:underline"
                         >
-                          GERAR O.S. AUTOMÁTICA
+                          Usar próximo número
                         </button>
                       )}
                     </div>
@@ -3816,7 +3817,7 @@ function OSFormImpl({
                       id="motor-cylinders-input"
                       type="text"
                       disabled={readOnly}
-                      placeholder="Digite quantos cilindros são..."
+                      placeholder="Ex.: 4"
                       value={currentCylinders}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -4060,9 +4061,10 @@ function OSFormImpl({
                   <Button
                     type="button"
                     onClick={() => handleAddOrUpdateMotor()}
-                    className="w-full h-11 bg-zinc-800 text-white hover:bg-zinc-700 border border-zinc-700 rounded-lg cursor-pointer font-extrabold uppercase text-xs"
+                    variant="outline"
+                    className="w-full h-11 rounded-lg cursor-pointer font-bold text-sm"
                   >
-                    {editingIndex !== null ? 'SALVAR' : 'ADD'}
+                    {editingIndex !== null ? 'Salvar motor' : '+ Adicionar motor'}
                   </Button>
                 )}
               </div>
@@ -4190,7 +4192,8 @@ function OSFormImpl({
             </div>
           </div>
 
-          {/* CARD 7: FINALIZADO E ENTREGUE */}
+          {/* CARD 7: FINALIZADO E ENTREGUE (só ao editar) */}
+          {order && (
           <div className="flex justify-end w-full">
             <div className="bg-card border border-border/60 dark:border-white/[0.04] rounded-xl p-5 shadow-sm flex flex-col gap-4 select-none hover:border-foreground/10 transition-all w-full max-w-[320px]">
               <div
@@ -4240,6 +4243,7 @@ function OSFormImpl({
               </div>
             </div>
           </div>
+          )}
 
           {/* Barra de ações fixa no rodapé: salvar sempre à vista */}
           <div className="sticky bottom-0 z-30 -mx-2 px-2 py-3 flex items-center justify-between gap-3 bg-background/95 backdrop-blur border-t border-border pointer-events-auto print:hidden">

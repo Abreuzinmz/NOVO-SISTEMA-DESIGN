@@ -19,7 +19,6 @@ import {
   History, 
   FilePlus2,
   Wrench,
-  LogOut,
   Settings,
   Type,
   RotateCcw,
@@ -170,28 +169,6 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
             {!isExpanded && (
               <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-white text-[10px] font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
                 Configurações
-              </div>
-            )}
-          </div>
-
-          {/* Logout */}
-          <div className="relative group flex justify-center w-full">
-            <button 
-              onClick={() => {}}
-              className={cn(
-                "flex items-center rounded-xl transition-all duration-150 cursor-pointer text-muted-foreground hover:bg-secondary/40 hover:text-destructive w-full",
-                isExpanded 
-                  ? "gap-3 px-3.5 py-2.5 text-xs font-semibold" 
-                  : "w-9 h-9 justify-center"
-              )}
-              type="button"
-            >
-              <LogOut className="w-4 h-4 stroke-[1.5] shrink-0" />
-              {isExpanded && <span>Sair</span>}
-            </button>
-            {!isExpanded && (
-              <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-white text-[10px] font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
-                Sair
               </div>
             )}
           </div>
