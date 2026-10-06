@@ -109,14 +109,21 @@ const DashboardOrderRow = React.memo(({
       onClick={() => onView(order)}
       className={cn(
         "relative group rounded-lg border transition-colors duration-150 cursor-pointer",
-        "grid grid-cols-[88px_minmax(0,1.6fr)_minmax(0,1.3fr)_104px_176px_150px_40px] gap-x-3 items-center px-4 py-2.5 min-h-[56px]",
+        "grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_172px_124px_32px] xl:grid-cols-[88px_minmax(0,1.6fr)_minmax(0,1.3fr)_104px_176px_150px_40px] gap-x-3 items-center px-4 py-2.5 min-h-[56px]",
         "dark:bg-[#16161a] dark:border-[#27272a]/40 dark:hover:bg-[#1c1c21]",
         "bg-white border-[#e4e4e7]/70 hover:bg-[#f4f4f5]/70"
       )}
     >
       {/* Nº O.S. */}
-      <div className="font-mono font-black text-base text-foreground tabular-nums">
-        #{order.osNumber || order.id}
+      <div className="min-w-0">
+        <div className="font-mono font-black text-base text-foreground tabular-nums">
+          #{order.osNumber || order.id}
+        </div>
+        {arrival && (
+          <div className={cn("xl:hidden text-xs font-semibold", arrival.days >= 15 ? "text-red-600 dark:text-red-400" : arrival.days >= 7 ? "text-yellow-700 dark:text-yellow-400" : "text-muted-foreground")}>
+            {arrival.label}
+          </div>
+        )}
       </div>
 
       {/* Cliente (+ mecânico como linha de apoio) */}
@@ -149,7 +156,7 @@ const DashboardOrderRow = React.memo(({
       </div>
 
       {/* Chegada */}
-      <div className="text-sm leading-tight">
+      <div className="hidden xl:block text-sm leading-tight">
         {arrival ? (
           <>
             <div className={cn("font-semibold", arrival.days >= 15 ? "text-red-600 dark:text-red-400" : arrival.days >= 7 ? "text-yellow-700 dark:text-yellow-400" : "text-foreground")}>
@@ -362,7 +369,7 @@ export function Dashboard({
                     <span className="font-black text-foreground text-xs uppercase tracking-wide">
                       {client.nickname.toUpperCase()}
                     </span>
-                    <span className="text-[10px] text-muted-foreground font-semibold uppercase">
+                    <span className="text-xs text-muted-foreground font-semibold uppercase">
                       {client.name}
                     </span>
                   </>
@@ -370,7 +377,7 @@ export function Dashboard({
                   <span className="font-extrabold uppercase tracking-wide">{clientName}</span>
                 )}
                 {client?.phone && (
-                  <span className="text-[10px] text-muted-foreground font-bold">
+                  <span className="text-xs text-muted-foreground font-bold">
                     {client.phone}
                   </span>
                 )}
@@ -384,7 +391,7 @@ export function Dashboard({
                       <span className="font-black text-foreground text-xs uppercase tracking-wide">
                         {mechanic.nickname.toUpperCase()}
                       </span>
-                      <span className="text-[10px] text-muted-foreground font-semibold uppercase">
+                      <span className="text-xs text-muted-foreground font-semibold uppercase">
                         {mechanic.name}
                       </span>
                     </>
@@ -675,11 +682,11 @@ export function Dashboard({
           {/* ═══ TABLE ═══ */}
           <div className="w-full space-y-3">
             {/* Table Header (Grid matching row cols) */}
-            <div className="hidden md:grid grid-cols-[88px_minmax(0,1.6fr)_minmax(0,1.3fr)_104px_176px_150px_40px] gap-x-3 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="hidden md:grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_172px_124px_32px] xl:grid-cols-[88px_minmax(0,1.6fr)_minmax(0,1.3fr)_104px_176px_150px_40px] gap-x-3 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <div>Nº O.S.</div>
               <div>Cliente</div>
               <div>Motor</div>
-              <div>Chegada</div>
+              <div className="hidden xl:block">Chegada</div>
               <div>Status</div>
               <div>Pagamento</div>
               <div></div>
@@ -836,7 +843,7 @@ export function Dashboard({
 
               {statusChangeData.newStatus === 'Levou' && (
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-wider flex items-center gap-1">
+                  <label className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" /> Data em que o cliente levou
                   </label>
                   <DatePicker
@@ -848,8 +855,8 @@ export function Dashboard({
               )}
 
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                  Observação do Status <span className="text-[8px] text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  Observação do Status <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span>
                 </label>
                 <Input
                   placeholder="Ex: Aguardando pistões 0.50"

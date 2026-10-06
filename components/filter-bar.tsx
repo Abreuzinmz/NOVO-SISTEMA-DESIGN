@@ -109,7 +109,7 @@ export interface FilterBarProps {
 function FilterField({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={cn('flex flex-col gap-1', className)}>
-      <span className='text-[9px] font-bold uppercase tracking-wider text-muted-foreground/50 px-0.5'>{label}</span>
+      <span className='text-xs font-bold uppercase tracking-wider text-muted-foreground/50 px-0.5'>{label}</span>
       {children}
     </div>
   );
@@ -117,7 +117,7 @@ function FilterField({ label, children, className }: { label: string; children: 
 
 function FilterTag({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-primary/10 text-primary border border-primary/20 transition-all hover:bg-primary/15 group">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold bg-primary/10 text-primary border border-primary/20 transition-all hover:bg-primary/15 group">
       {label}
       <button onClick={onRemove} className="ml-1 w-3.5 h-3.5 rounded-md inline-flex items-center justify-center hover:bg-destructive/20 hover:text-destructive transition-colors">
         <X className="w-2.5 h-2.5" />
@@ -175,7 +175,7 @@ function SortButton({ label, field, currentField, direction, onSort }: {
     <button
       onClick={() => { onSort(field, isActive && direction === 'desc' ? 'asc' : 'desc'); }}
       className={cn(
-        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all duration-200',
+        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200',
         isActive ? 'bg-foreground text-background shadow-sm' : 'text-muted-foreground/60 hover:text-foreground hover:bg-secondary/45'
       )}
     >
@@ -218,11 +218,11 @@ function ActiveFilters({ filters, clients, onRemoveFilter, onClear, count }: {
     <div className="flex flex-wrap items-center gap-2 pt-1">
       <div className="flex items-center gap-1.5 mr-1">
         <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-        <span className="text-[10px] text-muted-foreground/70 font-bold uppercase tracking-wider">Filtros ativos:</span>
+        <span className="text-xs text-muted-foreground/70 font-bold uppercase tracking-wider">Filtros ativos:</span>
       </div>
       {tags.map((t) => <FilterTag key={t.key} label={t.label} onRemove={() => onRemoveFilter(t.key)} />)}
       {tags.length > 1 && (
-        <button onClick={onClear} className="text-[10px] text-muted-foreground hover:text-destructive transition-colors font-bold uppercase tracking-wider ml-1">
+        <button onClick={onClear} className="text-xs text-muted-foreground hover:text-destructive transition-colors font-bold uppercase tracking-wider ml-1">
           Limpar tudo
         </button>
       )}
@@ -453,7 +453,7 @@ export function FilterBar({
                 <SlidersHorizontal className="w-4 h-4 text-primary stroke-[2]" />
                 <h3 className="text-sm font-extrabold uppercase tracking-wider text-foreground">Mais filtros</h3>
                 {activeFilterCount > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-foreground text-background text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded-full bg-foreground text-background text-xs font-bold">
                     {activeFilterCount} ativo(s)
                   </span>
                 )}
@@ -475,7 +475,7 @@ export function FilterBar({
                 <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-2 col-span-1 sm:col-span-2'>
                   <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
                     <ArrowUpDown className='w-3.5 h-3.5 text-foreground/70' />
-                    <span className='text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground/80'>Ordenar Resultados Por</span>
+                    <span className='text-xs font-extrabold uppercase tracking-wider text-muted-foreground/80'>Ordenar Resultados Por</span>
                   </div>
                   <div className='flex flex-wrap items-center gap-1.5 pt-1'>
                     {sortOptions.map((opt) => (
@@ -574,7 +574,7 @@ export function FilterBar({
                 <Command className="bg-transparent">
                   <CommandInput placeholder='Buscar motor...' className="h-8 text-xs" />
                   <CommandList className="max-h-[220px]">
-                    <CommandEmpty className="py-3 text-center text-[10px] text-muted-foreground/60 font-bold uppercase tracking-wider">Nenhum motor encontrado</CommandEmpty>
+                    <CommandEmpty className="py-3 text-center text-xs text-muted-foreground/60 font-bold uppercase tracking-wider">Nenhum motor encontrado</CommandEmpty>
                     <CommandGroup heading="Motores Cadastrados" className="px-2 pb-2">
                       <CommandItem
                         value="todos-os-motores"
@@ -632,7 +632,7 @@ export function FilterBar({
                 <Command className="bg-transparent">
                   <CommandInput placeholder='Buscar serviço...' className="h-8 text-xs" />
                   <CommandList className="max-h-[220px]">
-                    <CommandEmpty className="py-3 text-center text-[10px] text-muted-foreground/60 font-bold uppercase tracking-wider">Nenhum serviço encontrado</CommandEmpty>
+                    <CommandEmpty className="py-3 text-center text-xs text-muted-foreground/60 font-bold uppercase tracking-wider">Nenhum serviço encontrado</CommandEmpty>
                     <CommandGroup heading="Serviços Cadastrados" className="px-2 pb-2">
                       <CommandItem
                         value="todos-os-servicos"
@@ -669,12 +669,12 @@ export function FilterBar({
                   <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-2'>
                     <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
                       <User className='w-3.5 h-3.5 text-foreground/70' />
-                      <span className='text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground/80'>Cliente</span>
+                      <span className='text-xs font-extrabold uppercase tracking-wider text-muted-foreground/80'>Cliente</span>
                     </div>
                     <div className='space-y-2'>
                       {showClient && (
                         <div className='space-y-1'>
-                          <Label className='text-[9px] font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
+                          <Label className='text-xs font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
                             <User className='w-2.5 h-2.5 text-muted-foreground/50' /> Cliente
                           </Label>
                           <Popover open={clientOpen} onOpenChange={setClientOpen}>
@@ -690,7 +690,7 @@ export function FilterBar({
                               <Command className="bg-transparent">
                                 <CommandInput placeholder='Buscar por nome ou documento...' className="h-8 text-xs" />
                                 <CommandList className="max-h-[200px]">
-                                  <CommandEmpty className="py-3 text-center text-[10px] text-muted-foreground/60 font-bold uppercase tracking-wider">Nenhum cliente encontrado</CommandEmpty>
+                                  <CommandEmpty className="py-3 text-center text-xs text-muted-foreground/60 font-bold uppercase tracking-wider">Nenhum cliente encontrado</CommandEmpty>
                                   <CommandGroup heading="Clientes Cadastrados" className="px-2 pb-2">
                                     <CommandItem
                                       value="todos-os-clientes"
@@ -709,7 +709,7 @@ export function FilterBar({
                                       >
                                         <div className="flex flex-col">
                                           <span className='text-xs font-bold uppercase tracking-tight'>{c.name}</span>
-                                          <span className='text-[9px] text-muted-foreground/60 font-bold font-mono'>{c.phone}</span>
+                                          <span className='text-xs text-muted-foreground/60 font-bold font-mono'>{c.phone}</span>
                                         </div>
                                         {filters.clientId === c.id && <Check className='h-3.5 w-3.5 text-foreground' />}
                                       </CommandItem>
@@ -723,7 +723,7 @@ export function FilterBar({
                       )}
                       {showClientType && (
                         <div className='space-y-1'>
-                          <Label className='text-[9px] font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
+                          <Label className='text-xs font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
                             <User className='w-2.5 h-2.5 text-muted-foreground/50' /> Tipo de Cliente
                           </Label>
                           <select
@@ -746,12 +746,12 @@ export function FilterBar({
                   <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-2'>
                     <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
                       <Check className='w-3.5 h-3.5 text-foreground/70' />
-                      <span className='text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground/80'>Status</span>
+                      <span className='text-xs font-extrabold uppercase tracking-wider text-muted-foreground/80'>Status</span>
                     </div>
                     <div className='space-y-2'>
                       {showServiceStatus && (
                         <div className='space-y-1'>
-                          <Label className='text-[9px] font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
+                          <Label className='text-xs font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
                             <Check className='w-2.5 h-2.5 text-muted-foreground/50' /> Status Ordem
                           </Label>
                           <select
@@ -773,17 +773,17 @@ export function FilterBar({
                   <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-2'>
                     <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
                       <Calendar className='w-3.5 h-3.5 text-foreground/70' />
-                      <span className='text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground/80'>Período</span>
+                      <span className='text-xs font-extrabold uppercase tracking-wider text-muted-foreground/80'>Período</span>
                     </div>
                     <div className='space-y-2'>
                       <div className='space-y-1'>
-                        <Label className='text-[9px] font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
+                        <Label className='text-xs font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
                           <Calendar className='w-2.5 h-2.5 text-muted-foreground/50' /> De
                         </Label>
                         <DateField value={filters.dateFrom} onChange={(v) => updateFilter('dateFrom', v)} placeholder='De (dd/mm)' className='bg-background' />
                       </div>
                       <div className='space-y-1'>
-                        <Label className='text-[9px] font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
+                        <Label className='text-xs font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
                           <Calendar className='w-2.5 h-2.5 text-muted-foreground/50' /> Até
                         </Label>
                         <DateField value={filters.dateTo} onChange={(v) => updateFilter('dateTo', v)} placeholder='Até (dd/mm)' className='bg-background' />
@@ -797,11 +797,11 @@ export function FilterBar({
                   <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-2'>
                     <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
                       <DollarSign className='w-3.5 h-3.5 text-foreground/70' />
-                      <span className='text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground/80'>Valor</span>
+                      <span className='text-xs font-extrabold uppercase tracking-wider text-muted-foreground/80'>Valor</span>
                     </div>
                     <div className='space-y-2'>
                       <div className='space-y-1'>
-                        <Label className='text-[9px] font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
+                        <Label className='text-xs font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
                           <DollarSign className='w-2.5 h-2.5 text-muted-foreground/50' /> Valor Mínimo
                         </Label>
                         <div className='relative'>
@@ -817,7 +817,7 @@ export function FilterBar({
                         </div>
                       </div>
                       <div className='space-y-1'>
-                        <Label className='text-[9px] font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
+                        <Label className='text-xs font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
                           <DollarSign className='w-2.5 h-2.5 text-muted-foreground/50' /> Valor Máximo
                         </Label>
                         <div className='relative'>

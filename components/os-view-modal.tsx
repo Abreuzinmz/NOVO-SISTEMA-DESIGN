@@ -810,31 +810,31 @@ export function OSViewModal({
   const getStatusBadge = (status: ServiceStatus) => {
     switch (status) {
       case 'Na Fila': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-secondary text-secondary-foreground border border-border">
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-secondary text-secondary-foreground border border-border">
           <span className="w-1.5 h-1.5 rounded-full bg-secondary-foreground/60 shrink-0" />
           NA FILA
         </span>
       );
       case 'Em Andamento': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-[#0EA5E9]/10 text-[#0EA5E9] dark:text-[#38BDF8] border border-[#0EA5E9]/20 dark:border-[#38BDF8]/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-[#0EA5E9]/10 text-[#0EA5E9] dark:text-[#38BDF8] border border-[#0EA5E9]/20 dark:border-[#38BDF8]/20">
           <span className="w-1.5 h-1.5 rounded-full bg-[#0EA5E9] dark:bg-[#38BDF8] shrink-0" />
           EM ANDAMENTO
         </span>
       );
       case 'Aguardando Peça': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
           AGUARDANDO PEÇA
         </span>
       );
       case 'Pronto': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-[#34C759]/10 text-[#34C759] border border-[#34C759]/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-[#34C759]/10 text-[#34C759] border border-[#34C759]/20">
           <span className="w-1.5 h-1.5 rounded-full bg-[#34C759] shrink-0" />
           PRONTO
         </span>
       );
       case 'Levou': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
           <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
           LEVOU
         </span>
@@ -869,8 +869,8 @@ export function OSViewModal({
         </span>
       );
       case 'Levou': return (
-        <span className="flex items-center gap-1.5 text-xs font-bold text-red-600 dark:text-red-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+        <span className="flex items-center gap-1.5 text-xs font-bold text-violet-600 dark:text-violet-400">
+          <span className="w-1.5 h-1.5 rounded-full bg-violet-500 shrink-0" />
           Levou
         </span>
       );
@@ -880,22 +880,22 @@ export function OSViewModal({
   const getPaymentBadge = (status: string) => {
     switch (status) {
       case 'Não Pago': return (
-        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-[#FF5A5F]/10 text-[#FF5A5F] border border-[#FF5A5F]/20">
-          PENDENTE
+        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-[#FF5A5F]/10 text-[#FF5A5F] border border-[#FF5A5F]/20">
+          NÃO PAGO
         </span>
       );
       case 'Entrada': return (
-        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
           ENTRADA
         </span>
       );
       case 'Pago': return (
-        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-[#34C759]/10 text-[#34C759] border border-[#34C759]/20">
+        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-[#34C759]/10 text-[#34C759] border border-[#34C759]/20">
           PAGO
         </span>
       );
       default: return (
-        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-secondary text-secondary-foreground border border-border">
+        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-secondary text-secondary-foreground border border-border">
           {status.toUpperCase()}
         </span>
       );
@@ -1004,7 +1004,7 @@ export function OSViewModal({
                 <span className="font-black text-xl tracking-tighter text-blue-600 dark:text-blue-400">
                   #{String(order.osNumber || order.id).padStart(4, '0')}
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mt-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 mt-1">
                   O.S. Nº
                 </span>
               </div>
@@ -1020,7 +1020,7 @@ export function OSViewModal({
                   </h2>
                   {client && (
                     <span className={cn(
-                      "inline-flex items-center px-1.5 py-0.5 text-[9px] font-extrabold tracking-widest uppercase rounded border",
+                      "inline-flex items-center px-1.5 py-0.5 text-xs font-extrabold tracking-widest uppercase rounded border",
                       client.clientType === 'mechanic'
                         ? "bg-[#0EA5E9]/10 text-[#0EA5E9] border-[#0EA5E9]/20"
                         : "bg-secondary text-secondary-foreground border-border"
@@ -1078,7 +1078,7 @@ export function OSViewModal({
                       <Button
                         onClick={handleSaveStatus}
                         disabled={isSubmittingPayment}
-                        className="h-8 px-3 rounded-lg bg-[#34C759] hover:bg-[#34C759]/90 text-white font-black text-[10px] uppercase tracking-wider gap-1 shadow-sm disabled:opacity-50"
+                        className="h-8 px-3 rounded-lg solid-btn font-black text-xs uppercase tracking-wider gap-1 shadow-sm disabled:opacity-50"
                       >
                         {isSubmittingPayment ? (
                           <span>SALVANDO...</span>
@@ -1092,7 +1092,7 @@ export function OSViewModal({
                         onClick={handleDiscardStatus}
                         disabled={isSubmittingPayment}
                         variant="outline"
-                        className="h-8 px-3 rounded-lg border-border bg-background hover:bg-secondary text-foreground font-black text-[10px] uppercase tracking-wider gap-1 shadow-sm disabled:opacity-50"
+                        className="h-8 px-3 rounded-lg border-border bg-background hover:bg-secondary text-foreground font-black text-xs uppercase tracking-wider gap-1 shadow-sm disabled:opacity-50"
                       >
                         <X className="w-3.5 h-3.5" /> CANCELAR
                       </Button>
@@ -1125,7 +1125,7 @@ export function OSViewModal({
                         {getPaymentBadge(order.paymentStatus)}
                       </div>
                       {order.statusObservation && (
-                        <div className="text-[10px] text-muted-foreground font-semibold max-w-[180px] break-words text-right">
+                        <div className="text-xs text-muted-foreground font-semibold max-w-[180px] break-words text-right">
                           {order.statusObservation}
                         </div>
                       )}
@@ -1175,7 +1175,7 @@ export function OSViewModal({
                 )}>
                     {showPartsLeft && (
                       <div className="border border-neutral-300 dark:border-neutral-800 rounded-xl bg-background p-4 shadow-sm min-w-0">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300 block mb-3">MATERIAL DEIXADO</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300 block mb-3">MATERIAL DEIXADO</span>
                         {isEditing ? (
                           <div className="flex flex-col gap-2">
                             {editPartsLeft.map((p, idx) => {
@@ -1187,7 +1187,7 @@ export function OSViewModal({
                                     value={name}
                                     placeholder="Material"
                                     onChange={(e) => handleUpdatePartLeft(idx, e.target.value, qtyStr)}
-                                    className="flex-1 h-8 px-2 py-1 text-xs font-semibold uppercase bg-card"
+                                    className="flex-1 h-8 px-2 py-1 text-xs font-semibold uppercase placeholder:normal-case bg-card"
                                   />
                                   <Input
                                     type="number"
@@ -1212,7 +1212,7 @@ export function OSViewModal({
                               variant="outline"
                               size="sm"
                               onClick={handleAddPartLeft}
-                              className="mt-1 h-8 rounded border-dashed text-[10px] font-black uppercase tracking-wider"
+                              className="mt-1 h-8 rounded border-dashed text-xs font-black uppercase tracking-wider"
                             >
                               <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar
                             </Button>
@@ -1245,7 +1245,7 @@ export function OSViewModal({
 
                   {/* Motor */}
                   <div className="border border-neutral-300 dark:border-neutral-800 rounded-xl bg-background p-4 shadow-sm min-w-0">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300 block mb-3">MOTOR</span>
+                    <span className="text-xs font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300 block mb-3">MOTOR</span>
                     <div className="space-y-2">
                       {motors.map((m, idx) => (
                         <div key={idx} className="flex items-center flex-wrap gap-x-3 gap-y-1">
@@ -1271,7 +1271,7 @@ export function OSViewModal({
                 {/* Peças Adicionais: full-width row so chips can stay on a single line */}
                 {showAdditionalParts && (
                   <div className="border border-neutral-300 dark:border-neutral-800 rounded-xl bg-background p-4 shadow-sm">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300 block mb-3">PEÇAS ADICIONAIS</span>
+                    <span className="text-xs font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300 block mb-3">PEÇAS ADICIONAIS</span>
                     {isEditing ? (
                       <div className="flex flex-col gap-2">
                         {editAdditionalParts.map((p, idx) => {
@@ -1283,7 +1283,7 @@ export function OSViewModal({
                                 value={name}
                                 placeholder="Peça"
                                 onChange={(e) => handleUpdateAdditionalPart(idx, e.target.value, qtyStr)}
-                                className="flex-1 h-8 px-2 py-1 text-xs font-semibold uppercase bg-card"
+                                className="flex-1 h-8 px-2 py-1 text-xs font-semibold uppercase placeholder:normal-case bg-card"
                               />
                               <Input
                                 type="number"
@@ -1308,7 +1308,7 @@ export function OSViewModal({
                           variant="outline"
                           size="sm"
                           onClick={handleAddAdditionalPart}
-                          className="mt-1 h-8 rounded border-dashed text-[10px] font-black uppercase tracking-wider"
+                          className="mt-1 h-8 rounded border-dashed text-xs font-black uppercase tracking-wider"
                         >
                           <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar
                         </Button>
@@ -1341,7 +1341,7 @@ export function OSViewModal({
                 <div className="border border-neutral-300 dark:border-neutral-800 rounded-xl bg-background overflow-hidden shadow-sm">
                   <div className="bg-secondary/30 px-4 py-3 border-b border-neutral-300 dark:border-neutral-800 flex justify-between items-center">
                     <span className="text-xs font-bold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">Serviços</span>
-                    <span className="text-[10px] font-black text-neutral-700 dark:text-neutral-300 bg-secondary/60 px-2 py-0.5 rounded border border-neutral-300 dark:border-neutral-800">
+                    <span className="text-xs font-black text-neutral-700 dark:text-neutral-300 bg-secondary/60 px-2 py-0.5 rounded border border-neutral-300 dark:border-neutral-800">
                       {isEditing ? editServices.length : order.services.length} itens
                     </span>
                   </div>
@@ -1355,21 +1355,21 @@ export function OSViewModal({
                               value={s.name}
                               placeholder="Nome do serviço"
                               onChange={(e) => handleUpdateService(idx, 'name', e.target.value.toUpperCase())}
-                              className="flex-1 h-8 px-2 py-1 text-xs font-semibold uppercase bg-card"
+                              className="flex-1 h-8 px-2 py-1 text-xs font-semibold uppercase placeholder:normal-case bg-card"
                             />
                             <Input
                               type="text"
                               value={s.measure || ''}
                               placeholder="Medida (Ex: 0.25)"
                               onChange={(e) => handleUpdateService(idx, 'measure', e.target.value.toUpperCase())}
-                              className="w-28 h-8 px-2 py-1 text-xs font-semibold uppercase bg-card"
+                              className="w-28 h-8 px-2 py-1 text-xs font-semibold uppercase placeholder:normal-case bg-card"
                             />
                           </div>
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-black text-neutral-600 dark:text-neutral-300 uppercase">Valor:</span>
+                              <span className="text-xs font-black text-neutral-600 dark:text-neutral-300 uppercase">Valor:</span>
                               <div className="relative group">
-                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-primary/90 text-[10px] font-mono font-black">R$</span>
+                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-primary/90 text-xs font-mono font-black">R$</span>
                                 <Input
                                   type="number"
                                   value={s.value}
@@ -1378,7 +1378,7 @@ export function OSViewModal({
                                   className="w-24 h-8 pl-7 pr-2 py-1 text-xs font-mono font-semibold bg-card"
                                 />
                               </div>
-                              <span className="text-[10px] font-black text-neutral-600 dark:text-neutral-300 uppercase ml-1">Qtd:</span>
+                              <span className="text-xs font-black text-neutral-600 dark:text-neutral-300 uppercase ml-1">Qtd:</span>
                               <Input
                                 type="number"
                                 value={s.quantity}
@@ -1404,7 +1404,7 @@ export function OSViewModal({
                           variant="outline"
                           size="sm"
                           onClick={handleAddService}
-                          className="w-full h-8 rounded border-dashed text-[10px] font-black uppercase tracking-wider bg-card border-neutral-300 dark:border-neutral-800"
+                          className="w-full h-8 rounded border-dashed text-xs font-black uppercase tracking-wider bg-card border-neutral-300 dark:border-neutral-800"
                         >
                           <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar Serviço
                         </Button>
@@ -1466,15 +1466,15 @@ export function OSViewModal({
                 {(((order.observations && order.observations.replace(/\[ENTRADAS_JSON:\[[\s\S]*?\]\]/i, "").trim().length > 0)) || isEditing) && (
                   <div className="border border-neutral-300 dark:border-neutral-800 rounded-xl bg-background overflow-hidden shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
                     <div className="bg-secondary/30 px-4 py-3 border-b border-neutral-300 dark:border-neutral-800 flex justify-between items-center">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300">OBSERVAÇÕES</span>
+                      <span className="text-xs font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300">OBSERVAÇÕES</span>
                     </div>
                     <div className="p-4 text-xs font-semibold">
                       {isEditing ? (
                         <Textarea
                           value={editObservations}
                           onChange={(e) => setEditObservations(e.target.value)}
-                          placeholder="ADICIONAR OBSERVAÇÕES..."
-                          className="min-h-[100px] w-full p-3 border border-neutral-300 dark:border-neutral-800 bg-card rounded-lg focus:outline-none focus:border-secondary-foreground transition-all text-xs font-semibold uppercase resize-y leading-relaxed"
+                          placeholder="Observações sobre o serviço (opcional)"
+                          className="min-h-[100px] w-full p-3 border border-neutral-300 dark:border-neutral-800 bg-card rounded-lg focus:outline-none focus:border-secondary-foreground transition-all text-xs font-semibold uppercase placeholder:normal-case resize-y leading-relaxed"
                         />
                       ) : (
                         <p className="whitespace-pre-wrap font-bold text-foreground uppercase tracking-tight text-xs leading-relaxed">
@@ -1515,7 +1515,7 @@ export function OSViewModal({
                       <div className="bg-card border border-neutral-300 dark:border-neutral-800 rounded-2xl p-4 space-y-3 shadow-xs">
                         {/* Cabeçalho do Card (Label + Botão Desfazer) */}
                         <div className="flex justify-between items-center">
-                          <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground/70">
+                          <span className="text-xs font-black uppercase tracking-wider text-muted-foreground/70">
                             HISTÓRICO DE ENTRADAS ({groupedPayment.entradas?.length || 0})
                           </span>
                           <Button
@@ -1523,7 +1523,7 @@ export function OSViewModal({
                             size="sm"
                             onClick={() => setIsDissolveModalOpen(true)}
                             title="Desfazer este Pagamento Agrupado"
-                            className="h-6 px-2 text-[10px] font-black text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded uppercase flex items-center gap-1 cursor-pointer"
+                            className="h-6 px-2 text-xs font-black text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded uppercase flex items-center gap-1 cursor-pointer"
                           >
                             <Unlink className="w-3 h-3 stroke-[2.5]" /> DESFAZER
                           </Button>
@@ -1571,13 +1571,13 @@ export function OSViewModal({
                                   </div>
                                 </div>
 
-                                <div className="flex justify-between items-center text-[10px] pt-1 border-t border-indigo-500/10">
+                                <div className="flex justify-between items-center text-xs pt-1 border-t border-indigo-500/10">
                                   <span className="text-muted-foreground font-black uppercase">DATA:</span>
                                   <span className="font-mono font-bold text-foreground">{formatDate(e.data)}</span>
                                 </div>
 
                                 {e.nomePagador && e.nomePagador.trim() !== '' && (
-                                  <div className="pt-1 border-t border-indigo-500/10 text-[10px]">
+                                  <div className="pt-1 border-t border-indigo-500/10 text-xs">
                                     <span className="text-muted-foreground font-black uppercase block">PAGADOR:</span>
                                     <span className="font-black text-foreground uppercase break-words leading-tight block mt-0.5">
                                       {e.nomePagador.toUpperCase()}
@@ -1586,7 +1586,7 @@ export function OSViewModal({
                                 )}
 
                                 {e.observacao && (
-                                  <div className="text-[10px] text-muted-foreground italic pt-0.5">
+                                  <div className="text-xs text-muted-foreground italic pt-0.5">
                                     {e.observacao}
                                   </div>
                                 )}
@@ -1597,7 +1597,7 @@ export function OSViewModal({
                               <button
                                 type="button"
                                 onClick={() => setShowAllEntradas(prev => !prev)}
-                                className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center justify-center w-full py-1 cursor-pointer transition-colors"
+                                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center justify-center w-full py-1 cursor-pointer transition-colors"
                               >
                                 {showAllEntradas
                                   ? 'Ver menos'
@@ -1653,7 +1653,7 @@ export function OSViewModal({
                                 totalValue: groupedPayment.valorTotal,
                                 paidElsewhere: groupedPayment.valorPago,
                               })}
-                              className="w-full max-w-[220px] h-8 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-wider gap-1.5 shadow-sm rounded-lg cursor-pointer"
+                              className="w-full max-w-[220px] h-8 solid-btn font-black text-xs uppercase tracking-wider gap-1.5 shadow-sm rounded-lg cursor-pointer"
                             >
                               <CreditCard className="w-3.5 h-3.5 stroke-[2.5]" />
                               NOVA ENTRADA NO GRUPO
@@ -1667,7 +1667,7 @@ export function OSViewModal({
                       {/* ═══ NÃO PAGO ═══ */}
                       {order.paymentStatus === 'Não Pago' && (
                         <div className="space-y-2 text-center py-3">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 block">SITUAÇÃO</span>
+                          <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 block">SITUAÇÃO</span>
                           <span className="text-xs font-bold text-[#FF5A5F] bg-[#FF5A5F]/10 border border-[#FF5A5F]/20 px-3 py-1 rounded-full inline-block">
                             AGUARDANDO PAGAMENTO
                           </span>
@@ -1678,10 +1678,10 @@ export function OSViewModal({
                       {order.paymentStatus === 'Entrada' && (
                         <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 space-y-2.5 animate-in fade-in duration-200">
                           <div className="flex items-center justify-between">
-                            <span className="text-[9px] uppercase tracking-widest text-blue-600 dark:text-blue-400 font-black">
+                            <span className="text-xs uppercase tracking-widest text-blue-600 dark:text-blue-400 font-black">
                               STATUS DO PAGAMENTO
                             </span>
-                            <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[9px] font-black tracking-widest uppercase animate-pulse">
+                            <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-xs font-black tracking-widest uppercase animate-pulse">
                               PAGO PARCIAL
                             </Badge>
                           </div>
@@ -1697,7 +1697,7 @@ export function OSViewModal({
                               return (
                                 <div key={entry.id || index} className="bg-white dark:bg-zinc-950 border border-blue-500/10 dark:border-blue-500/5 rounded-lg p-2.5 space-y-1.5 shadow-xs">
                                   <div className="flex justify-between items-center border-b border-blue-500/10 pb-1 mb-1">
-                                    <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                                    <span className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider">
                                       {index + 1}. {methodText}
                                     </span>
                                     <div className="flex items-center gap-1">
@@ -1731,13 +1731,13 @@ export function OSViewModal({
                                     </div>
                                   </div>
                                   {entry.date && (
-                                    <div className="flex justify-between items-center text-[10px] text-foreground">
+                                    <div className="flex justify-between items-center text-xs text-foreground">
                                       <span className="text-muted-foreground uppercase font-black">DATA:</span>
                                       <span className="font-mono font-bold">{formatDate(entry.date)}</span>
                                     </div>
                                   )}
                                   {entry.payer && entry.payer.trim() && (
-                                    <div className="flex flex-col gap-0.5 text-[10px] pt-1 border-t border-dashed border-blue-500/5 mt-1">
+                                    <div className="flex flex-col gap-0.5 text-xs pt-1 border-t border-dashed border-blue-500/5 mt-1">
                                       <span className="text-muted-foreground uppercase font-black">PAGADOR:</span>
                                       <span className="font-black uppercase break-words leading-tight mt-0.5">
                                         {entry.payer.toUpperCase()}
@@ -1755,10 +1755,10 @@ export function OSViewModal({
                       {order.paymentStatus === 'Pago' && (
                         <div className="bg-green-500/5 dark:bg-green-500/10 border border-green-500/20 rounded-xl p-3 space-y-2.5 animate-in fade-in duration-200">
                           <div className="flex items-center justify-between">
-                            <span className="text-[9px] uppercase tracking-widest text-green-600 dark:text-green-400 font-black">
+                            <span className="text-xs uppercase tracking-widest text-green-600 dark:text-green-400 font-black">
                               STATUS DO PAGAMENTO
                             </span>
-                            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 text-[9px] font-black tracking-widest uppercase">
+                            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 text-xs font-black tracking-widest uppercase">
                               TOTAL QUITADO
                             </Badge>
                           </div>
@@ -1774,7 +1774,7 @@ export function OSViewModal({
                               return (
                                 <div key={entry.id || index} className="bg-white dark:bg-zinc-950 border border-green-500/10 dark:border-green-500/5 rounded-lg p-2.5 space-y-1.5 shadow-xs">
                                   <div className="flex justify-between items-center border-b border-green-500/10 pb-1 mb-1">
-                                    <span className="text-[10px] font-black text-green-600 dark:text-green-400 uppercase tracking-wider">
+                                    <span className="text-xs font-black text-green-600 dark:text-green-400 uppercase tracking-wider">
                                       {index + 1}. {methodText}
                                     </span>
                                     <div className="flex items-center gap-1">
@@ -1808,13 +1808,13 @@ export function OSViewModal({
                                     </div>
                                   </div>
                                   {entry.date && (
-                                    <div className="flex justify-between items-center text-[10px] text-foreground">
+                                    <div className="flex justify-between items-center text-xs text-foreground">
                                       <span className="text-muted-foreground uppercase font-black">DATA:</span>
                                       <span className="font-mono font-bold">{formatDate(entry.date)}</span>
                                     </div>
                                   )}
                                   {entry.payer && entry.payer.trim() && (
-                                    <div className="flex flex-col gap-0.5 text-[10px] pt-1 border-t border-dashed border-green-500/5 mt-1">
+                                    <div className="flex flex-col gap-0.5 text-xs pt-1 border-t border-dashed border-green-500/5 mt-1">
                                       <span className="text-muted-foreground uppercase font-black">PAGADOR:</span>
                                       <span className="font-black uppercase break-words leading-tight mt-0.5">
                                         {entry.payer.toUpperCase()}
@@ -2053,7 +2053,7 @@ export function OSViewModal({
                 <h3 className="text-sm font-black text-foreground uppercase tracking-wider flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" /> Status Incompleto
                 </h3>
-                <p className="text-[11px] text-muted-foreground font-semibold leading-relaxed">
+                <p className="text-xs text-muted-foreground font-semibold leading-relaxed">
                   Esta O.S. está com o status <strong className="text-foreground">{getStatusOptionLabel(order.serviceStatus)}</strong>. Para concluir, o status precisa estar como <strong className="text-foreground">PRONTO</strong>.
                 </p>
               </div>
@@ -2063,7 +2063,7 @@ export function OSViewModal({
                   size="sm"
                   disabled={isSubmittingPayment}
                   onClick={() => setIsStatusConfirmOpen(false)}
-                  className="h-8 px-3 rounded-md text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background border-neutral-300 dark:border-neutral-800 disabled:opacity-50"
+                  className="h-8 px-3 rounded-md text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background border-neutral-300 dark:border-neutral-800 disabled:opacity-50"
                 >
                   Cancelar
                 </Button>
@@ -2071,7 +2071,7 @@ export function OSViewModal({
                   size="sm"
                   disabled={isSubmittingPayment}
                   onClick={confirmStatusAndConcluir}
-                  className="h-8 px-3 rounded-md bg-[#10B981] hover:bg-[#10B981]/90 text-white font-black text-[10px] uppercase tracking-wider shadow-sm disabled:opacity-50"
+                  className="h-8 px-3 rounded-md solid-btn font-black text-xs uppercase tracking-wider shadow-sm disabled:opacity-50"
                 >
                   {isSubmittingPayment ? 'Atualizando...' : 'Marcar como Pronto'}
                 </Button>
@@ -2089,12 +2089,12 @@ export function OSViewModal({
             >
               <div className="space-y-1">
                 <h3 className="text-sm font-black text-foreground uppercase tracking-wider">Finalizar O.S.</h3>
-                <p className="text-[11px] text-muted-foreground font-semibold leading-relaxed">
+                <p className="text-xs text-muted-foreground font-semibold leading-relaxed">
                   Informe a data de finalização
                 </p>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black text-neutral-600 dark:text-neutral-300 uppercase tracking-widest block">
+                <label className="text-xs font-black text-neutral-600 dark:text-neutral-300 uppercase tracking-widest block">
                   DATA DE FINALIZAÇÃO
                 </label>
                 <Input
@@ -2111,7 +2111,7 @@ export function OSViewModal({
                   size="sm"
                   disabled={isSubmittingPayment}
                   onClick={() => setIsConfirmingConcluir(false)}
-                  className="h-8 px-3 rounded-md text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background border-neutral-300 dark:border-neutral-800 disabled:opacity-50"
+                  className="h-8 px-3 rounded-md text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background border-neutral-300 dark:border-neutral-800 disabled:opacity-50"
                 >
                   Cancelar
                 </Button>
@@ -2119,7 +2119,7 @@ export function OSViewModal({
                   size="sm"
                   disabled={!concluirDate || isSubmittingPayment}
                   onClick={confirmConcluir}
-                  className="h-8 px-3 rounded-md bg-[#10B981] hover:bg-[#10B981]/90 text-white font-black text-[10px] uppercase tracking-wider shadow-sm disabled:opacity-50"
+                  className="h-8 px-3 rounded-md solid-btn font-black text-xs uppercase tracking-wider shadow-sm disabled:opacity-50"
                 >
                   {isSubmittingPayment ? 'Confirmando...' : 'Confirmar'}
                 </Button>
@@ -2176,7 +2176,7 @@ export function OSViewModal({
                           />
                           <div>
                             <span className="font-mono font-black text-xs block text-foreground">O.S. #{pOrder.id}</span>
-                            <span className="text-[10px] text-muted-foreground font-semibold">
+                            <span className="text-xs text-muted-foreground font-semibold">
                               {pOrder.motorModel} {pOrder.displacement}
                             </span>
                           </div>
@@ -2186,7 +2186,7 @@ export function OSViewModal({
                             {pNet.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                           </span>
                           {pOrder.discount && Number(pOrder.discount) > 0 ? (
-                            <span className="text-[9px] text-amber-500 font-semibold block">
+                            <span className="text-xs text-amber-500 font-semibold block">
                               Desconto: {Number(pOrder.discount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                             </span>
                           ) : null}
@@ -2281,7 +2281,7 @@ export function OSViewModal({
               <div className="space-y-3 py-1">
                 <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-lg text-red-700 dark:text-red-300 text-xs font-semibold space-y-1">
                   <p className="font-bold uppercase tracking-wider">Atenção: O.S. Pertence a um Pagamento Agrupado!</p>
-                  <p className="text-[11px] leading-relaxed">
+                  <p className="text-xs leading-relaxed">
                     Esta O.S. faz parte de um pagamento agrupado com outras {groupedPayment.osIds.length - 1} O.S. (#{groupedPayment.osIds.filter(id => id !== order.id).join(', #')}).
                   </p>
                 </div>
@@ -2308,7 +2308,7 @@ export function OSViewModal({
                         await deleteOrder(order.id, { dissolveGroupIfOneLeft: true });
                         onClose();
                       }}
-                      className="w-full text-[10px] font-black uppercase tracking-wider h-9"
+                      className="w-full text-xs font-black uppercase tracking-wider h-9"
                     >
                       DESFAZER AGRUPAMENTO E EXCLUIR O.S.
                     </Button>
@@ -2320,7 +2320,7 @@ export function OSViewModal({
                         await deleteOrder(order.id, { dissolveGroupIfOneLeft: false });
                         onClose();
                       }}
-                      className="w-full text-[10px] font-black uppercase tracking-wider h-9 border-indigo-500/30 text-indigo-600 dark:text-indigo-400"
+                      className="w-full text-xs font-black uppercase tracking-wider h-9 border-indigo-500/30 text-indigo-600 dark:text-indigo-400"
                     >
                       MANTER GRUPO REAJUSTADO E EXCLUIR O.S.
                     </Button>
@@ -2334,7 +2334,7 @@ export function OSViewModal({
                       await deleteOrder(order.id);
                       onClose();
                     }}
-                    className="w-full text-[10px] font-black uppercase tracking-wider h-9"
+                    className="w-full text-xs font-black uppercase tracking-wider h-9"
                   >
                     CONFIRMAR EXCLUSÃO DA O.S.
                   </Button>
@@ -2343,7 +2343,7 @@ export function OSViewModal({
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsDeleteGroupedConfirmOpen(false)}
-                  className="w-full text-[10px] font-black uppercase tracking-wider h-8 text-muted-foreground"
+                  className="w-full text-xs font-black uppercase tracking-wider h-8 text-muted-foreground"
                 >
                   CANCELAR
                 </Button>
@@ -2365,17 +2365,17 @@ export function OSViewModal({
               <div className="space-y-3 py-1">
                 <div className="bg-secondary p-3 rounded-lg space-y-1.5 text-xs border border-neutral-200 dark:border-neutral-800">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground uppercase font-black text-[10px]">O.S. Incluídas:</span>
+                    <span className="text-muted-foreground uppercase font-black text-xs">O.S. Incluídas:</span>
                     <span className="font-bold font-mono text-foreground">{groupedPayment.osIds.length} O.S. (#{groupedPayment.osIds.join(', #')})</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground uppercase font-black text-[10px]">Valor Total do Grupo:</span>
+                    <span className="text-muted-foreground uppercase font-black text-xs">Valor Total do Grupo:</span>
                     <span className="font-mono font-black text-foreground">
                       {groupedPayment.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground uppercase font-black text-[10px]">Valor Já Pago:</span>
+                    <span className="text-muted-foreground uppercase font-black text-xs">Valor Já Pago:</span>
                     <span className="font-mono font-black text-green-600 dark:text-green-400">
                       {groupedPayment.valorPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </span>
@@ -2404,7 +2404,7 @@ export function OSViewModal({
                         setIsDissolveModalOpen(false);
                         await dissolveGroupedPayment(groupedPayment.id, { actionOnPaid: 'distribute' });
                       }}
-                      className="w-full text-[10px] font-black uppercase tracking-wider h-9 bg-indigo-600 hover:bg-indigo-700 text-white"
+                      className="w-full text-xs font-black uppercase tracking-wider h-9 solid-btn"
                     >
                       DISTRIBUIR VALOR PAGO PROPORCIONALMENTE
                     </Button>
@@ -2415,7 +2415,7 @@ export function OSViewModal({
                         setIsDissolveModalOpen(false);
                         await dissolveGroupedPayment(groupedPayment.id, { actionOnPaid: 'discard' });
                       }}
-                      className="w-full text-[10px] font-black uppercase tracking-wider h-9 border-amber-500/30 text-amber-600 dark:text-amber-400"
+                      className="w-full text-xs font-black uppercase tracking-wider h-9 border-amber-500/30 text-amber-600 dark:text-amber-400"
                     >
                       DESCARTAR HISTÓRICO E RESETAR O.S.
                     </Button>
@@ -2428,7 +2428,7 @@ export function OSViewModal({
                       setIsDissolveModalOpen(false);
                       await dissolveGroupedPayment(groupedPayment.id, { actionOnPaid: 'discard' });
                     }}
-                    className="w-full text-[10px] font-black uppercase tracking-wider h-9"
+                    className="w-full text-xs font-black uppercase tracking-wider h-9"
                   >
                     DESFAZER AGRUPAMENTO
                   </Button>
@@ -2437,7 +2437,7 @@ export function OSViewModal({
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsDissolveModalOpen(false)}
-                  className="w-full text-[10px] font-black uppercase tracking-wider h-8 text-muted-foreground"
+                  className="w-full text-xs font-black uppercase tracking-wider h-8 text-muted-foreground"
                 >
                   CANCELAR
                 </Button>

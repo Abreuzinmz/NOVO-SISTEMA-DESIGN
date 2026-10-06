@@ -531,7 +531,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
 
           {showDiscount && (
             <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-neutral-200 dark:border-neutral-800">
-              <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground shrink-0">
+              <label className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground shrink-0">
                 <Percent className="w-3.5 h-3.5 text-amber-500" /> Desconto
               </label>
               <div className="flex items-center gap-1 h-8 px-2.5 rounded-lg border border-neutral-300 dark:border-neutral-800 bg-card">
@@ -549,7 +549,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
           )}
 
           {showDiscount && parsedDiscount > 0 && (
-            <div className="flex items-center justify-end gap-1.5 text-[10px] font-bold text-muted-foreground -mt-1.5">
+            <div className="flex items-center justify-end gap-1.5 text-xs font-bold text-muted-foreground -mt-1.5">
               <span className="uppercase tracking-wider">Total com Desconto</span>
               <span className="font-mono text-foreground">{formatBRL(netValue)}</span>
             </div>
@@ -561,7 +561,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
               type="button"
               onClick={() => handleSelectMode('entrada')}
               className={cn(
-                'h-7 rounded-md text-[10px] font-black uppercase tracking-wider transition-colors',
+                'h-7 rounded-md text-xs font-black uppercase tracking-wider transition-colors',
                 paymentMode === 'entrada'
                   ? 'bg-amber-500 text-white shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -573,7 +573,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
               type="button"
               onClick={() => handleSelectMode('quitado')}
               className={cn(
-                'h-7 rounded-md text-[10px] font-black uppercase tracking-wider transition-colors',
+                'h-7 rounded-md text-xs font-black uppercase tracking-wider transition-colors',
                 paymentMode === 'quitado'
                   ? 'bg-green-500 text-white shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -584,7 +584,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
           </div>
 
           <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-neutral-200 dark:border-neutral-800">
-            <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground shrink-0">
+            <label className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground shrink-0">
               <DollarSign className="w-3.5 h-3.5 text-[#00ac56]" /> Valor
             </label>
             <div className={cn(
@@ -606,14 +606,14 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
           </div>
 
           {paymentMode === 'entrada' && parsedAmount > 0 && (
-            <div className="flex items-center justify-end gap-1.5 text-[10px] font-bold text-amber-600 dark:text-amber-400 -mt-1.5">
+            <div className="flex items-center justify-end gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 -mt-1.5">
               <span className="uppercase tracking-wider">Restante Após Entrada</span>
               <span className="font-mono">{formatBRL(afterEntryBalance)}</span>
             </div>
           )}
 
           <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-neutral-200 dark:border-neutral-800">
-            <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground shrink-0">
+            <label className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground shrink-0">
               <CalendarIcon className="w-3.5 h-3.5 text-[#00ac56]" /> Data
             </label>
             <div className="flex items-center gap-1.5 shrink-0">
@@ -628,7 +628,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
               <button
                 type="button"
                 onClick={() => setDate(getTodayDateString())}
-                className="h-8 px-1.5 rounded-lg border border-neutral-300 dark:border-neutral-800 text-[9px] font-black uppercase tracking-wide text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors shrink-0"
+                className="h-8 px-1.5 rounded-lg border border-neutral-300 dark:border-neutral-800 text-xs font-black uppercase tracking-wide text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors shrink-0"
               >
                 Hoje
               </button>
@@ -636,7 +636,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
           </div>
 
           <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-neutral-200 dark:border-neutral-800">
-            <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground shrink-0">
+            <label className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground shrink-0">
               <CreditCard className="w-3.5 h-3.5 text-[#00ac56]" /> Forma de pagamento
             </label>
             <Select value={method} onValueChange={(val) => setMethod(val as PaymentMethodType | null)}>
@@ -665,7 +665,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
 
           {method === 'credito' && (
             <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-neutral-200 dark:border-neutral-800 animate-in fade-in duration-200">
-              <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground shrink-0">
+              <label className="text-xs font-black uppercase tracking-wider text-muted-foreground shrink-0">
                 Parcelas
               </label>
               <Select value={installment} onValueChange={(val) => val && setInstallment(val)}>
@@ -683,7 +683,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
 
           {method === 'pix' && (
             <div className="space-y-1.5 pt-1 animate-in fade-in duration-200">
-              <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+              <label className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground">
                 <User className="w-3.5 h-3.5 text-[#00ac56]" /> Pago por
               </label>
               <div className="flex items-center gap-2">
@@ -691,13 +691,13 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
                   type="text"
                   value={payer}
                   onChange={e => setPayer(e.target.value.toUpperCase())}
-                  placeholder="NOME"
-                  className="flex-1 h-8 px-2.5 rounded-lg border border-neutral-300 dark:border-neutral-800 bg-card text-xs font-semibold uppercase outline-none focus:border-[#00ac56] transition-colors"
+                  placeholder="Nome de quem pagou"
+                  className="flex-1 h-8 px-2.5 rounded-lg border border-neutral-300 dark:border-neutral-800 bg-card text-xs font-semibold uppercase placeholder:normal-case outline-none focus:border-[#00ac56] transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setPayer((clientName || 'CLIENTE').toUpperCase())}
-                  className="h-8 px-2.5 rounded-lg border border-neutral-300 dark:border-neutral-800 text-[9px] font-black uppercase tracking-wide text-muted-foreground hover:bg-secondary transition-colors shrink-0"
+                  className="h-8 px-2.5 rounded-lg border border-neutral-300 dark:border-neutral-800 text-xs font-black uppercase tracking-wide text-muted-foreground hover:bg-secondary transition-colors shrink-0"
                 >
                   Usar Cliente
                 </button>
@@ -712,7 +712,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
             variant="outline"
             disabled={busy}
             onClick={() => onOpenChange(false)}
-            className="flex-1 h-9 rounded-lg font-black text-[10px] uppercase tracking-wider"
+            className="flex-1 h-9 rounded-lg font-black text-xs uppercase tracking-wider"
           >
             Cancelar
           </Button>
@@ -1173,8 +1173,8 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                             type="text"
                             value={pagoClientName}
                             onChange={e => setPagoClientName(e.target.value.toUpperCase())}
-                            placeholder="NOME"
-                            className="h-[42px] px-3.5 rounded-xl border border-[#e2e8f0] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-sm font-semibold uppercase outline-none focus:border-[#00ac56] focus:ring-2 focus:ring-[#00ac56]/20 transition-all"
+                            placeholder="Nome de quem pagou"
+                            className="h-[42px] px-3.5 rounded-xl border border-[#e2e8f0] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-sm font-semibold uppercase placeholder:normal-case outline-none focus:border-[#00ac56] focus:ring-2 focus:ring-[#00ac56]/20 transition-all"
                           />
                         </div>
                       )}
@@ -1237,7 +1237,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                       className="h-6 px-2 rounded-full border border-neutral-300 dark:border-neutral-800 bg-card text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex items-center gap-1"
                     >
                       <Pencil className="w-3 h-3" />
-                      <span className="text-[9px] font-black uppercase tracking-wide">Editar Pagamento</span>
+                      <span className="text-xs font-black uppercase tracking-wide">Editar Pagamento</span>
                     </button>
                   </div>
 
@@ -1258,21 +1258,21 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                         <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center shrink-0">
                           <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
                         </div>
-                        <span className="text-[11px] text-muted-foreground flex-1 min-w-0">Valor total pago</span>
+                        <span className="text-xs text-muted-foreground flex-1 min-w-0">Valor total pago</span>
                         <span className="text-sm font-black font-mono text-foreground shrink-0">{formatBRL(totalValue)}</span>
                       </div>
                       <div className="flex items-center gap-2.5 py-2.5">
                         <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center shrink-0">
                           <CalendarIcon className="w-3.5 h-3.5 text-muted-foreground" />
                         </div>
-                        <span className="text-[11px] text-muted-foreground flex-1 min-w-0">Data do pagamento</span>
+                        <span className="text-xs text-muted-foreground flex-1 min-w-0">Data do pagamento</span>
                         <span className="text-xs font-black text-foreground shrink-0">{formatDateDisplay(pagoDate)}</span>
                       </div>
                       <div className="flex items-center gap-2.5 py-2.5">
                         <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center shrink-0">
                           <CreditCard className="w-3.5 h-3.5 text-muted-foreground" />
                         </div>
-                        <span className="text-[11px] text-muted-foreground flex-1 min-w-0">Forma de pagamento</span>
+                        <span className="text-xs text-muted-foreground flex-1 min-w-0">Forma de pagamento</span>
                         <span className="text-xs font-black text-foreground shrink-0">
                           {pagoMethod === 'pix' ? 'PIX' : pagoMethod === 'dinheiro' ? 'Dinheiro' : pagoMethod === 'debito' ? 'Débito' : `Crédito (${pagoInstallment})`}
                         </span>
@@ -1282,7 +1282,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                           <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center shrink-0">
                             <User className="w-3.5 h-3.5 text-muted-foreground" />
                           </div>
-                          <span className="text-[11px] text-muted-foreground flex-1 min-w-0">Nome do pagador</span>
+                          <span className="text-xs text-muted-foreground flex-1 min-w-0">Nome do pagador</span>
                           <span className="text-xs font-black text-foreground truncate max-w-[45%]">{pagoClientName}</span>
                         </div>
                       )}
@@ -1312,7 +1312,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                       <div key={entry.id || index} className="lancamento-card-rf shadow-xs">
                         <div className="lancamento-header-rf">
                           <div className="lancamento-title-rf">
-                            <span className="text-black dark:text-white text-[9px]">●</span>
+                            <span className="text-black dark:text-white text-xs">●</span>
                             <span>LANÇAMENTO {numFormatted}</span>
                           </div>
                           <div className="flex items-center gap-1">
@@ -1413,7 +1413,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                       <CheckCircle2 className="w-5 h-5 text-[#00ac56]" />
                     </div>
                     <p className="text-xs font-black uppercase tracking-wide text-foreground">Pagamento já quitado</p>
-                    <p className="text-[11px] text-muted-foreground leading-relaxed max-w-[220px]">
+                    <p className="text-xs text-muted-foreground leading-relaxed max-w-[220px]">
                       Para lançar um novo valor, edite ou remova um dos lançamentos ao lado.
                     </p>
                   </div>
@@ -1484,14 +1484,14 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                         type="text"
                         value={entradaClientName}
                         onChange={e => setEntradaClientName(e.target.value.toUpperCase())}
-                        placeholder="NOME"
-                        className="h-[38px] px-3 rounded-xl border border-[#e2e8f0] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-xs font-semibold uppercase outline-none focus:border-[#00ac56] focus:ring-2 focus:ring-[#00ac56]/20 transition-all"
+                        placeholder="Nome de quem pagou"
+                        className="h-[38px] px-3 rounded-xl border border-[#e2e8f0] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-xs font-semibold uppercase placeholder:normal-case outline-none focus:border-[#00ac56] focus:ring-2 focus:ring-[#00ac56]/20 transition-all"
                       />
                     </div>
 
                     <button
                       type="button"
-                      className="btn-action-grey-rf !h-[34px] !text-[10px]"
+                      className="btn-action-grey-rf !h-[34px] !text-xs"
                       onClick={() => {
                         const name = clientName || 'CLIENTE';
                         setEntradaClientName(name.toUpperCase());

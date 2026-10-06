@@ -2475,7 +2475,7 @@ function OSFormImpl({
                 <div className="flex items-start gap-4 flex-wrap">
                     {/* O.S. Nº */}
                     <div className="w-32 space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">O.S. Nº</label>
+                      <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">O.S. Nº</label>
                       <div className="relative flex items-center gap-2.5">
                         <div className="relative w-full">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold text-xs">#</span>
@@ -2506,7 +2506,7 @@ function OSFormImpl({
 
                     {/* DATA DE CHEGADA */}
                     <div className="w-[200px] shrink-0 space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">DATA DE CHEGADA:</label>
+                      <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">DATA DE CHEGADA:</label>
                       <div className="relative">
                         <DatePicker
                           value={arrivalDate}
@@ -2597,7 +2597,7 @@ function OSFormImpl({
                             {exactMatchClient && (
                               <div className="p-3 mb-1 bg-amber-500/10 rounded-xl border border-amber-500/20 text-xs text-amber-700 dark:text-amber-400 font-bold flex flex-col gap-1">
                                 <span>⚠️ Cliente já cadastrado</span>
-                                <span className="font-normal text-[10px] text-muted-foreground">O nome "{clientSearchText}" já existe. Selecione o cliente na lista abaixo para prosseguir.</span>
+                                <span className="font-normal text-xs text-muted-foreground">O nome "{clientSearchText}" já existe. Selecione o cliente na lista abaixo para prosseguir.</span>
                               </div>
                             )}
                             <div className="max-h-[300px] overflow-y-auto space-y-0.5">
@@ -2623,7 +2623,7 @@ function OSFormImpl({
                                       e.stopPropagation();
                                       loadClientsData(true);
                                     }}
-                                    className="h-7 px-3 text-[10px] uppercase font-bold border-destructive/30 hover:bg-destructive/10 hover:text-destructive mx-auto block"
+                                    className="h-7 px-3 text-xs uppercase font-bold border-destructive/30 hover:bg-destructive/10 hover:text-destructive mx-auto block"
                                   >
                                     Tentar Novamente
                                   </Button>
@@ -2702,7 +2702,7 @@ function OSFormImpl({
                                           </span>
                                         )}
                                         {(client.phone || client.document) ? (
-                                          <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                          <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                             {client.phone && <span>{maskPhone(client.phone)}</span>}
                                             {client.phone && client.document && (
                                               <span className="text-slate-400 dark:text-slate-600 font-bold">•</span>
@@ -2710,16 +2710,16 @@ function OSFormImpl({
                                             {client.document && <span>{maskCPFCNPJ(client.document)}</span>}
                                           </div>
                                         ) : (!client.nickname && (
-                                          <span className="text-[11px] text-slate-400 mt-0.5">Sem contato</span>
+                                          <span className="text-xs text-slate-400 mt-0.5">Sem contato</span>
                                         ))}
                                       </div>
                                       <div className="shrink-0 flex items-center gap-1.5">
                                         {client.clientType === 'mechanic' ? (
-                                          <span className="text-[10px] font-bold tracking-wider bg-[#EFF6FF] text-[#2563EB] dark:bg-sky-950/60 dark:text-sky-400 border border-[#BFDBFE] dark:border-sky-800 rounded-lg px-2.5 py-0.5 uppercase">
+                                          <span className="text-xs font-bold tracking-wider bg-[#EFF6FF] text-[#2563EB] dark:bg-sky-950/60 dark:text-sky-400 border border-[#BFDBFE] dark:border-sky-800 rounded-lg px-2.5 py-0.5 uppercase">
                                             MECÂNICO
                                           </span>
                                         ) : (
-                                          <span className="text-[10px] font-bold tracking-wider bg-[#F8FAFC] text-[#475569] dark:bg-white/5 dark:text-slate-300 border border-[#E2E8F0] dark:border-white/10 rounded-lg px-2.5 py-0.5 uppercase">
+                                          <span className="text-xs font-bold tracking-wider bg-[#F8FAFC] text-[#475569] dark:bg-white/5 dark:text-slate-300 border border-[#E2E8F0] dark:border-white/10 rounded-lg px-2.5 py-0.5 uppercase">
                                             CLIENTE
                                           </span>
                                         )}
@@ -2738,7 +2738,7 @@ function OSFormImpl({
 
                     {/* Linha 2.5: Mecânico Selector */}
                     <div ref={osMechContainerRef} className="space-y-1.5 relative">
-                      <Label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">MECÂNICO DA O.S. (OPCIONAL)</Label>
+                      <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">MECÂNICO DA O.S. (OPCIONAL)</Label>
                       <div className="relative w-full">
                         <Input
                           type="text"
@@ -2816,7 +2816,7 @@ function OSFormImpl({
                                         </span>
                                       )}
                                       {(mech.phone || mech.document) && (
-                                        <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                        <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                           {mech.phone && <span>{maskPhone(mech.phone)}</span>}
                                           {mech.phone && mech.document && (
                                             <span className="text-slate-400 dark:text-slate-600 font-bold">•</span>
@@ -2825,7 +2825,7 @@ function OSFormImpl({
                                         </div>
                                       )}
                                     </div>
-                                    <span className="text-[10px] font-bold tracking-wider bg-[#EFF6FF] text-[#2563EB] dark:bg-sky-950/60 dark:text-sky-400 border border-[#BFDBFE] dark:border-sky-800 rounded-lg px-2.5 py-0.5 uppercase shrink-0">
+                                    <span className="text-xs font-bold tracking-wider bg-[#EFF6FF] text-[#2563EB] dark:bg-sky-950/60 dark:text-sky-400 border border-[#BFDBFE] dark:border-sky-800 rounded-lg px-2.5 py-0.5 uppercase shrink-0">
                                       MECÂNICO
                                     </span>
                                   </button>
@@ -2833,7 +2833,7 @@ function OSFormImpl({
                               })
                             ) : filteredNonMechanicsForOS.length > 0 ? (
                               <>
-                                <div className="px-3 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-slate-50 dark:bg-white/5 rounded-lg">
+                                <div className="px-3 py-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider bg-slate-50 dark:bg-white/5 rounded-lg">
                                   Não marcados como mecânico ainda
                                 </div>
                                 {filteredNonMechanicsForOS.map((client) => {
@@ -2863,7 +2863,7 @@ function OSFormImpl({
                                           e.stopPropagation();
                                           handleMarkAsMechanic(client);
                                         }}
-                                        className="shrink-0 flex items-center gap-1 px-2.5 py-1 text-[10px] font-extrabold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/60 border border-sky-200 dark:border-sky-800 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                                        className="shrink-0 flex items-center gap-1 px-2.5 py-1 text-xs font-extrabold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/60 border border-sky-200 dark:border-sky-800 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                                       >
                                         <Plus className="w-3 h-3 stroke-[2.5]" />
                                         <span>{isUpdating ? 'Marcando...' : 'Marcar como mecânico'}</span>
@@ -2934,7 +2934,7 @@ function OSFormImpl({
                               <button
                                 type="button"
                                 onClick={handleOpenEditClientModal}
-                                className="text-[11px] font-bold text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer transition-colors"
+                                className="text-xs font-bold text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer transition-colors"
                               >
                                 Editar Cliente
                               </button>
@@ -2973,7 +2973,7 @@ function OSFormImpl({
                                 <User className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                               </div>
                               <div className="min-w-0">
-                                <p className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Tipo / Categoria</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tipo / Categoria</p>
                                 <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 break-words">
                                   {selectedClient?.clientType === 'mechanic' ? 'Mecânico Parceiro' : 'Cliente'}
                                 </p>
@@ -2990,7 +2990,7 @@ function OSFormImpl({
                                     <Phone className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                                   </div>
                                   <div className="min-w-0">
-                                    <p className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Telefone</p>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Telefone</p>
                                     <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
                                       {maskPhone(selectedClient.phone)}
                                     </p>
@@ -3003,7 +3003,7 @@ function OSFormImpl({
                                     <Phone className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                                   </div>
                                   <div className="min-w-0">
-                                    <p className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Telefone 2</p>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Telefone 2</p>
                                     <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
                                       {maskPhone(selectedClient.phone2)}
                                     </p>
@@ -3020,7 +3020,7 @@ function OSFormImpl({
                                 <FileText className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                               </div>
                               <div className="min-w-0">
-                                <p className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Documento (CPF/CNPJ)</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Documento (CPF/CNPJ)</p>
                                 <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
                                   {maskCPFCNPJ(selectedClient.document)}
                                 </p>
@@ -3035,7 +3035,7 @@ function OSFormImpl({
                                 <MapPin className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                               </div>
                               <div className="min-w-0">
-                                <p className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Localização / Endereço</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Localização / Endereço</p>
                                 <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 break-words leading-relaxed">
                                   {selectedClient.city}
                                 </p>
@@ -3059,7 +3059,7 @@ function OSFormImpl({
                                 <Wrench className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
                                 <div>
                                   <span className="text-[13.5px] font-bold text-[#1E293B] dark:text-slate-200 block leading-tight">Dados do Mecânico</span>
-                                  <span className="text-[10.5px] font-medium text-slate-400 dark:text-slate-500 block leading-tight mt-0.5">Mecânico da O.S.</span>
+                                  <span className="text-xs font-medium text-slate-400 dark:text-slate-500 block leading-tight mt-0.5">Mecânico da O.S.</span>
                                 </div>
                               </div>
                               {!readOnly && (
@@ -3067,7 +3067,7 @@ function OSFormImpl({
                                   <button
                                     type="button"
                                     onClick={() => openEditClientModalFor(mechanic)}
-                                    className="text-[11px] font-bold text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer transition-colors"
+                                    className="text-xs font-bold text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer transition-colors"
                                   >
                                     Editar Mecânico
                                   </button>
@@ -3108,7 +3108,7 @@ function OSFormImpl({
                                   <Wrench className="w-3 h-3 text-sky-600 dark:text-sky-400" />
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Tipo / Categoria</p>
+                                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tipo / Categoria</p>
                                   <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 break-words">
                                     {mechanic.clientType === 'mechanic' ? 'Mecânico Parceiro' : 'Mecânico'}
                                   </p>
@@ -3122,7 +3122,7 @@ function OSFormImpl({
                                     <Phone className="w-3 h-3 text-sky-600 dark:text-sky-400" />
                                   </div>
                                   <div className="min-w-0">
-                                    <p className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Telefone de Contato</p>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Telefone de Contato</p>
                                     <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">{maskPhone(mechanic.phone)}</p>
                                   </div>
                                 </div>
@@ -3135,7 +3135,7 @@ function OSFormImpl({
                                     <FileText className="w-3 h-3 text-sky-600 dark:text-sky-400" />
                                   </div>
                                   <div className="min-w-0">
-                                    <p className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Documento (CPF/CNPJ)</p>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Documento (CPF/CNPJ)</p>
                                     <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">{maskCPFCNPJ(mechanic.document)}</p>
                                   </div>
                                 </div>
@@ -3148,7 +3148,7 @@ function OSFormImpl({
                                     <MapPin className="w-3 h-3 text-sky-600 dark:text-sky-400" />
                                   </div>
                                   <div className="min-w-0">
-                                    <p className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Localização / Endereço</p>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Localização / Endereço</p>
                                     <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 break-words leading-relaxed">{mechanic.city}</p>
                                   </div>
                                 </div>
@@ -3165,7 +3165,7 @@ function OSFormImpl({
                               <Wrench className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
                               <div>
                                 <span className="text-[13.5px] font-bold text-[#1E293B] dark:text-slate-200 block leading-tight">Dados do Mecânico</span>
-                                <span className="text-[10.5px] font-medium text-slate-400 dark:text-slate-500 block leading-tight mt-0.5">Mecânico da O.S. (Opcional)</span>
+                                <span className="text-xs font-medium text-slate-400 dark:text-slate-500 block leading-tight mt-0.5">Mecânico da O.S. (Opcional)</span>
                               </div>
                             </div>
                           </div>
@@ -3238,7 +3238,7 @@ function OSFormImpl({
                                               </span>
                                             )}
                                             {(mech.phone || mech.document) && (
-                                              <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                              <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                                 {mech.phone && <span>{maskPhone(mech.phone)}</span>}
                                                 {mech.phone && mech.document && (
                                                   <span className="text-slate-400 dark:text-slate-600 font-bold">•</span>
@@ -3247,7 +3247,7 @@ function OSFormImpl({
                                               </div>
                                             )}
                                           </div>
-                                          <span className="text-[10px] font-bold tracking-wider bg-[#EFF6FF] text-[#2563EB] dark:bg-sky-950/60 dark:text-sky-400 border border-[#BFDBFE] dark:border-sky-800 rounded-lg px-2.5 py-0.5 uppercase shrink-0">
+                                          <span className="text-xs font-bold tracking-wider bg-[#EFF6FF] text-[#2563EB] dark:bg-sky-950/60 dark:text-sky-400 border border-[#BFDBFE] dark:border-sky-800 rounded-lg px-2.5 py-0.5 uppercase shrink-0">
                                             MECÂNICO
                                           </span>
                                         </button>
@@ -3255,7 +3255,7 @@ function OSFormImpl({
                                     })
                                   ) : filteredNonMechanicsForOS.length > 0 ? (
                                     <>
-                                      <div className="px-3 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-slate-50 dark:bg-white/5 rounded-lg">
+                                      <div className="px-3 py-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider bg-slate-50 dark:bg-white/5 rounded-lg">
                                         Não marcados como mecânico ainda
                                       </div>
                                       {filteredNonMechanicsForOS.map((client) => {
@@ -3285,7 +3285,7 @@ function OSFormImpl({
                                                 e.stopPropagation();
                                                 handleMarkAsMechanic(client);
                                               }}
-                                              className="shrink-0 flex items-center gap-1 px-2.5 py-1 text-[10px] font-extrabold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/60 border border-sky-200 dark:border-sky-800 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                                              className="shrink-0 flex items-center gap-1 px-2.5 py-1 text-xs font-extrabold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/60 border border-sky-200 dark:border-sky-800 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                                             >
                                               <Plus className="w-3 h-3 stroke-[2.5]" />
                                               <span>{isUpdating ? 'Marcando...' : 'Marcar como mecânico'}</span>
@@ -3313,7 +3313,7 @@ function OSFormImpl({
                 {/* Linha 4: STATUS DO SERVIÇO e Observação do Status */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">STATUS DO SERVIÇO</label>
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">STATUS DO SERVIÇO</label>
                     <Select
                       value={serviceStatus}
                       onValueChange={(v) => {
@@ -3373,7 +3373,7 @@ function OSFormImpl({
 
                     {serviceStatus === 'Levou' && (
                       <div className="space-y-1.5 pt-1.5">
-                        <label className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase tracking-wider ml-1 flex items-center gap-1">
+                        <label className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider ml-1 flex items-center gap-1">
                           <CalendarIcon className="w-3 h-3" /> Data em que o cliente levou
                         </label>
                         <DatePicker
@@ -3386,8 +3386,8 @@ function OSFormImpl({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">
-                      Observação do Status <span className="text-[8px] text-muted-foreground/50 dark:text-slate-500 normal-case tracking-normal">(Opcional)</span>
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">
+                      Observação do Status <span className="text-xs text-muted-foreground/50 dark:text-slate-500 normal-case tracking-normal">(Opcional)</span>
                     </label>
                     <Input
                       placeholder="Ex: Aguardando pistões 0.50"
@@ -3404,7 +3404,7 @@ function OSFormImpl({
             {/* CARD 2: MATERIAIS E PEÇAS */}
           <div className="bg-card border border-border/60 dark:border-white/[0.04] rounded-xl p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-border/50 dark:border-white/[0.03]">
-              <div className="flex items-center gap-2.5 text-[11px] uppercase tracking-[0.2em] text-foreground/90 font-black">
+              <div className="flex items-center gap-2.5 text-xs uppercase tracking-[0.2em] text-foreground/90 font-black">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
                   <Package className="w-4 h-4 text-primary" />
                 </div>
@@ -3418,7 +3418,7 @@ function OSFormImpl({
                 {/* Material Deixado Checkboxes */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between pb-1">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/50 ml-1">MATERIAL DEIXADO</Label>
+                    <Label className="text-xs font-black uppercase tracking-[0.15em] text-muted-foreground/50 ml-1">MATERIAL DEIXADO</Label>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2.5 max-h-[140px] overflow-y-auto pr-1">
@@ -3464,7 +3464,7 @@ function OSFormImpl({
                               disabled={readOnly}
                             />
                             <span className={cn(
-                              "text-[10px] font-bold uppercase tracking-wide truncate transition-colors",
+                              "text-xs font-bold uppercase tracking-wide truncate transition-colors",
                               isChecked ? "text-foreground" : "text-foreground/70"
                             )}>
                               {part}
@@ -3480,7 +3480,7 @@ function OSFormImpl({
                               >
                                 -
                               </button>
-                              <span className="w-4 text-center text-[10px] font-black font-mono text-foreground/80">{qty}</span>
+                              <span className="w-4 text-center text-xs font-black font-mono text-foreground/80">{qty}</span>
                               <button
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); setQty(qty + 1); }}
@@ -3523,7 +3523,7 @@ function OSFormImpl({
                       <Button
                         onClick={handleAddPartLeft}
                         size="sm"
-                        className="h-11 px-4 bg-zinc-800 text-white hover:bg-zinc-700 border border-zinc-700 rounded-lg shrink-0 cursor-pointer"
+                        className="h-11 px-4 border border-border bg-card text-foreground hover:bg-secondary rounded-lg shrink-0 cursor-pointer"
                         type="button"
                       >
                         <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -3535,7 +3535,7 @@ function OSFormImpl({
                 {/* Peças Adicionais section */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between pb-1">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/50 ml-1">PEÇAS ADICIONAIS</Label>
+                    <Label className="text-xs font-black uppercase tracking-[0.15em] text-muted-foreground/50 ml-1">PEÇAS ADICIONAIS</Label>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2.5 max-h-[140px] overflow-y-auto pr-1">
@@ -3572,7 +3572,7 @@ function OSFormImpl({
                               disabled={readOnly}
                             />
                             <span className={cn(
-                              "text-[10px] font-bold uppercase tracking-wide truncate transition-colors",
+                              "text-xs font-bold uppercase tracking-wide truncate transition-colors",
                               isSelected ? "text-foreground" : "text-foreground/70"
                             )}>{part}</span>
                           </div>
@@ -3607,7 +3607,7 @@ function OSFormImpl({
                       <Button
                         onClick={handleAddAdditionalPart}
                         size="sm"
-                        className="h-11 px-4 bg-zinc-800 text-white hover:bg-zinc-700 border border-zinc-700 rounded-lg shrink-0 cursor-pointer"
+                        className="h-11 px-4 border border-border bg-card text-foreground hover:bg-secondary rounded-lg shrink-0 cursor-pointer"
                         type="button"
                       >
                         <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -3623,7 +3623,7 @@ function OSFormImpl({
           {/* CARD 3: ESPECIFICAÇÕES DO MOTOR */}
           <div className="bg-card border border-border/60 dark:border-white/[0.04] rounded-xl p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-border/50 dark:border-white/[0.03]">
-              <div className="flex items-center gap-2.5 text-[11px] uppercase tracking-[0.2em] text-foreground/90 font-black">
+              <div className="flex items-center gap-2.5 text-xs uppercase tracking-[0.2em] text-foreground/90 font-black">
                 <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center border border-border shrink-0">
                   <Settings className="w-4 h-4 text-foreground/70" />
                 </div>
@@ -3636,7 +3636,7 @@ function OSFormImpl({
               <div className="md:col-span-4 space-y-4">
                 {/* Field 1: SELEÇÃO DO MOTOR */}
                 <div className="space-y-1.5 relative">
-                  <Label className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.15em] ml-1">SELEÇÃO DO MOTOR</Label>
+                  <Label className="text-xs font-black text-muted-foreground/50 uppercase tracking-[0.15em] ml-1">SELEÇÃO DO MOTOR</Label>
                   <div className="relative">
                     <Input
                       ref={motorTriggerRef}
@@ -3810,7 +3810,7 @@ function OSFormImpl({
 
                 {/* Field 2: QUANTOS CILINDROS */}
                 <div className="space-y-1.5 relative">
-                  <Label className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.15em] ml-1">QUANTOS CILINDROS</Label>
+                  <Label className="text-xs font-black text-muted-foreground/50 uppercase tracking-[0.15em] ml-1">QUANTOS CILINDROS</Label>
                   <div className="relative">
                     <Input
                       ref={cylindersTriggerRef}
@@ -3931,7 +3931,7 @@ function OSFormImpl({
 
                 {/* Field 3: CILINDRADA */}
                 <div className="space-y-1.5 relative">
-                  <Label className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.15em] ml-1">CILINDRADA</Label>
+                  <Label className="text-xs font-black text-muted-foreground/50 uppercase tracking-[0.15em] ml-1">CILINDRADA</Label>
                   <div className="relative">
                     <Input
                       ref={displacementTriggerRef}
@@ -4093,7 +4093,7 @@ function OSFormImpl({
                               {m.model}
                               {m.cylinders ? ` • ${m.cylinders.replace(/\D/g, '')} CIL` : ''}
                             </span>
-                            <span className="text-[10px] text-muted-foreground/80 font-bold uppercase tracking-wide">
+                            <span className="text-xs text-muted-foreground/80 font-bold uppercase tracking-wide">
                               {m.displacement || 'Sem Cilindrada'}
                             </span>
                           </div>
@@ -4102,14 +4102,14 @@ function OSFormImpl({
                               <button
                                 type="button"
                                 onClick={() => handleEditMotor(idx)}
-                                className="h-8 px-2 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 rounded-lg transition-colors cursor-pointer"
+                                className="h-8 px-2 text-xs font-black uppercase tracking-widest text-primary hover:bg-primary/5 rounded-lg transition-colors cursor-pointer"
                               >
                                 Editar
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleRemoveMotor(idx)}
-                                className="h-8 px-2 text-[10px] font-black uppercase tracking-widest text-destructive hover:bg-destructive/5 rounded-lg transition-colors cursor-pointer"
+                                className="h-8 px-2 text-xs font-black uppercase tracking-widest text-destructive hover:bg-destructive/5 rounded-lg transition-colors cursor-pointer"
                               >
                                 Remover
                               </button>
@@ -4127,7 +4127,7 @@ function OSFormImpl({
           {/* CARD 4: CATÁLOGO DE SERVIÇOS */}
           <div className="bg-card border border-border/60 dark:border-white/[0.04] rounded-xl p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-border/50 dark:border-white/[0.03]">
-              <div className="flex items-center gap-2.5 text-[11px] uppercase tracking-[0.2em] text-foreground/90 font-black">
+              <div className="flex items-center gap-2.5 text-xs uppercase tracking-[0.2em] text-foreground/90 font-black">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
                   <Wrench className="w-4 h-4 text-primary" />
                 </div>
@@ -4174,7 +4174,7 @@ function OSFormImpl({
           {/* CARD 6: OBSERVAÇÕES */}
           <div className="bg-card border border-border/60 dark:border-white/[0.04] rounded-xl p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-border/50 dark:border-white/[0.03]">
-              <div className="flex items-center gap-2.5 text-[11px] uppercase tracking-[0.2em] text-foreground/90 font-black">
+              <div className="flex items-center gap-2.5 text-xs uppercase tracking-[0.2em] text-foreground/90 font-black">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
                   <MessageSquare className="w-4 h-4 text-primary" />
                 </div>
@@ -4186,8 +4186,8 @@ function OSFormImpl({
               <Textarea
                 value={observations}
                 onChange={e => setObservations(e.target.value.toUpperCase())}
-                placeholder="OBSERVAÇÕES ADICIONAIS SOBRE O SERVIÇO..."
-                className="min-h-[90px] rounded-xl premium-input p-3.5 text-xs resize-none uppercase"
+                placeholder="Observações sobre o serviço (opcional)"
+                className="min-h-[90px] rounded-xl premium-input p-3.5 text-xs resize-none uppercase placeholder:normal-case"
               />
             </div>
           </div>
@@ -4224,7 +4224,7 @@ function OSFormImpl({
                 <Label
                   htmlFor="finishedAtDate"
                   className={cn(
-                    "text-[10px] font-black uppercase tracking-[0.15em] ml-1 transition-colors",
+                    "text-xs font-black uppercase tracking-[0.15em] ml-1 transition-colors",
                     finished ? "text-muted-foreground/50" : "text-muted-foreground/30"
                   )}
                 >
@@ -4429,7 +4429,7 @@ function OSFormImpl({
               value={newMotorName}
               onChange={(e) => setNewMotorName(e.target.value)}
               placeholder="Ex: AP 1.8"
-              className="premium-input uppercase text-xs h-9 rounded-lg"
+              className="premium-input uppercase placeholder:normal-case text-xs h-9 rounded-lg"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -4472,19 +4472,19 @@ function OSFormImpl({
             </DialogHeader>
             <div className="space-y-4 py-2">
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Nome Completo</Label>
-                <Input value={newClientName} onChange={e => setNewClientName(e.target.value)} placeholder="Ex: JOÃO DA SILVA" className="h-9 rounded-lg premium-input text-xs uppercase" />
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Nome Completo</Label>
+                <Input value={newClientName} onChange={e => setNewClientName(e.target.value)} placeholder="Ex.: João da Silva" className="h-9 rounded-lg premium-input text-xs uppercase placeholder:normal-case" />
                 {isNewClientDuplicate && (
                   <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs font-semibold text-amber-600 dark:text-amber-400 mt-1 flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
                     <span>⚠️ Cliente já cadastrado</span>
-                    <span className="text-[10px] font-normal text-muted-foreground">Não é permitido cadastrar outro cliente com o mesmo nome, telefone ou CPF/CNPJ. Selecione o cliente existente na lista de busca.</span>
+                    <span className="text-xs font-normal text-muted-foreground">Não é permitido cadastrar outro cliente com o mesmo nome, telefone ou CPF/CNPJ. Selecione o cliente existente na lista de busca.</span>
                     <div className="flex flex-col gap-1 mt-0.5">
                       {newClientConflicts.map(({ client, fields }) => {
                         const fieldLabel = fields.length === 1
                           ? (fields[0] === 'name' ? 'Nome já usado por' : fields[0] === 'phone' ? 'Telefone já usado por' : 'CPF/CNPJ já usado por')
                           : 'Já cadastrado (' + fields.map(f => f === 'name' ? 'nome' : f === 'phone' ? 'telefone' : 'CPF/CNPJ').join(', ') + ') por';
                         return (
-                          <div key={client.id} className="flex flex-wrap items-center gap-1 text-[10px] font-normal">
+                          <div key={client.id} className="flex flex-wrap items-center gap-1 text-xs font-normal">
                             <span className="font-bold text-amber-700 dark:text-amber-400">{fieldLabel}:</span>
                             <button
                               type="button"
@@ -4504,29 +4504,29 @@ function OSFormImpl({
                 )}
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Apelido / Nome Fantasia <span className="text-[8px] text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
-                <Input value={newClientNickname} onChange={e => setNewClientNickname(e.target.value)} placeholder="Apelido / Nome Fantasia" className="h-9 rounded-lg premium-input text-xs uppercase" />
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Apelido / Nome Fantasia <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
+                <Input value={newClientNickname} onChange={e => setNewClientNickname(e.target.value)} placeholder="Apelido ou nome fantasia" className="h-9 rounded-lg premium-input text-xs uppercase placeholder:normal-case" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">CPF/CNPJ <span className="text-[8px] text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">CPF/CNPJ <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
                 <MaskedInput value={newClientDoc} mask={maskCPFCNPJ} unmask={(v) => normalizeNumber(v).slice(0, 14)} onValueChange={setNewClientDoc} placeholder="000.000.000-00" className="h-9 rounded-lg premium-input text-xs" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Telefone <span className="text-[8px] text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Telefone <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
                   <MaskedInput value={newClientPhone} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setNewClientPhone} placeholder="(11) 99999-9999" className="h-9 rounded-lg premium-input text-xs" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Telefone 2 <span className="text-[8px] text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Telefone 2 <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
                   <MaskedInput value={newClientPhone2} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setNewClientPhone2} placeholder="(11) 99999-9999" className="h-9 rounded-lg premium-input text-xs" />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Endereço <span className="text-[8px] text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
-                <Input value={newClientAddress} onChange={e => setNewClientAddress(e.target.value)} placeholder="Ex: RUA FLORES, 123 - CENTRO" className="h-9 rounded-lg premium-input text-xs uppercase" />
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Endereço <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
+                <Input value={newClientAddress} onChange={e => setNewClientAddress(e.target.value)} placeholder="Ex.: Rua das Flores, 123 - Centro" className="h-9 rounded-lg premium-input text-xs uppercase placeholder:normal-case" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Tipo de Cliente</Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Tipo de Cliente</Label>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -4556,7 +4556,7 @@ function OSFormImpl({
               </div>
               {newClientType === 'regular' && (
                 <div ref={newClientMechContainerRef} className="space-y-1.5 relative">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Mecânico Padrão <span className="text-[8px] text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Mecânico Padrão <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
                   <div className="relative">
                     <Input
                       placeholder="Pesquisar por nome ou apelido..."
@@ -4627,25 +4627,25 @@ function OSFormImpl({
             </DialogHeader>
             <div className="space-y-4 py-2">
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Nome Completo</Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Nome Completo</Label>
                 <Input
                   value={editClientName}
                   onChange={e => setEditClientName(e.target.value.toUpperCase())}
-                  placeholder="Ex: JOÃO DA SILVA"
-                  className="h-9 rounded-lg premium-input text-xs uppercase"
+                  placeholder="Ex.: João da Silva"
+                  className="h-9 rounded-lg premium-input text-xs uppercase placeholder:normal-case"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Apelido (Opcional)</Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Apelido (Opcional)</Label>
                 <Input
                   value={editClientNickname}
                   onChange={e => setEditClientNickname(e.target.value.toUpperCase())}
-                  placeholder="Ex: SILVA MOTORES"
-                  className="h-9 rounded-lg premium-input text-xs uppercase"
+                  placeholder="Ex.: Silva Motores"
+                  className="h-9 rounded-lg premium-input text-xs uppercase placeholder:normal-case"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Tipo</Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Tipo</Label>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -4675,7 +4675,7 @@ function OSFormImpl({
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Telefone <span className="text-[8px] text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Telefone <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
                   <Input
                     value={maskPhone(editClientPhone)}
                     onChange={e => setEditClientPhone(normalizeNumber(e.target.value).slice(0, 11))}
@@ -4684,7 +4684,7 @@ function OSFormImpl({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Telefone 2 <span className="text-[8px] text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Telefone 2 <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
                   <Input
                     value={maskPhone(editClientPhone2)}
                     onChange={e => setEditClientPhone2(normalizeNumber(e.target.value).slice(0, 11))}
@@ -4694,7 +4694,7 @@ function OSFormImpl({
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">CPF/CNPJ <span className="text-[8px] text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">CPF/CNPJ <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
                 <Input
                   value={maskCPFCNPJ(editClientDoc)}
                   onChange={e => setEditClientDoc(normalizeNumber(e.target.value).slice(0, 14))}
@@ -4703,12 +4703,12 @@ function OSFormImpl({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Endereço <span className="text-[8px] text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Endereço <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
                 <Input
                   value={editClientAddress}
                   onChange={e => setEditClientAddress(e.target.value.toUpperCase())}
-                  placeholder="Ex: RUA FLORES, 123 - CENTRO"
-                  className="h-9 rounded-lg premium-input text-xs uppercase"
+                  placeholder="Ex.: Rua das Flores, 123 - Centro"
+                  className="h-9 rounded-lg premium-input text-xs uppercase placeholder:normal-case"
                 />
               </div>
             </div>
@@ -4716,7 +4716,7 @@ function OSFormImpl({
               <button
                 type="button"
                 onClick={handleDeleteClientModal}
-                className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 py-1 cursor-pointer transition-colors shrink-0"
+                className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 py-1 cursor-pointer transition-colors shrink-0"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Excluir
@@ -4763,7 +4763,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
               Ocorreu um erro inesperado ao carregar ou atualizar o formulário. Por favor, tente recarregar a página ou voltar para o painel.
             </p>
             {this.state.error?.message && (
-              <pre className="p-3 bg-muted dark:bg-zinc-900 border dark:border-white/[0.04] rounded-lg text-[10px] text-destructive font-mono overflow-auto max-h-[150px]">
+              <pre className="p-3 bg-muted dark:bg-zinc-900 border dark:border-white/[0.04] rounded-lg text-xs text-destructive font-mono overflow-auto max-h-[150px]">
                 {this.state.error.message}
               </pre>
             )}
@@ -4772,14 +4772,14 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
             <Button
               size="sm"
               variant="outline"
-              className="text-[10px] font-black uppercase tracking-widest h-9"
+              className="text-xs font-black uppercase tracking-widest h-9"
               onClick={() => window.location.reload()}
             >
               Recarregar Página
             </Button>
             <Button
               size="sm"
-              className="text-[10px] font-black uppercase tracking-widest h-9"
+              className="text-xs font-black uppercase tracking-widest h-9"
               onClick={() => this.setState({ hasError: false, error: null })}
             >
               Tentar Novamente

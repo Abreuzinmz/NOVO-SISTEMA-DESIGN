@@ -84,7 +84,7 @@ function Calendar({
         ),
         weekdays: cn("flex text-center mb-1", defaultClassNames.weekdays),
         weekday: cn(
-          "flex-1 text-[11px] font-medium text-slate-400 dark:text-zinc-400 py-0.5 select-none text-center",
+          "flex-1 text-xs font-medium text-slate-400 dark:text-zinc-400 py-0.5 select-none text-center",
           defaultClassNames.weekday
         ),
         week: cn("mt-1 flex w-full gap-1", defaultClassNames.week),

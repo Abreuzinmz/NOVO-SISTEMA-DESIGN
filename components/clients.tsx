@@ -393,7 +393,7 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
           <span className="text-sm text-muted-foreground"><span className="font-bold text-foreground tabular-nums">{clients.length}</span> cadastrados</span>
           <Dialog open={isModalOpen} onOpenChange={(open) => { setIsModalOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger render={
-              <Button size="sm" className="font-bold gap-2 solid-btn rounded-lg text-[11px] h-8">
+              <Button size="sm" className="font-bold gap-2 solid-btn rounded-lg text-xs h-8">
                 <Plus className="w-4 h-4" />
                 Adicionar Cliente
               </Button>
@@ -408,41 +408,41 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
               <form onSubmit={handleAddClient} className="space-y-4 py-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="name" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Nome completo</Label>
-                    <Input id="name" placeholder="Nome completo" value={newName} onChange={e => setNewName(e.target.value.toUpperCase())} className="premium-input uppercase text-xs h-9 rounded-lg" />
+                    <Label htmlFor="name" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Nome completo</Label>
+                    <Input id="name" placeholder="Nome completo" value={newName} onChange={e => setNewName(e.target.value.toUpperCase())} className="premium-input uppercase placeholder:normal-case text-xs h-9 rounded-lg" />
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="nickname" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Apelido / Nome Fantasia (Opcional)</Label>
-                    <Input id="nickname" placeholder="Apelido / Nome Fantasia" value={newNickname} onChange={e => setNewNickname(e.target.value.toUpperCase())} className="premium-input uppercase text-xs h-9 rounded-lg" />
+                    <Label htmlFor="nickname" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Apelido / Nome Fantasia (Opcional)</Label>
+                    <Input id="nickname" placeholder="Apelido ou nome fantasia" value={newNickname} onChange={e => setNewNickname(e.target.value.toUpperCase())} className="premium-input uppercase placeholder:normal-case text-xs h-9 rounded-lg" />
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="document" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">CPF/CNPJ (Opcional)</Label>
+                    <Label htmlFor="document" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">CPF/CNPJ (Opcional)</Label>
                     <MaskedInput id="document" placeholder="000.000.000-00" value={newDocument} mask={maskCPFCNPJ} unmask={cleanNumeric} onValueChange={setNewDocument} className="premium-input text-xs h-9 rounded-lg" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Telefone (Opcional)</Label>
+                    <Label htmlFor="phone" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Telefone (Opcional)</Label>
                     <MaskedInput id="phone" placeholder="(00) 00000-0000" value={newPhone} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewPhone} className="premium-input text-xs h-9 rounded-lg" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone2" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Telefone 2 (Opcional)</Label>
+                    <Label htmlFor="phone2" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Telefone 2 (Opcional)</Label>
                     <MaskedInput id="phone2" placeholder="(11) 99999-9999" value={newPhone2} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewPhone2} className="premium-input text-xs h-9 rounded-lg" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="whatsapp" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">WhatsApp (Opcional)</Label>
+                    <Label htmlFor="whatsapp" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">WhatsApp (Opcional)</Label>
                     <MaskedInput id="whatsapp" placeholder="(00) 00000-0000" value={newWhatsapp} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewWhatsapp} className="premium-input text-xs h-9 rounded-lg" />
                   </div>
                   <div className="space-y-2 col-span-1 md:col-span-2">
-                    <Label htmlFor="city" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Cidade (Opcional)</Label>
+                    <Label htmlFor="city" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Cidade (Opcional)</Label>
                     <Input id="city" placeholder="Ex: Curitiba - PR" value={newCity} onChange={e => setNewCity(e.target.value)} className="premium-input text-xs h-9 rounded-lg" />
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <Label className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Tipo de Cliente</Label>
+                    <Label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Tipo de Cliente</Label>
                     <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={() => setNewClientType('regular')}
                         className={cn(
-                          "flex-1 h-9 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all",
+                          "flex-1 h-9 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all",
                           newClientType === 'regular'
                             ? "bg-secondary text-foreground border-border"
                             : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-secondary/40"
@@ -454,7 +454,7 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
                         type="button"
                         onClick={() => setNewClientType('mechanic')}
                         className={cn(
-                          "flex-1 h-9 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all",
+                          "flex-1 h-9 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all",
                           newClientType === 'mechanic'
                             ? "bg-[#0EA5E9]/10 text-[#0EA5E9] dark:text-[#38BDF8] border-[#0EA5E9]/20 dark:border-[#38BDF8]/20 rounded px-1.5 flex items-center justify-center flex-shrink-0"
                             : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-secondary/40"
@@ -466,7 +466,7 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
                   </div>
                   {newClientType === 'regular' && (
                     <div ref={newMechContainerRef} className="space-y-2 md:col-span-2 relative">
-                      <Label htmlFor="default-mechanic" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Mecânico Padrão (Opcional)</Label>
+                      <Label htmlFor="default-mechanic" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Mecânico Padrão (Opcional)</Label>
                       <div className="relative">
                         <Input
                           id="default-mechanic"
@@ -806,9 +806,9 @@ const ClientDetailsContent = React.memo(({
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-lg font-extrabold text-foreground">{selectedClient.name}</h3>
                   {selectedClient.clientType === 'mechanic' ? (
-                    <span className="h-[22px] text-[10px] font-extrabold tracking-wider bg-[#0EA5E9]/10 text-[#0EA5E9] dark:text-[#38BDF8] border border-[#0EA5E9]/20 dark:border-[#38BDF8]/20 rounded-md px-2 flex items-center justify-center">MECÂNICO</span>
+                    <span className="h-[22px] text-xs font-extrabold tracking-wider bg-[#0EA5E9]/10 text-[#0EA5E9] dark:text-[#38BDF8] border border-[#0EA5E9]/20 dark:border-[#38BDF8]/20 rounded-md px-2 flex items-center justify-center">MECÂNICO</span>
                   ) : (
-                    <span className="h-[22px] text-[10px] font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border rounded-md px-2 flex items-center justify-center">CLIENTE</span>
+                    <span className="h-[22px] text-xs font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border rounded-md px-2 flex items-center justify-center">CLIENTE</span>
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-3.5 mt-2.5">
@@ -945,7 +945,7 @@ const ClientDetailsContent = React.memo(({
                                 return order.clientNickname || 'Cliente Removido';
                               })()}
                             </div>
-                            <div className="text-[10px] text-muted-foreground font-semibold truncate uppercase mt-0.5">
+                            <div className="text-xs text-muted-foreground font-semibold truncate uppercase mt-0.5">
                               {formatMotorModelAndCylinders(order.motorModel)}
                               {order.displacement && order.displacement.trim() && (
                                 <span className="text-muted-foreground/60 font-normal ml-1">
@@ -1029,7 +1029,7 @@ const ClientDetailsContent = React.memo(({
                   <AlertTriangle className="w-3.5 h-3.5" />
                   Cliente possui {clientOrders.length} O.S. vinculada(s)
                 </div>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Remova ou transfira as ordens de serviço antes de excluir este cliente.
                 </p>
               </div>
@@ -1065,41 +1065,41 @@ const ClientDetailsContent = React.memo(({
           <form onSubmit={handleEditClient} className="space-y-4 py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-name" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Nome completo</Label>
-                <Input id="edit-name" placeholder="Nome completo" value={editName} onChange={e => setEditName(e.target.value.toUpperCase())} className="premium-input uppercase text-xs h-9 rounded-lg" />
+                <Label htmlFor="edit-name" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Nome completo</Label>
+                <Input id="edit-name" placeholder="Nome completo" value={editName} onChange={e => setEditName(e.target.value.toUpperCase())} className="premium-input uppercase placeholder:normal-case text-xs h-9 rounded-lg" />
               </div>
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-nickname" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Apelido / Nome Fantasia (Opcional)</Label>
-                <Input id="edit-nickname" placeholder="Apelido / Nome Fantasia" value={editNickname} onChange={e => setEditNickname(e.target.value.toUpperCase())} className="premium-input uppercase text-xs h-9 rounded-lg" />
+                <Label htmlFor="edit-nickname" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Apelido / Nome Fantasia (Opcional)</Label>
+                <Input id="edit-nickname" placeholder="Apelido ou nome fantasia" value={editNickname} onChange={e => setEditNickname(e.target.value.toUpperCase())} className="premium-input uppercase placeholder:normal-case text-xs h-9 rounded-lg" />
               </div>
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-document" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">CPF/CNPJ (Opcional)</Label>
+                <Label htmlFor="edit-document" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">CPF/CNPJ (Opcional)</Label>
                 <MaskedInput id="edit-document" placeholder="000.000.000-00" value={editDocument} mask={maskCPFCNPJ} unmask={cleanNumeric} onValueChange={setEditDocument} className="premium-input text-xs h-9 rounded-lg" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-phone" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Telefone (Opcional)</Label>
+                <Label htmlFor="edit-phone" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Telefone (Opcional)</Label>
                 <MaskedInput id="edit-phone" placeholder="(00) 00000-0000" value={editPhone} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditPhone} className="premium-input text-xs h-9 rounded-lg" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-phone2" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Telefone 2 (Opcional)</Label>
+                <Label htmlFor="edit-phone2" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Telefone 2 (Opcional)</Label>
                 <MaskedInput id="edit-phone2" placeholder="(11) 99999-9999" value={editPhone2} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditPhone2} className="premium-input text-xs h-9 rounded-lg" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-whatsapp" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">WhatsApp (Opcional)</Label>
+                <Label htmlFor="edit-whatsapp" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">WhatsApp (Opcional)</Label>
                 <MaskedInput id="edit-whatsapp" placeholder="(00) 00000-0000" value={editWhatsapp} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditWhatsapp} className="premium-input text-xs h-9 rounded-lg" />
               </div>
               <div className="space-y-2 col-span-1 md:col-span-2">
-                <Label htmlFor="edit-city" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Cidade (Opcional)</Label>
+                <Label htmlFor="edit-city" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Cidade (Opcional)</Label>
                 <Input id="edit-city" placeholder="Ex: Curitiba - PR" value={editCity} onChange={e => setEditCity(e.target.value)} className="premium-input text-xs h-9 rounded-lg" />
               </div>
               <div className="space-y-2 md:col-span-2">
-                <Label className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Tipo de Cliente</Label>
+                <Label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Tipo de Cliente</Label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setEditClientType('regular')}
                     className={cn(
-                      "flex-1 h-9 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all",
+                      "flex-1 h-9 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all",
                       editClientType === 'regular'
                         ? "bg-secondary text-foreground border-border"
                         : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-secondary/40"
@@ -1111,7 +1111,7 @@ const ClientDetailsContent = React.memo(({
                     type="button"
                     onClick={() => setEditClientType('mechanic')}
                     className={cn(
-                      "flex-1 h-9 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all",
+                      "flex-1 h-9 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all",
                       editClientType === 'mechanic'
                         ? "bg-[#0EA5E9]/10 text-[#0EA5E9] dark:text-[#38BDF8] border-[#0EA5E9]/30 dark:border-[#38BDF8]/30"
                         : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-secondary/40"
@@ -1123,7 +1123,7 @@ const ClientDetailsContent = React.memo(({
               </div>
               {editClientType === 'regular' && (
                 <div ref={editMechContainerRef} className="space-y-2 md:col-span-2 relative">
-                  <Label htmlFor="edit-default-mechanic" className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Mecânico Padrão (Opcional)</Label>
+                  <Label htmlFor="edit-default-mechanic" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Mecânico Padrão (Opcional)</Label>
                   <div className="relative">
                     <Input
                       id="edit-default-mechanic"

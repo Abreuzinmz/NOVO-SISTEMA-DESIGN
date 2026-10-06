@@ -64,13 +64,13 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
             <Button
               variant="outline"
               onClick={() => settle(false)}
-              className="flex-1 h-10 rounded-xl border-neutral-300 dark:border-neutral-800 bg-background hover:bg-secondary text-foreground font-black text-[10px] uppercase tracking-wider"
+              className="flex-1 h-10 rounded-xl border-neutral-300 dark:border-neutral-800 bg-background hover:bg-secondary text-foreground font-black text-xs uppercase tracking-wider"
             >
               {options.cancelLabel || 'Cancelar'}
             </Button>
             <Button
               onClick={() => settle(true)}
-              className="flex-1 h-10 rounded-xl bg-[#FF5A5F] hover:bg-[#FF5A5F]/90 text-white font-black text-[10px] uppercase tracking-wider gap-1.5"
+              className="flex-1 h-10 rounded-xl bg-[#FF5A5F] hover:bg-[#FF5A5F]/90 text-white font-black text-xs uppercase tracking-wider gap-1.5"
             >
               <Trash2 className="w-3.5 h-3.5" />
               {options.confirmLabel || 'Excluir'}

@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="p-4 border border-destructive/50 bg-destructive/10 rounded-xl text-destructive text-xs space-y-2">
           <p className="font-bold">Ocorreu um erro ao carregar este componente:</p>
-          <pre className="font-mono text-[10px] overflow-x-auto whitespace-pre-wrap">{this.state.error?.toString()}</pre>
+          <pre className="font-mono text-xs overflow-x-auto whitespace-pre-wrap">{this.state.error?.toString()}</pre>
         </div>
       );
     }

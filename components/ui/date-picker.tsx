@@ -108,7 +108,7 @@ export function DatePickerCard({
           <ChevronLeft className="w-3.5 h-3.5 stroke-[2.5]" />
         </button>
 
-        <span className={cn("font-bold text-slate-900 dark:text-zinc-100 capitalize", compact ? "text-[11px]" : "text-xs")}>
+        <span className={cn("font-bold text-slate-900 dark:text-zinc-100 capitalize", compact ? "text-xs" : "text-xs")}>
           {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
         </span>
 
@@ -128,7 +128,7 @@ export function DatePickerCard({
       {/* Weekday headers */}
       <div className="grid grid-cols-7 text-center mb-1">
         {weekDays.map((day, idx) => (
-          <div key={idx} className={cn("font-medium text-slate-400 dark:text-zinc-400", compact ? "text-[10px] py-0.5" : "text-[11px] py-1")}>
+          <div key={idx} className={cn("font-medium text-slate-400 dark:text-zinc-400", compact ? "text-xs py-0.5" : "text-xs py-1")}>
             {day}
           </div>
         ))}
@@ -148,7 +148,7 @@ export function DatePickerCard({
               onClick={(e) => handleDayClick(day, e)}
               className={cn(
                 "mx-auto flex items-center justify-center font-medium transition-all cursor-pointer rounded-lg",
-                compact ? "h-6 w-6 text-[10px]" : "h-7 w-7 text-xs",
+                compact ? "h-6 w-6 text-xs" : "h-7 w-7 text-xs",
                 // Selected Day styling (Solid blue rounded square)
                 isSelectedDay && "bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700",
                 // Today Day styling (marked ONLY with blue font, no weird border)
@@ -172,7 +172,7 @@ export function DatePickerCard({
           onClick={handleCancelClick}
           className={cn(
             "flex-1 font-semibold text-slate-700 dark:text-zinc-200 bg-white dark:bg-zinc-700 border border-slate-200 dark:border-zinc-600 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-600 transition-all cursor-pointer text-center",
-            compact ? "py-1 px-2 text-[10px]" : "py-1.5 px-3 text-xs"
+            compact ? "py-1 px-2 text-xs" : "py-1.5 px-3 text-xs"
           )}
         >
           Cancelar
@@ -182,7 +182,7 @@ export function DatePickerCard({
           onClick={handleConfirmClick}
           className={cn(
             "flex-1 font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-sm cursor-pointer text-center",
-            compact ? "py-1 px-2 text-[10px]" : "py-1.5 px-3 text-xs"
+            compact ? "py-1 px-2 text-xs" : "py-1.5 px-3 text-xs"
           )}
         >
           OK

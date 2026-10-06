@@ -169,7 +169,7 @@ const CatalogRowWrapper = React.memo(({
 
   if (item.type === 'header') {
     return (
-      <div style={style} className="px-1 py-1 text-[9px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 border-b border-zinc-100 dark:border-zinc-900/60 flex items-end">
+      <div style={style} className="px-1 py-1 text-xs font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 border-b border-zinc-100 dark:border-zinc-900/60 flex items-end">
         {item.label}
       </div>
     );
@@ -184,7 +184,7 @@ const CatalogRowWrapper = React.memo(({
               {item.name}
             </span>
             {item.defaultPrice > 0 && (
-              <span className="text-[9px] font-mono text-zinc-500 mt-0.5">
+              <span className="text-xs font-mono text-zinc-500 mt-0.5">
                 Padrão: {item.defaultPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </span>
             )}
@@ -227,7 +227,7 @@ const CatalogRowWrapper = React.memo(({
         <span className="font-extrabold text-zinc-800 dark:text-zinc-300 uppercase tracking-wide truncate max-w-[150px] lg:max-w-full">
           {item.name}
         </span>
-        <Badge variant="outline" className="text-[8px] uppercase tracking-widest bg-zinc-100 dark:bg-zinc-950 font-bold shrink-0 text-zinc-500 border-zinc-200 dark:border-zinc-800">
+        <Badge variant="outline" className="text-xs uppercase tracking-widest bg-zinc-100 dark:bg-zinc-950 font-bold shrink-0 text-zinc-500 border-zinc-200 dark:border-zinc-800">
           Padrão
         </Badge>
       </div>
@@ -296,9 +296,9 @@ const MotorRow = React.memo(({ motor, isSelected, count, onSelect, onDelete, onT
 
         <div className="flex flex-col min-w-0 flex-1">
           <span className="font-extrabold text-xs uppercase tracking-wide truncate">{motor.id}</span>
-          <span className={`text-[9px] font-bold uppercase tracking-wider mt-0.5 ${
+          <span className={`text-xs font-bold uppercase tracking-wider mt-0.5 ${
             isSelected 
-              ? 'text-red-500' 
+              ? 'opacity-80' 
               : 'text-zinc-500 dark:text-zinc-400'
           }`}>
             {count} {count === 1 ? 'preço' : 'preços'}
@@ -353,11 +353,11 @@ const ServiceCard = React.memo(({
   const observationText = standardPriceItem?.observation || '';
 
   return (
-    <div className="pt-4 px-4 pb-6 bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-zinc-300 dark:hover:border-zinc-700 transition-all space-y-3 min-h-0 mb-3">
+    <div className="pt-3 px-4 pb-3 bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-zinc-300 dark:hover:border-zinc-700 transition-all space-y-2 min-h-0 mb-3">
       {/* Service title row */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1 min-w-0">
-          <span className="text-[9px] font-black uppercase text-zinc-500 tracking-wider">
+          <span className="text-xs font-black uppercase text-zinc-500 tracking-wider">
             {svc.category}
           </span>
           <h4 className="font-extrabold text-xs text-zinc-900 dark:text-zinc-100 uppercase tracking-wide truncate">
@@ -365,16 +365,26 @@ const ServiceCard = React.memo(({
           </h4>
         </div>
         
-        <Badge
-          variant="outline"
-          className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border shrink-0 ${
-            isPriced
-              ? 'bg-red-500/10 text-red-500 border-red-500/20'
-              : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
-          }`}
-        >
-          {isPriced ? 'Precificado' : 'Preço não definido'}
-        </Badge>
+        <div className="flex items-center gap-2 shrink-0">
+          <Badge
+            variant="outline"
+            className={`text-xs font-bold px-2 py-0.5 rounded border shrink-0 ${
+              isPriced
+                ? 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20'
+                : 'bg-zinc-500/10 text-muted-foreground border-zinc-500/20'
+            }`}
+          >
+            {isPriced ? 'Com preço' : 'Sem preço'}
+          </Badge>
+          <Button
+            size="xs"
+            onClick={() => onOpenDefinePrice(svc.id, svc.name)}
+            className="solid-btn text-xs font-bold h-7 px-3 rounded-lg flex items-center gap-1.5"
+          >
+            <Plus className="w-3 h-3" />
+            {isPriced ? 'Outra medida' : 'Definir preço'}
+          </Button>
+        </div>
       </div>
 
       {/* Observation Field */}
@@ -382,7 +392,7 @@ const ServiceCard = React.memo(({
         {observationText ? (
           <div className="p-2.5 bg-zinc-100/60 dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800/80 rounded-lg flex items-start justify-between gap-3 text-xs">
             <div className="space-y-1 min-w-0">
-              <span className="text-[9px] font-black uppercase tracking-wider text-red-600 dark:text-red-500 block">
+              <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground block">
                 Observação:
               </span>
               <p className="text-zinc-700 dark:text-zinc-300 font-medium italic select-text">
@@ -411,7 +421,7 @@ const ServiceCard = React.memo(({
         ) : (
           <button
             onClick={() => onOpenObservation(svc.id, svc.name, '')}
-            className="text-[10px] text-zinc-500 hover:text-red-500 font-bold uppercase tracking-wider transition-colors flex items-center gap-1 mt-0.5"
+            className="text-xs text-zinc-500 hover:text-foreground font-semibold transition-colors flex items-center gap-1"
           >
             <Plus className="w-3 h-3" /> Adicionar observação
           </button>
@@ -465,17 +475,6 @@ const ServiceCard = React.memo(({
         </div>
       )}
 
-      {/* Define Price trigger button */}
-      <div className="flex justify-end pt-1">
-        <Button
-          size="xs"
-          onClick={() => onOpenDefinePrice(svc.id, svc.name)}
-          className="bg-red-600 hover:bg-red-700 text-white text-[9px] font-black uppercase tracking-widest h-7.5 px-3 rounded-lg flex items-center gap-1.5 transition-all"
-        >
-          <Plus className="w-3 h-3" />
-          Definir preço
-        </Button>
-      </div>
     </div>
   );
 });
@@ -1038,7 +1037,7 @@ export function PriceManager() {
     const svc = combinedPricingList[index];
     if (!svc) return Math.round(174 * scale);
 
-    let size = 162; // base height (header + category + define price button + padding)
+    let size = 92; // base: título + categoria + botão na mesma linha + observação + espaçamento
     
     const standardPriceItem = svc.prices.find(p => p.subName === '');
     const observationText = standardPriceItem?.observation || '';
@@ -1048,7 +1047,7 @@ export function PriceManager() {
 
     const pricedVariations = svc.prices.filter(p => p.price > 0 || p.subName !== '');
     if (pricedVariations.length > 0) {
-      size += pricedVariations.length * 48 + 20;
+      size += pricedVariations.length * 52 + 16;
     }
     
     return Math.round((size + 12) * scale);
@@ -1073,33 +1072,30 @@ export function PriceManager() {
   return (
     <div className="space-y-6 select-none max-w-7xl mx-auto h-[calc(100vh-4rem)] flex flex-col">
       {/* ═══ BARRA SUPERIOR DE STATS ═══ */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-zinc-950 border border-zinc-800 rounded-xl gap-4 shadow-xl shrink-0">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse" />
-            <h2 className="font-extrabold text-base tracking-tight text-white uppercase">Retífica Mendonça</h2>
-          </div>
-          <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-[0.2em]">Força Total em Motores • Sistema de Tabelas</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 shrink-0">
+        <div>
+          <h2 className="text-2xl font-extrabold tracking-tight text-foreground">Tabela de Preços</h2>
+          <p className="text-muted-foreground mt-0.5 text-sm">Preço de cada serviço por motor. Escolha o motor à esquerda.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Stats Indicators */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs font-semibold text-zinc-300">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg text-sm text-muted-foreground">
             <Layers className="w-3.5 h-3.5 text-zinc-500" />
             <span>Motores:</span>
-            <span className="font-mono text-red-500 font-black">{motors.length}</span>
+            <span className="font-bold text-foreground tabular-nums">{motors.length}</span>
           </div>
 
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs font-semibold text-zinc-300">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg text-sm text-muted-foreground">
             <Wrench className="w-3.5 h-3.5 text-zinc-500" />
             <span>Serviços:</span>
-            <span className="font-mono text-red-500 font-black">{catalogedServicesCount}</span>
+            <span className="font-bold text-foreground tabular-nums">{catalogedServicesCount}</span>
           </div>
 
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs font-semibold text-zinc-300">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg text-sm text-muted-foreground">
             <Coins className="w-3.5 h-3.5 text-zinc-500" />
-            <span>Preços Ativos:</span>
-            <span className="font-mono text-red-500 font-black">{activePricesCount}</span>
+            <span>Preços definidos:</span>
+            <span className="font-bold text-foreground tabular-nums">{activePricesCount}</span>
           </div>
         </div>
       </div>
@@ -1111,13 +1107,13 @@ export function PriceManager() {
         <div className="lg:col-span-3 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 flex flex-col min-h-0 shadow-lg relative">
           <div className="flex items-center justify-between mb-4 shrink-0">
             <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
-              <Layers className="w-4 h-4 text-red-600" />
+              <Layers className="w-4 h-4 text-muted-foreground" />
               <span>Motores ({motors.length})</span>
             </div>
             <Button
               size="xs"
               onClick={() => setIsNewMotorOpen(true)}
-              className="bg-zinc-900 dark:bg-zinc-900 hover:bg-red-600 dark:hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-wider px-2.5 h-7 rounded-lg transition-colors border border-zinc-800"
+              className="solid-btn text-xs font-bold px-2.5 h-7 rounded-lg"
             >
               <Plus className="w-3 h-3 mr-1" />
               Novo
@@ -1132,7 +1128,7 @@ export function PriceManager() {
               placeholder="Pesquisar motor..."
               value={motorSearch}
               onChange={e => setMotorSearch(e.target.value)}
-              className="pl-9 text-xs h-9 rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-red-600"
+              className="pl-9 text-xs h-9 rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
             />
           </div>
 
@@ -1140,7 +1136,7 @@ export function PriceManager() {
           <div className="flex gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg mb-3 shrink-0">
             <button
               onClick={() => setFavoriteFilter('all')}
-              className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-md transition-all ${
+              className={`flex-1 py-1.5 text-xs font-black uppercase tracking-wider rounded-md transition-all ${
                 favoriteFilter === 'all'
                   ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
                   : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
@@ -1150,7 +1146,7 @@ export function PriceManager() {
             </button>
             <button
               onClick={() => setFavoriteFilter('favorites')}
-              className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-md transition-all ${
+              className={`flex-1 py-1.5 text-xs font-black uppercase tracking-wider rounded-md transition-all ${
                 favoriteFilter === 'favorites'
                   ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
                   : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
@@ -1189,9 +1185,9 @@ export function PriceManager() {
         {/* ═══ COLUNA 2: TABELA DE PREÇOS DO MOTOR (6/12 width) ═══ */}
         <div className="lg:col-span-6 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 flex flex-col min-h-0 shadow-lg">
           {/* Header block */}
-          <div className="p-3.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white flex items-center justify-between mb-4 shrink-0 shadow-md">
+          <div className="p-3.5 bg-secondary/40 border border-border rounded-xl text-foreground flex items-center justify-between mb-4 shrink-0">
             <div className="space-y-0.5">
-              <span className="text-[9px] font-extrabold text-red-500 uppercase tracking-widest">Tabela de Preços do Motor:</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Preços do motor</span>
               <h3 className="font-black text-sm uppercase tracking-wide">{selectedMotor || 'SELECIONE UM MOTOR'}</h3>
             </div>
             
@@ -1200,10 +1196,10 @@ export function PriceManager() {
                 size="xs"
                 variant="outline"
                 onClick={() => setIsCopyPricesOpen(true)}
-                className="bg-transparent hover:bg-zinc-900 border-zinc-800 text-white hover:text-red-500 text-[10px] font-bold uppercase tracking-wider h-8 rounded-lg flex items-center gap-1.5 transition-all"
+                className="bg-card border-border text-foreground text-sm font-semibold h-8 rounded-lg flex items-center gap-1.5"
               >
                 <Copy className="w-3.5 h-3.5" />
-                Copiar Preços
+                Copiar de outro motor
               </Button>
             )}
           </div>
@@ -1217,7 +1213,7 @@ export function PriceManager() {
                 placeholder="Pesquisar serviço nesta tabela..."
                 value={serviceSearch}
                 onChange={e => setServiceSearch(e.target.value)}
-                className="pl-9 text-xs h-9 rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-red-600"
+                className="pl-9 text-xs h-9 rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
               />
             </div>
             
@@ -1226,7 +1222,7 @@ export function PriceManager() {
                 id="only-priced" 
                 checked={onlyPriced} 
                 onCheckedChange={(checked) => setOnlyPriced(!!checked)}
-                className="border-zinc-300 dark:border-zinc-700 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600 rounded"
+                className="border-zinc-300 dark:border-zinc-700 data-[state=checked]:bg-primary data-[state=checked]:border-primary rounded"
               />
               <label 
                 htmlFor="only-priced" 
@@ -1273,13 +1269,13 @@ export function PriceManager() {
           <div className="flex flex-col min-h-0 flex-1">
             <div className="flex items-center justify-between mb-4 shrink-0">
               <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
-                <Wrench className="w-4 h-4 text-red-600" />
+                <Wrench className="w-4 h-4 text-muted-foreground" />
                 <span>Serviços Catalogados ({catalogedServicesCount})</span>
               </div>
               <Button
                 size="xs"
                 onClick={() => setIsNewServiceOpen(true)}
-                className="bg-zinc-900 dark:bg-zinc-900 hover:bg-red-600 dark:hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-wider px-2.5 h-7 rounded-lg transition-colors border border-zinc-800"
+                className="solid-btn text-xs font-bold px-2.5 h-7 rounded-lg"
               >
                 <Plus className="w-3 h-3 mr-1" />
                 Novo
@@ -1294,7 +1290,7 @@ export function PriceManager() {
                 placeholder="Pesquisar catálogo..."
                 value={catalogSearch}
                 onChange={e => setCatalogSearch(e.target.value)}
-                className="pl-9 text-xs h-9 rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-red-600"
+                className="pl-9 text-xs h-9 rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
               />
             </div>
 
@@ -1325,12 +1321,12 @@ export function PriceManager() {
           </div>
 
           {/* Footer note card */}
-          <div className="mt-4 p-3 bg-zinc-950 border border-zinc-800 text-zinc-400 rounded-xl space-y-1.5 shrink-0 shadow-inner">
-            <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase text-red-500 tracking-wider">
+          <div className="mt-4 p-3 bg-secondary/30 border border-border text-muted-foreground rounded-xl space-y-1.5 shrink-0">
+            <div className="flex items-center gap-1.5 text-xs font-bold uppercase text-foreground tracking-wide">
               <AlertCircle className="w-3.5 h-3.5 shrink-0" />
               <span>Aviso do Catálogo</span>
             </div>
-            <p className="text-[9.5px] leading-relaxed font-semibold">
+            <p className="text-xs leading-relaxed font-semibold">
               Qualquer serviço registrado no Catálogo fica disponível para todos os motores. Use as tabelas para customizar preços individuais.
             </p>
           </div>
@@ -1344,7 +1340,7 @@ export function PriceManager() {
             <form onSubmit={handleCreateMotor} className="space-y-4">
               <DialogHeader>
                 <DialogTitle className="text-sm font-black uppercase tracking-wider text-zinc-950 dark:text-zinc-100 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-red-600" />
+                  <Layers className="w-4 h-4 text-muted-foreground" />
                   Cadastrar Novo Motor
                 </DialogTitle>
                 <DialogDescription className="text-xs text-zinc-500">
@@ -1353,14 +1349,14 @@ export function PriceManager() {
               </DialogHeader>
 
               <div className="space-y-2">
-                <Label htmlFor="motor-name" className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Nome do Motor</Label>
+                <Label htmlFor="motor-name" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Nome do Motor</Label>
                 <Input
                   id="motor-name"
                   type="text"
                   placeholder="Ex: GM, AP, CHT, FIAT"
                   value={newMotorName}
                   onChange={e => setNewMotorName(e.target.value)}
-                  className="text-xs font-bold uppercase h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-red-600"
+                  className="text-xs font-bold uppercase placeholder:normal-case h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
                   required
                   autoFocus
                 />
@@ -1379,7 +1375,7 @@ export function PriceManager() {
                 <Button
                   type="submit"
                   size="sm"
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider text-[11px] px-4"
+                  className="solid-btn font-bold uppercase tracking-wider text-xs px-4"
                 >
                   Cadastrar
                 </Button>
@@ -1396,7 +1392,7 @@ export function PriceManager() {
             <form onSubmit={handleCreateService} className="space-y-4">
               <DialogHeader>
                 <DialogTitle className="text-sm font-black uppercase tracking-wider text-zinc-950 dark:text-zinc-100 flex items-center gap-2">
-                  <Wrench className="w-4 h-4 text-red-600" />
+                  <Wrench className="w-4 h-4 text-muted-foreground" />
                   Cadastrar Novo Serviço
                 </DialogTitle>
                 <DialogDescription className="text-xs text-zinc-500">
@@ -1406,21 +1402,21 @@ export function PriceManager() {
 
               <div className="space-y-3.5">
                 <div className="space-y-1.5">
-                  <Label htmlFor="svc-name" className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Descrição do Serviço</Label>
+                  <Label htmlFor="svc-name" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Descrição do Serviço</Label>
                   <Input
                     id="svc-name"
                     type="text"
-                    placeholder="Ex: RETIFICAR BIELAS"
+                    placeholder="Ex.: Retificar bielas"
                     value={newServiceName}
                     onChange={e => setNewServiceName(e.target.value)}
-                    className="text-xs font-bold uppercase h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-red-600"
+                    className="text-xs font-bold uppercase placeholder:normal-case h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
                     required
                     autoFocus
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="svc-price" className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Preço Padrão (Opcional)</Label>
+                  <Label htmlFor="svc-price" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Preço Padrão (Opcional)</Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-zinc-400">R$</span>
                     <Input
@@ -1430,7 +1426,7 @@ export function PriceManager() {
                       placeholder="0,00"
                       value={newServicePrice}
                       onChange={e => setNewServicePrice(e.target.value)}
-                      className="pl-9 text-xs font-mono h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-red-600"
+                      className="pl-9 text-xs font-mono h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
                     />
                   </div>
                 </div>
@@ -1449,7 +1445,7 @@ export function PriceManager() {
                 <Button
                   type="submit"
                   size="sm"
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider text-[11px] px-4"
+                  className="solid-btn font-bold uppercase tracking-wider text-xs px-4"
                 >
                   Cadastrar
                 </Button>
@@ -1466,7 +1462,7 @@ export function PriceManager() {
             <form onSubmit={handleUpdateService} className="space-y-4">
               <DialogHeader>
                 <DialogTitle className="text-sm font-black uppercase tracking-wider text-zinc-950 dark:text-zinc-100 flex items-center gap-2">
-                  <Pencil className="w-4 h-4 text-red-600" />
+                  <Pencil className="w-4 h-4 text-muted-foreground" />
                   Editar Serviço Catalogado
                 </DialogTitle>
                 <DialogDescription className="text-xs text-zinc-500">
@@ -1476,21 +1472,21 @@ export function PriceManager() {
 
               <div className="space-y-3.5">
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-svc-name" className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Descrição do Serviço</Label>
+                  <Label htmlFor="edit-svc-name" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Descrição do Serviço</Label>
                   <Input
                     id="edit-svc-name"
                     type="text"
-                    placeholder="Ex: RETIFICAR BIELAS"
+                    placeholder="Ex.: Retificar bielas"
                     value={editServiceName}
                     onChange={e => setEditServiceName(e.target.value)}
-                    className="text-xs font-bold uppercase h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-red-600"
+                    className="text-xs font-bold uppercase placeholder:normal-case h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
                     required
                     autoFocus
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-svc-price" className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Preço Padrão</Label>
+                  <Label htmlFor="edit-svc-price" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Preço Padrão</Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-zinc-400">R$</span>
                     <Input
@@ -1500,7 +1496,7 @@ export function PriceManager() {
                       placeholder="0,00"
                       value={editServicePrice}
                       onChange={e => setEditServicePrice(e.target.value)}
-                      className="pl-9 text-xs font-mono h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-red-600"
+                      className="pl-9 text-xs font-mono h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
                     />
                   </div>
                 </div>
@@ -1519,7 +1515,7 @@ export function PriceManager() {
                 <Button
                   type="submit"
                   size="sm"
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider text-[11px] px-4"
+                  className="solid-btn font-bold uppercase tracking-wider text-xs px-4"
                 >
                   Salvar Alterações
                 </Button>
@@ -1536,7 +1532,7 @@ export function PriceManager() {
             <form onSubmit={handleSavePrice} className="space-y-4">
               <DialogHeader>
                 <DialogTitle className="text-sm font-black uppercase tracking-wider text-zinc-950 dark:text-zinc-100 flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-red-600" />
+                  <DollarSign className="w-4 h-4 text-muted-foreground" />
                   {editingPriceId ? 'Alterar Preço do Motor' : 'Definir Preço do Motor'}
                 </DialogTitle>
                 <DialogDescription className="text-xs text-zinc-500">
@@ -1546,9 +1542,9 @@ export function PriceManager() {
 
               <div className="space-y-3.5">
                 <div className="space-y-1.5">
-                  <Label htmlFor="price-subname" className="text-[10px] font-black text-zinc-500 uppercase tracking-wider flex items-center justify-between">
+                  <Label htmlFor="price-subname" className="text-xs font-black text-zinc-500 uppercase tracking-wider flex items-center justify-between">
                     <span>Variação / Especificidade (Opcional)</span>
-                    <span className="text-[8px] text-zinc-400 lowercase">Ex: 8 válvulas, 1.0, 1.6</span>
+                    <span className="text-xs text-zinc-400 lowercase">Ex: 8 válvulas, 1.0, 1.6</span>
                   </Label>
                   <Input
                     id="price-subname"
@@ -1557,12 +1553,12 @@ export function PriceManager() {
                     value={priceSubName}
                     onChange={e => setPriceSubName(e.target.value)}
                     disabled={!!editingPriceId}
-                    className="text-xs font-bold uppercase h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-red-600"
+                    className="text-xs font-bold uppercase placeholder:normal-case h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="price-value" className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Valor do Serviço (R$)</Label>
+                  <Label htmlFor="price-value" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Valor do Serviço (R$)</Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-zinc-400">R$</span>
                     <Input
@@ -1572,7 +1568,7 @@ export function PriceManager() {
                       placeholder="0,00"
                       value={priceValue}
                       onChange={e => setPriceValue(e.target.value)}
-                      className="pl-9 text-xs font-mono h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-red-600"
+                      className="pl-9 text-xs font-mono h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
                       required
                       autoFocus
                     />
@@ -1593,7 +1589,7 @@ export function PriceManager() {
                 <Button
                   type="submit"
                   size="sm"
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider text-[11px] px-4"
+                  className="solid-btn font-bold uppercase tracking-wider text-xs px-4"
                 >
                   Salvar Preço
                 </Button>
@@ -1610,7 +1606,7 @@ export function PriceManager() {
             <form onSubmit={handleCopyPrices} className="space-y-4">
               <DialogHeader>
                 <DialogTitle className="text-sm font-black uppercase tracking-wider text-zinc-950 dark:text-zinc-100 flex items-center gap-2">
-                  <Copy className="w-4 h-4 text-red-600" />
+                  <Copy className="w-4 h-4 text-muted-foreground" />
                   Copiar Tabela de Preços
                 </DialogTitle>
                 <DialogDescription className="text-xs text-zinc-500">
@@ -1620,12 +1616,12 @@ export function PriceManager() {
 
               <div className="space-y-3.5">
                 <div className="space-y-1.5">
-                  <Label htmlFor="source-motor" className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Copiar Preços a Partir de:</Label>
+                  <Label htmlFor="source-motor" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Copiar Preços a Partir de:</Label>
                   <select
                     id="source-motor"
                     value={copySourceMotor}
                     onChange={e => setCopySourceMotor(e.target.value)}
-                    className="w-full h-10 px-3 text-xs font-bold uppercase rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-foreground focus-visible:ring-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/30"
+                    className="w-full h-10 px-3 text-xs font-bold uppercase rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-foreground focus-visible:ring-primary/40 focus:outline-none focus:ring-2 focus:ring-red-600/30"
                     required
                   >
                     <option value="">Selecione um motor...</option>
@@ -1644,11 +1640,11 @@ export function PriceManager() {
                 </div>
 
                 <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl space-y-1">
-                  <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider">
+                  <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider">
                     <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                     <span>Atenção</span>
                   </div>
-                  <p className="text-[9px] font-semibold leading-relaxed">
+                  <p className="text-xs font-semibold leading-relaxed">
                     Esta ação substituirá preços existentes no motor <strong className="uppercase">{selectedMotor}</strong> que possuam as mesmas variações de serviços vindas do motor de origem.
                   </p>
                 </div>
@@ -1667,7 +1663,7 @@ export function PriceManager() {
                 <Button
                   type="submit"
                   size="sm"
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider text-[11px] px-4"
+                  className="solid-btn font-bold uppercase tracking-wider text-xs px-4"
                 >
                   Copiar e Substituir
                 </Button>
@@ -1684,7 +1680,7 @@ export function PriceManager() {
             <form onSubmit={handleSaveObservation} className="space-y-4">
               <DialogHeader>
                 <DialogTitle className="text-sm font-black uppercase tracking-wider text-zinc-950 dark:text-zinc-100 flex items-center gap-2">
-                  <Tag className="w-4 h-4 text-red-600" />
+                  <Tag className="w-4 h-4 text-muted-foreground" />
                   Definir Observação
                 </DialogTitle>
                 <DialogDescription className="text-xs text-zinc-500">
@@ -1694,13 +1690,13 @@ export function PriceManager() {
 
               <div className="space-y-3.5">
                 <div className="space-y-1.5">
-                  <Label htmlFor="observation-text" className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Observação:</Label>
+                  <Label htmlFor="observation-text" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Observação:</Label>
                   <textarea
                     id="observation-text"
                     placeholder="Ex: Preço válido somente para eixo sem solda..."
                     value={obsValue}
                     onChange={e => setObsValue(e.target.value)}
-                    className="w-full min-h-[80px] p-3 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-foreground focus-visible:ring-red-600 focus:outline-none focus:ring-2 focus:ring-red-600/30 resize-y"
+                    className="w-full min-h-[80px] p-3 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-foreground focus-visible:ring-primary/40 focus:outline-none focus:ring-2 focus:ring-red-600/30 resize-y"
                     maxLength={500}
                   />
                 </div>
@@ -1719,7 +1715,7 @@ export function PriceManager() {
                 <Button
                   type="submit"
                   size="sm"
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider text-[11px] px-4"
+                  className="solid-btn font-bold uppercase tracking-wider text-xs px-4"
                 >
                   Salvar Observação
                 </Button>

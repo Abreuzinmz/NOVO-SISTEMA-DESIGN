@@ -49,12 +49,12 @@ const HistoryOrderRow = React.memo(({ order, client, mechanic, groupedPayment, o
         <div className="font-bold text-foreground text-xs truncate flex items-center gap-1.5 flex-wrap">
           <span className="truncate">{client?.name || 'Cliente Removido'}</span>
           {client?.clientType === 'mechanic' && (
-            <span className="inline-flex items-center px-1 py-0.2 text-[8px] font-black tracking-widest uppercase rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">
+            <span className="inline-flex items-center px-1 py-0.2 text-xs font-black tracking-widest uppercase rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">
               Mecânico
             </span>
           )}
         </div>
-        <div className="text-[10px] text-muted-foreground truncate">{client?.document}</div>
+        <div className="text-xs text-muted-foreground truncate">{client?.document}</div>
       </div>
       
       {/* Mecânico Responsável */}
@@ -84,7 +84,7 @@ const HistoryOrderRow = React.memo(({ order, client, mechanic, groupedPayment, o
         <div className="flex items-center gap-1.5 text-xs font-bold text-foreground/80 truncate">
           <span className="truncate">{formatMotorModelAndCylinders(order.motorModel)}</span>
           {order.displacement && order.displacement.trim() && (
-            <span className="inline-flex items-center justify-center font-mono text-[10px] font-bold px-1 py-0.5 rounded border border-border text-muted-foreground bg-secondary/30 flex-shrink-0">
+            <span className="inline-flex items-center justify-center font-mono text-xs font-bold px-1 py-0.5 rounded border border-border text-muted-foreground bg-secondary/30 flex-shrink-0">
               {order.displacement}
             </span>
           )}
@@ -205,7 +205,7 @@ export function History() {
       <div className="rounded-lg border bg-card border-border transition-colors duration-200 overflow-x-auto shadow-sm">
         <div className="min-w-[850px] w-full">
           {/* Header */}
-          <div className="grid grid-cols-[80px_1.4fr_1fr_1.2fr_120px_115px_160px] gap-x-2 md:gap-x-4 items-center border-b border-border bg-muted/20 py-3 px-3 md:px-4 font-bold text-[9px] font-mono uppercase tracking-wider text-muted-foreground/80">
+          <div className="grid grid-cols-[80px_1.4fr_1fr_1.2fr_120px_115px_160px] gap-x-2 md:gap-x-4 items-center border-b border-border bg-muted/20 py-3 px-3 md:px-4 font-bold text-xs font-mono uppercase tracking-wider text-muted-foreground/80">
             <div>Nº O.S.</div>
             <div>Cliente</div>
             <div className="pr-4">Mec. Responsável</div>

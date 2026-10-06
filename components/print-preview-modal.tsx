@@ -171,7 +171,7 @@ export function PrintPreviewModal({
               >
                 <ZoomOut className="w-4 h-4" />
               </Button>
-              <span className="text-[11px] font-black text-neutral-300 w-12 text-center select-none font-mono">
+              <span className="text-xs font-black text-neutral-300 w-12 text-center select-none font-mono">
                 {Math.round(zoom * 100)}%
               </span>
               <Button
@@ -190,7 +190,7 @@ export function PrintPreviewModal({
             <div className="flex items-center gap-2">
               <Button
                 onClick={handlePrintClick}
-                className="h-9 px-4 rounded-lg bg-[#34C759] hover:bg-[#34C759]/90 text-white font-black text-xs uppercase tracking-wider gap-1.5 shadow-sm"
+                className="h-9 px-4 rounded-lg solid-btn font-black text-xs uppercase tracking-wider gap-1.5 shadow-sm"
               >
                 <Printer className="w-4 h-4" /> Imprimir
               </Button>

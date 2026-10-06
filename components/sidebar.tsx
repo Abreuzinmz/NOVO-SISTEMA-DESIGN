@@ -92,7 +92,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
           {isExpanded && (
             <div className="whitespace-nowrap transition-opacity duration-200">
               <h1 className="font-extrabold text-[15px] leading-none tracking-tight text-foreground">Retifica</h1>
-              <p className="text-[9px] text-muted-foreground/60 font-bold uppercase tracking-[0.15em] mt-1">Mendonça</p>
+              <p className="text-xs text-muted-foreground/60 font-bold uppercase tracking-[0.15em] mt-1">Mendonça</p>
             </div>
           )}
         </div>
@@ -127,7 +127,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
                 
                 {/* Tooltip */}
                 {!isExpanded && (
-                  <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-white text-[10px] font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
+                  <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-white text-xs font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
                     {item.label}
                   </div>
                 )}
@@ -145,7 +145,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
           <div className="relative group flex justify-center w-full">
             <ThemeToggle iconOnly={!isExpanded} className={isExpanded ? "w-full" : undefined} />
             {!isExpanded && (
-              <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-white text-[10px] font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
+              <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-white text-xs font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
                 Alternar Tema
               </div>
             )}
@@ -167,7 +167,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
               {isExpanded && <span>Configurações</span>}
             </button>
             {!isExpanded && (
-              <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-white text-[10px] font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
+              <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-white text-xs font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
                 Configurações
               </div>
             )}
@@ -188,7 +188,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
                 <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/30">
                   <HardDrive className="w-4 h-4 text-amber-500" />
                 </div>
-                <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-amber-500 text-[10px] font-black py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
+                <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-amber-500 text-xs font-black py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
                   LOCAL (TESTES) · dados só neste computador
                 </div>
               </>
@@ -208,14 +208,14 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
               {isExpanded ? (
                 <>
                   <ChevronLeft className="w-4 h-4 stroke-[2] shrink-0" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider ml-1 w-full text-left">Recolher</span>
+                  <span className="text-xs font-bold uppercase tracking-wider ml-1 w-full text-left">Recolher</span>
                 </>
               ) : (
                 <ChevronRight className="w-4 h-4 stroke-[2] shrink-0" />
               )}
             </button>
             {!isExpanded && (
-              <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-white text-[10px] font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
+              <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-white text-xs font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
                 Expandir
               </div>
             )}
@@ -258,7 +258,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
               onChange={(e) => setFontSize(Number(e.target.value))}
               className="premium-slider"
             />
-            <div className="flex justify-between text-[10px] text-muted-foreground/60 font-semibold uppercase tracking-wider">
+            <div className="flex justify-between text-xs text-muted-foreground/60 font-semibold uppercase tracking-wider">
               <span>12px (Mínimo)</span>
               <span>16px (Padrão)</span>
               <span>20px (Máximo)</span>
@@ -267,7 +267,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
 
           {/* Dynamic Preview Box */}
           <div className="p-3 bg-secondary/30 rounded-lg border border-border/40 space-y-1.5">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-wider">Pré-visualização</span>
+            <span className="text-xs uppercase font-bold text-muted-foreground/50 tracking-wider">Pré-visualização</span>
             <p className="text-xs font-medium text-foreground leading-relaxed">
               O tamanho da tipografia do sistema e espaçamentos associados (rem) serão ajustados de forma proporcional em tempo real.
             </p>
