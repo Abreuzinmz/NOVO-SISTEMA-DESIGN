@@ -56,7 +56,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           <StoreProvider>
             <ConfirmDialogProvider>
               {children}
-              <Toaster position="top-right" richColors />
+              <Toaster position="bottom-right" richColors visibleToasts={3} />
             </ConfirmDialogProvider>
           </StoreProvider>
         </ThemeProvider>

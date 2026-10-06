@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useStore, Order, ServiceStatus } from '@/lib/store';
+import { useStore, Order, ServiceStatus, PagamentoAgrupado } from '@/lib/store';
+import { ServiceStatusBadge, PaymentBadge } from '@/components/ui/status-badges';
+import { getOrderPaymentSummary, formatBRL, daysAgoLabel } from '@/lib/payment';
 import {
   Table,
   TableBody,
@@ -20,9 +22,6 @@ import {
   Trash2,
   Plus,
   Search,
-  Bell,
-  ChevronDown,
-  SlidersHorizontal,
   X,
   Calendar
 } from 'lucide-react';
@@ -63,6 +62,7 @@ interface DashboardOrderRowProps {
   order: Order;
   client: any;
   mechanic: any;
+  groupedPayment?: PagamentoAgrupado;
   onEdit?: (order: Order) => void;
   onView: (order: Order) => void;
   onStatusChange: (orderId: number, newVal: string | null) => void;
@@ -74,97 +74,18 @@ const DashboardOrderRow = React.memo(({
   order,
   client,
   mechanic,
+  groupedPayment,
   onEdit,
   onView,
   onStatusChange,
   onFinish,
   onDelete
 }: DashboardOrderRowProps) => {
-  const getStatusColorBarClass = (status: ServiceStatus) => {
-    switch (status) {
-      case 'Na Fila': return 'bg-zinc-400 dark:bg-[#3f3f46]';
-      case 'Em Andamento': return 'bg-blue-500 dark:bg-blue-600';
-      case 'Aguardando Peça': return 'bg-amber-500 dark:bg-amber-600';
-      case 'Pronto': return 'bg-[#34c759] dark:bg-[#16a34a]';
-      case 'Levou': return 'bg-red-500 dark:bg-red-600';
-      default: return 'bg-zinc-400';
-    }
-  };
-
-  const getStatusBadge = (status: ServiceStatus, deliveryDate?: string) => {
-    const baseClass = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border border-transparent shadow-xs";
-    switch (status) {
-      case 'Na Fila': return (
-        <span className={cn(baseClass, "bg-[#f4f4f5] dark:bg-[#27272a]/60 text-[#71717a] dark:text-[#a1a1aa] border-[#e4e4e7]/60 dark:border-[#3f3f46]/30")}>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#71717a] dark:bg-[#a1a1aa] shrink-0" />
-          NA FILA
-        </span>
-      );
-      case 'Em Andamento': return (
-        <span className={cn(baseClass, "bg-[#e0f2fe] dark:bg-[#0ea5e9]/10 text-[#0369a1] dark:text-[#38bdf8] border-[#bae6fd]/60 dark:border-[#0ea5e9]/20")}>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#0369a1] dark:bg-[#38bdf8] shrink-0" />
-          EM ANDAMENTO
-        </span>
-      );
-      case 'Aguardando Peça': return (
-        <span className={cn(baseClass, "bg-[#fef9c3] dark:bg-[#eab308]/10 text-[#a16207] dark:text-[#facc15] border-[#fef08a]/60 dark:border-[#eab308]/20")}>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#a16207] dark:bg-[#facc15] shrink-0" />
-          AGUARDANDO PEÇA
-        </span>
-      );
-      case 'Pronto': return (
-        <span className={cn(baseClass, "bg-[#dcfce7] dark:bg-[#22c55e]/10 text-[#15803d] dark:text-[#4ade80] border-[#bbf7d0]/60 dark:border-[#22c55e]/20")}>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#15803d] dark:bg-[#4ade80] shrink-0" />
-          PRONTO
-        </span>
-      );
-      case 'Levou': return (
-        <div className="flex flex-col items-center gap-0.5">
-          <span className={cn(baseClass, "bg-[#fee2e2] dark:bg-[#ef4444]/10 text-[#b91c1c] dark:text-[#f87171] border-[#fecaca]/60 dark:border-[#ef4444]/20")}>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#b91c1c] dark:bg-[#f87171] shrink-0" />
-            LEVOU
-          </span>
-          {deliveryDate && (
-            <span className="text-[9px] font-mono font-bold text-red-600 dark:text-red-400/80">
-              {deliveryDate.split('-').reverse().join('/')}
-            </span>
-          )}
-        </div>
-      );
-    }
-  };
-
-  const getPaymentBadge = (status: string) => {
-    const baseClass = "inline-flex items-center justify-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border border-transparent shadow-xs min-w-[90px]";
-    switch (status) {
-      case 'Não Pago': return (
-        <span className={cn(baseClass, "bg-[#fef2f2] dark:bg-[#ef4444]/10 text-[#b91c1c] dark:text-[#ef4444] border-[#fecaca]/60 dark:border-[#ef4444]/20")}>
-          PENDENTE
-        </span>
-      );
-      case 'Entrada': return (
-        <span className={cn(baseClass, "bg-[#fffbeb] dark:bg-[#f59e0b]/10 text-[#b45309] dark:text-[#f59e0b] border-[#fde68a]/60 dark:border-[#f59e0b]/20")}>
-          ENTRADA
-        </span>
-      );
-      case 'Pago': return (
-        <span className={cn(baseClass, "bg-[#ecfdf5] dark:bg-[#10b981]/10 text-[#047857] dark:text-[#10b981] border-[#a7f3d0]/60 dark:border-[#10b981]/20")}>
-          PAGO
-        </span>
-      );
-      default: return (
-        <span className={cn(baseClass, "bg-secondary text-secondary-foreground border-border")}>
-          {status.toUpperCase()}
-        </span>
-      );
-    }
-  };
-
   const parsedMotors = useMemo(() => {
     if (!order.motorModel) return [];
     const models = order.motorModel.split(', ');
     const displacements = order.displacement ? order.displacement.split(', ') : [];
-    
+
     return models.map((m, idx) => {
       const cylindersMatch = m.match(/\((\d+)\s*(?:CIL|cil|Cil|Cilindros|cilindros)?\)/i);
       const cylinders = cylindersMatch ? `${cylindersMatch[1]} CIL` : '';
@@ -175,192 +96,148 @@ const DashboardOrderRow = React.memo(({
   }, [order.motorModel, order.displacement]);
 
   const motorTitle = useMemo(() => {
-    return parsedMotors.map(pm => pm.model).join(', ');
+    return parsedMotors.map(pm => [pm.model, pm.disp, pm.cylinders].filter(Boolean).join(' ')).join(' + ');
   }, [parsedMotors]);
+
+  const payment = getOrderPaymentSummary(order, groupedPayment);
+  const arrival = daysAgoLabel(order.arrivalDate || order.createdAt);
+  const mechanicLabel = mechanic ? (mechanic.nickname || mechanic.name) : '';
 
   return (
     <div
       id={`order-row-${order.id}`}
       onClick={() => onView(order)}
       className={cn(
-        "relative group overflow-hidden rounded-xl border transition-all duration-200 cursor-pointer",
-        "grid grid-cols-[130px_1.8fr_1.5fr_1.5fr_160px_140px_60px] gap-x-2 items-center p-4 pr-6 min-h-[76px]",
-        // Dark mode styles
-        "dark:bg-[#16161a] dark:border-[#27272a]/30 dark:hover:bg-[#1c1c21]",
-        // Light mode styles
-        "bg-white border-[#e4e4e7]/60 hover:bg-[#f4f4f5]/60 shadow-xs"
+        "relative group rounded-lg border transition-colors duration-150 cursor-pointer",
+        "grid grid-cols-[88px_minmax(0,1.6fr)_minmax(0,1.3fr)_104px_176px_150px_40px] gap-x-3 items-center px-4 py-2.5 min-h-[56px]",
+        "dark:bg-[#16161a] dark:border-[#27272a]/40 dark:hover:bg-[#1c1c21]",
+        "bg-white border-[#e4e4e7]/70 hover:bg-[#f4f4f5]/70"
       )}
     >
-      {/* Left colored bar */}
-      <div className={cn("absolute left-0 top-0 bottom-0 w-[6px] rounded-l-xl", getStatusColorBarClass(order.serviceStatus))} />
-      
       {/* Nº O.S. */}
-      <div className="pl-4 font-mono font-black text-xl text-[#2563eb] dark:text-white">
+      <div className="font-mono font-black text-base text-foreground tabular-nums">
         #{order.osNumber || order.id}
       </div>
 
-      {/* Cliente */}
-      <div className="space-y-0.5 pr-2 ml-2 min-w-0" title={client?.nickname ? `${client.nickname} (${client.name || ''})` : client?.name}>
-        {client?.nickname ? (
-          <>
-            <div className="font-black text-foreground text-xs uppercase tracking-wide truncate">
-              {client.nickname.toUpperCase()}
-            </div>
-            <div className="text-[10px] text-muted-foreground font-semibold truncate uppercase">
-              {client.name}
-            </div>
-          </>
-        ) : (
-          <div className="font-extrabold text-foreground text-xs uppercase tracking-wide truncate">
-            {client?.name || 'Cliente Removido'}
-          </div>
+      {/* Cliente (+ mecânico como linha de apoio) */}
+      <div className="min-w-0" title={client?.nickname ? `${client.nickname} (${client.name || ''})` : client?.name}>
+        <div className="font-bold text-foreground text-sm uppercase leading-tight line-clamp-2 break-words">
+          {client?.nickname || client?.name || 'Cliente removido'}
+        </div>
+        <div className="text-xs text-muted-foreground truncate">
+          {[client?.nickname ? client.name : '', client?.phone].filter(Boolean).join(' · ')}
+        </div>
+        {mechanicLabel && (
+          <div className="text-xs text-foreground/75 truncate">Mecânico: {mechanicLabel}</div>
         )}
-        {client?.phone && (
-          <div className="text-[10px] text-muted-foreground font-bold">
-            {client.phone}
-          </div>
-        )}
-      </div>
-
-      {/* Mecânico Responsável */}
-      <div className="space-y-0.5 pr-2 ml-2 min-w-0" title={mechanic?.nickname ? `${mechanic.nickname} (${mechanic.name || ''})` : mechanic?.name}>
-        {mechanic ? (
-          mechanic.nickname ? (
-            <>
-              <div className="font-black text-foreground text-xs uppercase tracking-wide truncate">
-                {mechanic.nickname.toUpperCase()}
-              </div>
-              <div className="text-[10px] text-muted-foreground font-semibold truncate uppercase">
-                {mechanic.name}
-              </div>
-            </>
-          ) : (
-            <div className="font-extrabold text-foreground text-xs uppercase tracking-wide truncate">
-              {mechanic.name}
-            </div>
-          )
-        ) : null}
       </div>
 
       {/* Motor */}
-      <div className="space-y-1 pr-2 min-w-0" title={motorTitle || 'Motor Não Especificado'}>
+      <div className="min-w-0" title={motorTitle || 'Motor não especificado'}>
         {parsedMotors.length > 0 ? (
           parsedMotors.map((pm, idx) => (
-            <div key={idx} className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-extrabold text-foreground text-xs uppercase tracking-wide truncate">
-                {pm.model}
-              </span>
-              {pm.disp && (
-                <span className="inline-flex items-center justify-center font-mono text-[9px] font-bold px-2 py-0.5 rounded bg-[#f3f4f6] dark:bg-[#27272a] text-muted-foreground border border-border/20 shrink-0">
-                  {pm.disp}
-                </span>
-              )}
-              {pm.cylinders && (
-                <span className="inline-flex items-center justify-center font-bold text-[9px] px-2 py-0.5 rounded bg-[#f3f4f6] dark:bg-[#27272a] text-muted-foreground border border-border/20 uppercase tracking-wide shrink-0">
-                  {pm.cylinders}
-                </span>
+            <div key={idx} className="text-sm leading-tight">
+              <span className="font-bold text-foreground uppercase">{pm.model}</span>
+              {(pm.disp || pm.cylinders) && (
+                <span className="text-xs text-muted-foreground"> {[pm.disp, pm.cylinders].filter(Boolean).join(' · ')}</span>
               )}
             </div>
           ))
         ) : (
-          <div className="font-extrabold text-foreground text-xs uppercase tracking-wide truncate">
-            Motor Não Especificado
-          </div>
+          <div className="text-sm text-muted-foreground">Motor não especificado</div>
         )}
       </div>
 
-      {/* Status */}
-      <div className="flex flex-col items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
+      {/* Chegada */}
+      <div className="text-sm leading-tight">
+        {arrival ? (
+          <>
+            <div className={cn("font-semibold", arrival.days >= 15 ? "text-red-600 dark:text-red-400" : arrival.days >= 7 ? "text-yellow-700 dark:text-yellow-400" : "text-foreground")}>
+              {arrival.label}
+            </div>
+            <div className="text-xs text-muted-foreground tabular-nums">
+              {(order.arrivalDate || order.createdAt.slice(0, 10)).split('-').reverse().join('/')}
+            </div>
+          </>
+        ) : <span className="text-muted-foreground">—</span>}
+      </div>
+
+      {/* Status (clicável: troca rápida) */}
+      <div className="flex flex-col items-start gap-1 min-w-0" onClick={(e) => e.stopPropagation()}>
         <Select
           value={order.finished ? 'Finalizado / Entregue' : order.serviceStatus}
           onValueChange={(val) => onStatusChange(order.id, val)}
         >
-          <SelectTrigger className="border-none bg-transparent hover:bg-transparent shadow-none p-0 h-auto focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 w-auto flex justify-center cursor-pointer [&_svg]:hidden">
-            {getStatusBadge(order.serviceStatus, order.deliveryDate)}
+          <SelectTrigger
+            title="Clique para alterar o status"
+            className="border-none bg-transparent hover:bg-transparent shadow-none p-0 h-auto focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 w-auto flex cursor-pointer [&>svg:last-child]:hidden"
+          >
+            <ServiceStatusBadge status={order.serviceStatus} withMenu />
           </SelectTrigger>
-          <SelectContent className="z-[9999] bg-white dark:bg-[#0A0A0C] border border-border/50 dark:border-white/[0.08] rounded-lg shadow-2xl min-w-[150px] w-auto p-1.5">
-            <SelectItem value="Na Fila" className="rounded-md py-2 px-3 focus:bg-primary/5 dark:focus:bg-white/[0.06] cursor-pointer transition-colors duration-150 group">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-secondary-foreground shrink-0" />
-                <span className="font-bold text-[10px] uppercase tracking-[0.1em]">Na Fila</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="Em Andamento" className="rounded-md py-2 px-3 focus:bg-primary/5 dark:focus:bg-white/[0.06] cursor-pointer transition-colors duration-150 group">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0EA5E9] dark:bg-[#38BDF8] shrink-0" />
-                <span className="font-bold text-[10px] uppercase tracking-[0.1em] text-[#0EA5E9] dark:text-[#38BDF8]">Em Andamento</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="Aguardando Peça" className="rounded-md py-2 px-3 focus:bg-primary/5 dark:focus:bg-white/[0.06] cursor-pointer transition-colors duration-150 group">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                <span className="font-bold text-[10px] uppercase tracking-[0.1em] text-amber-600 dark:text-amber-400">Aguardando Peça</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="Pronto" className="rounded-md py-2 px-3 focus:bg-primary/5 dark:focus:bg-white/[0.06] cursor-pointer transition-colors duration-150 group">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#34C759] shrink-0" />
-                <span className="font-bold text-[10px] uppercase tracking-[0.1em] text-[#34C759]">Pronto</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="Levou" className="rounded-md py-2 px-3 focus:bg-red-500/10 focus:text-red-600 dark:focus:text-red-400 cursor-pointer transition-colors duration-150 group">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                <span className="font-bold text-[10px] uppercase tracking-[0.1em] text-red-600 dark:text-red-400">Levou</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="Finalizado / Entregue" className="rounded-md py-2 px-3 focus:bg-primary/5 dark:focus:bg-white/[0.06] cursor-pointer transition-colors duration-150 group">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-secondary-foreground shrink-0" />
-                <span className="font-bold text-[10px] uppercase tracking-[0.1em] text-foreground">Finalizado / Entregue</span>
-              </div>
+          <SelectContent className="z-[9999] bg-white dark:bg-[#0A0A0C] border border-border/50 dark:border-white/[0.08] rounded-lg shadow-2xl min-w-[180px] w-auto p-1.5">
+            {(['Na Fila', 'Em Andamento', 'Aguardando Peça', 'Pronto', 'Levou'] as ServiceStatus[]).map((s) => (
+              <SelectItem key={s} value={s} className="rounded-md py-2 px-2 focus:bg-primary/5 dark:focus:bg-white/[0.06] cursor-pointer">
+                <ServiceStatusBadge status={s} />
+              </SelectItem>
+            ))}
+            <SelectItem value="Finalizado / Entregue" className="rounded-md py-2 px-2 focus:bg-primary/5 dark:focus:bg-white/[0.06] cursor-pointer">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Finalizar O.S.
+              </span>
             </SelectItem>
           </SelectContent>
         </Select>
+        {order.serviceStatus === 'Levou' && order.deliveryDate && (
+          <span className="text-xs text-muted-foreground tabular-nums">levou em {order.deliveryDate.split('-').reverse().join('/')}</span>
+        )}
         {order.statusObservation && (
-          <span className="text-[10px] text-muted-foreground font-semibold text-center max-w-[140px] break-words">
+          <span className="text-xs text-muted-foreground leading-tight line-clamp-2 break-words">
             {order.statusObservation}
           </span>
         )}
       </div>
 
-      {/* Pagamento */}
-      <div className="flex justify-center">
-        {getPaymentBadge(order.paymentStatus)}
+      {/* Pagamento + saldo */}
+      <div className="flex flex-col items-start gap-0.5">
+        <PaymentBadge situation={payment.situation} grouped={!!groupedPayment} />
+        <span
+          className={cn("text-xs tabular-nums whitespace-nowrap", payment.situation === 'pago' ? "text-muted-foreground" : "font-semibold text-red-600 dark:text-red-400")}
+          title={groupedPayment ? 'Saldo do pagamento agrupado' : undefined}
+        >
+          {payment.situation === 'pago' ? formatBRL(payment.total) : `falta ${formatBRL(payment.balance)}`}
+        </span>
       </div>
 
-      {/* Ações */}
+      {/* Ações raras */}
       <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="icon" className="hover:bg-secondary/40 rounded-md w-7 h-7 transition-colors" onClick={(e) => e.stopPropagation()}>
-                <MoreHorizontal className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              <Button variant="ghost" size="icon" title="Mais ações" className="hover:bg-secondary/40 rounded-md w-8 h-8 transition-colors" onClick={(e) => e.stopPropagation()}>
+                <MoreHorizontal className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
               </Button>
             }
           />
-          <DropdownMenuContent align="end" className="min-w-[150px] bg-card border-border rounded-lg shadow-lg">
+          <DropdownMenuContent align="end" className="min-w-[170px] bg-card border-border rounded-lg shadow-lg">
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-[9px] uppercase tracking-wider text-muted-foreground/60 px-2.5 py-1.5">Ações</DropdownMenuLabel>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit?.(order); }} className="hover:bg-secondary cursor-pointer rounded mx-1 text-xs">
-                <Pencil className="w-3.5 h-3.5 mr-2 stroke-[1.5]" /> Editar O.S.
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onView(order); }} className="hover:bg-secondary cursor-pointer rounded mx-1 text-sm">
+                <Eye className="w-4 h-4 mr-2 stroke-[1.5]" /> Abrir O.S.
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onView(order); }} className="hover:bg-secondary cursor-pointer rounded mx-1 text-xs">
-                <Eye className="w-3.5 h-3.5 mr-2 stroke-[1.5]" /> Visualizar
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit?.(order); }} className="hover:bg-secondary cursor-pointer rounded mx-1 text-sm">
+                <Pencil className="w-4 h-4 mr-2 stroke-[1.5]" /> Editar O.S.
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem
-                className="cursor-pointer font-bold rounded mx-1 text-xs text-[#34C759] hover:bg-[#34C759]/10"
+                className="cursor-pointer rounded mx-1 text-sm"
                 onClick={() => onFinish(order)}
               >
-                <CheckCircle2 className="w-3.5 h-3.5 mr-2 stroke-[1.5]" /> Finalizar O.S.
+                <CheckCircle2 className="w-4 h-4 mr-2 stroke-[1.5]" /> Finalizar O.S.
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem
-                className="text-[#FF5A5F] hover:bg-[#FF5A5F]/10 cursor-pointer font-bold rounded mx-1 text-xs"
+                className="text-red-600 dark:text-red-400 hover:bg-red-500/10 cursor-pointer rounded mx-1 text-sm"
                 onClick={() => onDelete(order.id)}
               >
-                <Trash2 className="w-3.5 h-3.5 mr-2 stroke-[1.5]" /> Excluir
+                <Trash2 className="w-4 h-4 mr-2 stroke-[1.5]" /> Excluir O.S.
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
@@ -447,7 +324,7 @@ export function Dashboard({
       if (ordersToRender.length === 0) {
         return (
           <tr>
-            <td colSpan={4} className="py-12 text-center text-muted-foreground/60 font-medium text-xs">
+            <td colSpan={7} className="py-12 text-center text-muted-foreground/60 font-medium text-xs">
               Nenhuma ordem de serviço ativa encontrada.
             </td>
           </tr>
@@ -475,10 +352,10 @@ export function Dashboard({
             onClick={() => handleOpenViewModal(order)}
             className="hover:bg-secondary/40 cursor-pointer transition-colors duration-150 group"
           >
-            <td className="py-4 px-4 font-mono font-black text-sm text-[#2563eb] dark:text-blue-400">
+            <td className="py-2 px-3 font-mono font-black text-sm text-foreground tabular-nums">
               #{order.osNumber || order.id}
             </td>
-            <td className="py-4 px-4 text-foreground text-xs">
+            <td className="py-2 px-3 text-foreground text-xs">
               <div className="flex flex-col space-y-0.5">
                 {client?.nickname ? (
                   <>
@@ -499,7 +376,7 @@ export function Dashboard({
                 )}
               </div>
             </td>
-            <td className="py-4 px-4 text-foreground text-xs">
+            <td className="py-2 px-3 text-foreground text-xs">
               <div className="flex flex-col space-y-0.5">
                 {mechanic ? (
                   mechanic.nickname ? (
@@ -517,8 +394,22 @@ export function Dashboard({
                 ) : null}
               </div>
             </td>
-            <td className="py-4 px-4 font-extrabold text-foreground text-xs uppercase tracking-wide">
+            <td className="py-2 px-3 font-bold text-foreground text-sm uppercase">
               {motorText}
+            </td>
+            <td className="py-2 px-3 text-sm whitespace-nowrap">{daysAgoLabel(order.arrivalDate || order.createdAt)?.label || '—'}</td>
+            <td className="py-2 px-3"><ServiceStatusBadge status={order.serviceStatus} /></td>
+            <td className="py-2 px-3">
+              {(() => {
+                const group = getGroupedPaymentForOrder(order.id);
+                const p = getOrderPaymentSummary(order, group);
+                return (
+                  <div className="flex items-center gap-2 whitespace-nowrap">
+                    <PaymentBadge situation={p.situation} grouped={!!group} />
+                    {p.situation !== 'pago' && <span className="text-xs font-semibold text-red-600 dark:text-red-400">falta {formatBRL(p.balance)}</span>}
+                  </div>
+                );
+              })()}
             </td>
           </tr>
         );
@@ -527,7 +418,7 @@ export function Dashboard({
       console.error('Error rendering Visão Ampla:', error);
       return (
         <tr>
-          <td colSpan={4} className="py-12 text-center text-red-500 font-medium text-xs">
+          <td colSpan={7} className="py-12 text-center text-red-500 font-medium text-xs">
             Erro ao carregar a listagem operacional.
           </td>
         </tr>
@@ -570,7 +461,6 @@ export function Dashboard({
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [quickOsOpen, setQuickOsOpen] = useState(false);
-  const [isFilterBarOpen, setIsFilterBarOpen] = useState(false);
 
   const handleOpenViewModal = (order: Order) => {
     setSelectedOrder(order);
@@ -681,73 +571,6 @@ export function Dashboard({
     }
   };
 
-  const getStatusBadge = (status: ServiceStatus, deliveryDate?: string) => {
-    switch (status) {
-      case 'Na Fila': return (
-        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-secondary text-secondary-foreground border border-border">
-          <span className="w-1.5 h-1.5 rounded-full bg-secondary-foreground shrink-0" />
-          NA FILA
-        </span>
-      );
-      case 'Em Andamento': return (
-        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-[#0EA5E9]/10 dark:bg-[#38BDF8]/10 text-[#0EA5E9] dark:text-[#38BDF8] border border-[#0EA5E9]/20 dark:border-[#38BDF8]/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#0EA5E9] dark:bg-[#38BDF8] shrink-0" />
-          EM ANDAMENTO
-        </span>
-      );
-      case 'Aguardando Peça': return (
-        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-          AGUARDANDO PEÇA
-        </span>
-      );
-      case 'Pronto': return (
-        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-[#34C759]/10 text-green-700 dark:text-[#34C759] border border-[#34C759]/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#34C759] shrink-0" />
-          PRONTO
-        </span>
-      );
-      case 'Levou': return (
-        <div className="flex flex-col items-center gap-0.5">
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-            LEVOU
-          </span>
-          {deliveryDate && (
-            <span className="text-[9px] font-mono font-bold text-red-600 dark:text-red-400/80">
-              {deliveryDate.split('-').reverse().join('/')}
-            </span>
-          )}
-        </div>
-      );
-    }
-  };
-
-  const getPaymentBadge = (status: string) => {
-    switch (status) {
-      case 'Não Pago': return (
-        <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[10px] font-black bg-[#FF5A5F]/10 text-red-600 dark:text-[#FF5A5F] border border-[#FF5A5F]/20">
-          PENDENTE
-        </span>
-      );
-      case 'Entrada': return (
-        <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-          ENTRADA
-        </span>
-      );
-      case 'Pago': return (
-        <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[10px] font-black bg-[#34C759]/10 text-green-700 dark:text-[#34C759] border border-[#34C759]/20">
-          PAGO
-        </span>
-      );
-      default: return (
-        <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[10px] font-black bg-secondary text-secondary-foreground border border-border">
-          {status.toUpperCase()}
-        </span>
-      );
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* ═══ HEADER BAR ═══ */}
@@ -757,10 +580,10 @@ export function Dashboard({
           <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground/60 stroke-[1.5]" />
           <input
             type="text"
-            placeholder="Pesquisar por O.S., Cliente ou Motor..."
+            placeholder="Buscar O.S., cliente, mecânico ou motor"
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
-            className="w-full pl-9 pr-9 py-2 text-xs rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-secondary-foreground transition-all"
+            className="w-full pl-9 pr-9 py-2 text-sm rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-secondary-foreground transition-all"
           />
           {localSearch && (
             <button
@@ -779,22 +602,11 @@ export function Dashboard({
         <div className="flex items-center gap-3">
           <Button
             onClick={() => setQuickOsOpen(true)}
-            className="solid-btn h-9 px-4 rounded-lg font-bold text-xs gap-1.5 uppercase tracking-wider"
+            className="solid-btn h-9 px-4 rounded-lg font-bold text-sm gap-1.5"
           >
-            <Plus className="w-4 h-4 stroke-[2]" /> Nova O.S. Rápida
+            <Plus className="w-4 h-4 stroke-[2]" /> Nova O.S.
           </Button>
 
-          <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-border hover:bg-secondary/40 transition-colors">
-            <Bell className="w-4 h-4 text-muted-foreground stroke-[1.5]" />
-          </button>
-
-          {/* Profile */}
-          <div className="flex items-center gap-2 pl-2 border-l border-border">
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-border bg-secondary flex items-center justify-center">
-              <span className="text-xs font-bold text-foreground">RM</span>
-            </div>
-            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground stroke-[1.5]" />
-          </div>
         </div>
       </div>
 
@@ -803,24 +615,24 @@ export function Dashboard({
         <button
           onClick={() => setActiveTab('gerenciamento')}
           className={cn(
-            "px-4 py-2 text-xs font-black uppercase tracking-widest border-b-2 transition-all cursor-pointer",
+            "px-4 py-2 text-sm font-bold border-b-2 transition-all cursor-pointer",
             activeTab === 'gerenciamento'
               ? "border-primary text-foreground font-black"
               : "border-transparent text-muted-foreground/60 hover:text-foreground font-bold"
           )}
         >
-          Gerenciamento
+          Lista detalhada
         </button>
         <button
           onClick={() => setActiveTab('visao-ampla')}
           className={cn(
-            "px-4 py-2 text-xs font-black uppercase tracking-widest border-b-2 transition-all cursor-pointer",
+            "px-4 py-2 text-sm font-bold border-b-2 transition-all cursor-pointer",
             activeTab === 'visao-ampla'
               ? "border-primary text-foreground font-black"
               : "border-transparent text-muted-foreground/60 hover:text-foreground font-bold"
           )}
         >
-          Visão Ampla
+          Lista compacta
         </button>
       </div>
 
@@ -831,31 +643,12 @@ export function Dashboard({
           <div className="flex justify-between items-end gap-4 flex-wrap pt-2">
             <div>
               <h2 className="text-2xl font-extrabold tracking-tight text-foreground">O.S. em Andamento</h2>
-              <p className="text-muted-foreground mt-0.5 text-xs font-medium">Gerencie as ordens de serviço ativas na oficina.</p>
-            </div>
-
-            {/* Filter Trigger & Counter */}
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                variant="outline"
-                onClick={() => setIsFilterBarOpen(!isFilterBarOpen)}
-                className={cn(
-                  "h-9 px-4 gap-2 font-bold uppercase tracking-wider text-[10px] rounded-lg transition-all border-border",
-                  isFilterBarOpen && "bg-secondary text-foreground"
-                )}
-              >
-                <SlidersHorizontal className="w-3.5 h-3.5 stroke-[1.5]" />
-                Filtros Avançados
-              </Button>
-
-              <div className="h-9 px-3.5 flex items-center justify-center bg-card border border-border rounded-lg text-xs font-mono font-bold text-foreground transition-colors duration-200">
-                {totalFilteredCount} / {totalCount}
-              </div>
+              <p className="text-muted-foreground mt-0.5 text-sm">Ordens de serviço abertas na oficina.</p>
             </div>
           </div>
 
-          {/* ═══ FILTER BAR (Collapsible) ═══ */}
-          {isFilterBarOpen && (
+          {/* ═══ FILTER BAR ═══ */}
+          {(
             <FilterBar
               filters={filters}
               onFilterChange={setFilters}
@@ -882,18 +675,18 @@ export function Dashboard({
           {/* ═══ TABLE ═══ */}
           <div className="w-full space-y-3">
             {/* Table Header (Grid matching row cols) */}
-            <div className="hidden md:grid grid-cols-[130px_1.8fr_1.5fr_1.5fr_160px_140px_60px] gap-x-2 px-6 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-              <div className="pl-4">Nº O.S.</div>
+            <div className="hidden md:grid grid-cols-[88px_minmax(0,1.6fr)_minmax(0,1.3fr)_104px_176px_150px_40px] gap-x-3 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <div>Nº O.S.</div>
               <div>Cliente</div>
-              <div>Mec. Responsável</div>
               <div>Motor</div>
-              <div className="text-center">Status</div>
-              <div className="text-center">Pagamento</div>
-              <div className="text-right"></div>
+              <div>Chegada</div>
+              <div>Status</div>
+              <div>Pagamento</div>
+              <div></div>
             </div>
 
             {/* Table Body (List of card rows) */}
-            <div className="space-y-3">
+            <div className="space-y-1.5">
               {filteredOrders.length === 0 ? (
                 <div className="rounded-xl border border-border bg-card p-12 text-center text-muted-foreground/60 font-medium text-xs">
                   Nenhuma ordem de serviço ativa encontrada.
@@ -905,6 +698,7 @@ export function Dashboard({
                     order={order}
                     client={clients.find((c) => c.id === order.clientId)}
                     mechanic={clients.find((c) => c.id === order.mechanicId)}
+                    groupedPayment={getGroupedPaymentForOrder(order.id)}
                     onEdit={onEdit}
                     onView={handleOpenViewModal}
                     onStatusChange={handleStatusChange}
@@ -933,8 +727,8 @@ export function Dashboard({
         <div className="space-y-6">
           {/* ═══ PAGE TITLE & SUBTITLE ═══ */}
           <div className="pt-2">
-            <h2 className="text-2xl font-extrabold tracking-tight text-foreground uppercase">O.S. EM ANDAMENTO</h2>
-            <p className="text-muted-foreground mt-0.5 text-xs font-medium">Gerencie as ordens de serviço ativas na oficina.</p>
+            <h2 className="text-2xl font-extrabold tracking-tight text-foreground">O.S. em Andamento</h2>
+            <p className="text-muted-foreground mt-0.5 text-sm">Ordens de serviço abertas na oficina, uma por linha.</p>
           </div>
 
           {/* ═══ SEARCH BAR ═══ */}
@@ -942,10 +736,10 @@ export function Dashboard({
             <Search className="absolute left-3.5 top-3 w-4 h-4 text-muted-foreground/60 stroke-[1.5]" />
             <input
               type="text"
-              placeholder="PESQUISAR POR O.S., CLIENTE OU MOTOR"
+              placeholder="Buscar O.S., cliente, mecânico ou motor"
               value={visaoAmplaSearch}
               onChange={(e) => setVisaoAmplaSearch(e.target.value)}
-              className="w-full pl-10 pr-9 py-2.5 text-xs rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-secondary-foreground transition-all uppercase tracking-wider"
+              className="w-full pl-10 pr-9 py-2.5 text-xs rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-secondary-foreground transition-all"
             />
             {visaoAmplaSearch && (
               <button
@@ -961,11 +755,14 @@ export function Dashboard({
           <div className="w-full overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-border/40 text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">
-                  <th className="py-3 px-4 w-[12%]">Nº O.S.</th>
-                  <th className="py-3 px-4 w-[33%]">Cliente</th>
-                  <th className="py-3 px-4 w-[25%]">Mec. Responsável</th>
-                  <th className="py-3 px-4 w-[30%] font-bold">Motor</th>
+                <tr className="border-b border-border/40 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <th className="py-2 px-3">Nº O.S.</th>
+                  <th className="py-2 px-3">Cliente</th>
+                  <th className="py-2 px-3">Mecânico</th>
+                  <th className="py-2 px-3">Motor</th>
+                  <th className="py-2 px-3">Chegada</th>
+                  <th className="py-2 px-3">Status</th>
+                  <th className="py-2 px-3">Pagamento</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/20">
@@ -1034,7 +831,7 @@ export function Dashboard({
             <div className="space-y-4 py-2">
               <div className="flex items-center gap-2.5">
                 <span className="text-xs font-bold text-muted-foreground uppercase">Novo Status:</span>
-                {getStatusBadge(statusChangeData.newStatus)}
+                <ServiceStatusBadge status={statusChangeData.newStatus} />
               </div>
 
               {statusChangeData.newStatus === 'Levou' && (

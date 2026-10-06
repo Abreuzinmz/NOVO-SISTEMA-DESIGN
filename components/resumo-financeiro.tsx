@@ -431,9 +431,11 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
   // "Entrada" (partial, freely editable) vs "Pagamento Quitado" (locked to the
   // full remaining balance) — defaults to whichever matches the entry we're
   // starting from.
+  // Um lançamento novo começa sempre como "Entrada", com o valor em branco: quitar
+  // tudo exige escolher "Pagamento quitado" de propósito.
   const [paymentMode, setPaymentMode] = useState<'entrada' | 'quitado'>(() => {
-    const startingAmount = initialData ? initialData.amount : remainingBalance;
-    return remainingBalance > 0 && startingAmount >= remainingBalance ? 'quitado' : 'entrada';
+    if (!initialData) return 'entrada';
+    return remainingBalance > 0 && initialData.amount >= remainingBalance ? 'quitado' : 'entrada';
   });
 
   const [amount, setAmount] = useState<string>(() => {
@@ -442,7 +444,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
     }
     return initialData ? initialData.amount.toFixed(2).replace('.', ',') : '';
   });
-  const [date, setDate] = useState<string>(initialData?.date || '');
+  const [date, setDate] = useState<string>(initialData?.date || getTodayDateString());
   const [method, setMethod] = useState<PaymentMethodType | null>(initialData ? initialMethod.methodKey : null);
   const [installment, setInstallment] = useState<string>(initialMethod.installments || 'À vista');
   const [payer, setPayer] = useState<string>(initialData?.payer || '');
@@ -506,15 +508,25 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
         <DialogHeader className="px-5 pt-5 pb-3 border-b border-neutral-300 dark:border-neutral-800">
           <DialogTitle className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-[#00ac56]" />
-            {title || (mode === 'edit' ? 'Editar Lançamento' : 'Finalizar Pagamento')}
+            {title || (mode === 'edit' ? 'Editar lançamento' : 'Lançar pagamento')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="px-5 py-4 space-y-3">
           {/* Valor Bruto — sempre visível no topo */}
           <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-secondary/40 border border-neutral-200 dark:border-neutral-800">
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Valor Bruto</span>
+            <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Valor total</span>
             <span className="text-base font-black font-mono text-foreground">{formatBRL(totalValue)}</span>
+          </div>
+          {paidElsewhere > 0 && (
+            <div className="flex items-center justify-between px-3 text-sm">
+              <span className="text-muted-foreground">Já pago</span>
+              <span className="font-mono font-bold">{formatBRL(paidElsewhere)}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between px-3 text-sm">
+            <span className="text-muted-foreground">Falta pagar</span>
+            <span className="font-mono font-bold text-red-600 dark:text-red-400">{formatBRL(remainingBalance)}</span>
           </div>
 
           {showDiscount && (
@@ -567,7 +579,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              Pagamento Quitado
+              Quitar tudo
             </button>
           </div>
 
@@ -625,7 +637,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
 
           <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-neutral-200 dark:border-neutral-800">
             <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground shrink-0">
-              <CreditCard className="w-3.5 h-3.5 text-[#00ac56]" /> Forma de Pagto
+              <CreditCard className="w-3.5 h-3.5 text-[#00ac56]" /> Forma de pagamento
             </label>
             <Select value={method} onValueChange={(val) => setMethod(val as PaymentMethodType | null)}>
               <SelectTrigger className="h-8 w-[140px] rounded-lg text-xs font-bold bg-card border-neutral-300 dark:border-neutral-800 justify-between gap-1.5">
@@ -708,10 +720,10 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
             type="button"
             disabled={busy}
             onClick={handleSubmit}
-            className="flex-1 h-9 rounded-lg bg-[#00ac56] hover:bg-[#00964b] text-white font-black text-[10px] uppercase tracking-wider gap-1.5"
+            className="solid-btn flex-1 h-9 rounded-lg font-bold text-sm gap-1.5"
           >
             <Check className="w-4 h-4" />
-            {mode === 'edit' ? 'Salvar Alterações' : willQuitar ? 'Confirmar Quitação' : 'Confirmar Entrada'}
+            {mode === 'edit' ? 'Salvar alterações' : willQuitar ? 'Quitar O.S.' : 'Lançar entrada'}
           </Button>
         </div>
       </DialogContent>

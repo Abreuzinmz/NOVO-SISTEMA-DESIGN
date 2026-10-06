@@ -1847,10 +1847,10 @@ export function OSViewModal({
                             discount: order.discount || 0,
                             showDiscount: true,
                           })}
-                          className="w-full max-w-[220px] h-8 bg-[#00ac56] hover:bg-[#00964b] text-white font-black text-[10px] uppercase tracking-wider gap-1.5 shadow-sm rounded-lg cursor-pointer"
+                          className="solid-btn w-full max-w-[240px] h-9 font-bold text-sm gap-1.5 shadow-sm rounded-lg cursor-pointer"
                         >
-                          <DollarSign className="w-3.5 h-3.5 stroke-[2.5]" />
-                          {order.paymentStatus === 'Entrada' ? 'FINALIZAR PAGAMENTO' : 'REGISTRAR PAGAMENTO'}
+                          <DollarSign className="w-4 h-4 stroke-[2.5]" />
+                          Lançar pagamento
                         </Button>
                       )}
 
@@ -1863,10 +1863,10 @@ export function OSViewModal({
                             setIsGroupModalOpen(true);
                           }}
                           title="Agrupar com outras O.S. deste cliente para pagamento conjunto"
-                          className="w-full max-w-[220px] h-8 border-indigo-500/30 bg-indigo-500/5 hover:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-[10px] uppercase tracking-wide gap-1.5 rounded-xl"
+                          className="w-full max-w-[240px] h-9 font-semibold text-sm gap-1.5 rounded-lg"
                         >
-                          <Layers className="w-3.5 h-3.5 shrink-0" />
-                          <span className="truncate">AGRUPAR PAGAMENTO CONJUNTO</span>
+                          <Layers className="w-4 h-4 shrink-0" />
+                          <span>Agrupar com outras O.S.</span>
                         </Button>
                       )}
                     </div>
@@ -2180,9 +2180,12 @@ export function OSViewModal({
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-neutral-200 dark:border-neutral-800">
-                <Button variant="ghost" size="sm" onClick={() => setIsGroupModalOpen(false)} className="h-8 text-[10px] font-black uppercase">
-                  CANCELAR
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+                {selectedOsForGrouping.length < 2 && (
+                  <span className="mr-auto text-sm text-muted-foreground">Selecione pelo menos 2 O.S. para agrupar.</span>
+                )}
+                <Button variant="outline" size="sm" onClick={() => setIsGroupModalOpen(false)} className="h-9 text-sm font-semibold">
+                  Cancelar
                 </Button>
                 <Button
                   disabled={selectedOsForGrouping.length < 2 || isSubmittingGroup}
@@ -2197,9 +2200,9 @@ export function OSViewModal({
                       setIsSubmittingGroup(false);
                     }
                   }}
-                  className="h-8 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-wider px-4"
+                  className="solid-btn h-9 font-bold text-sm px-4"
                 >
-                  {isSubmittingGroup ? 'CRIANDO...' : 'CRIAR PAGAMENTO AGRUPADO'}
+                  {isSubmittingGroup ? 'Agrupando…' : 'Agrupar O.S.'}
                 </Button>
               </div>
             </DialogContent>

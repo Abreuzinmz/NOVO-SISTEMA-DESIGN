@@ -366,7 +366,8 @@ interface StoreContextType {
   updateClient: (id: string, updates: Partial<Omit<Client, 'id'>>) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
   addOrder: (order: Omit<Order, 'id' | 'createdAt'> & { id?: number }) => Promise<void>;
-  updateOrder: (id: number, updates: Partial<Order>) => Promise<void>;
+  /** `silent` evita o aviso por O.S. quando a alteração faz parte de uma ação maior (ex.: pagamento agrupado). */
+  updateOrder: (id: number, updates: Partial<Order>, options?: { silent?: boolean }) => Promise<void>;
   deleteOrder: (id: number, options?: { dissolveGroupIfOneLeft?: boolean }) => Promise<void>;
   isLoaded: boolean;
   fontSize: number;
@@ -711,7 +712,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateOrder = async (id: number, updates: Partial<Order>): Promise<void> => {
+  const updateOrder = async (id: number, updates: Partial<Order>, options?: { silent?: boolean }): Promise<void> => {
     const db = requireLocalDb();
     const finalUpdates = { ...updates };
     const currentOrder = orders.find(o => o.id === id);
@@ -796,7 +797,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         params
       );
 
-      toast.info(`O.S. #${id} atualizada.`);
+      if (!options?.silent) toast.info(`O.S. #${id} atualizada.`);
     } catch (err: any) {
       console.error('Error updating order in SQLite:', err);
       toast.error('Erro ao atualizar O.S.');
@@ -1095,10 +1096,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (entrada.formaPagamento.toUpperCase() === 'PIX' && entrada.nomePagador) {
         orderUpdates.pixPaidBy = entrada.nomePagador;
       }
-      await updateOrder(osId, orderUpdates);
+      await updateOrder(osId, orderUpdates, { silent: true });
     }
 
-    toast.success(`Entrada de R$ ${newEntrada.valor.toFixed(2)} lançada com sucesso!`);
+    toast.success(`Entrada de ${newEntrada.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} lançada em ${targetGroup.osIds.length} O.S.`);
   }, [groupedPayments, refreshGroupedPayments, updateOrder]);
 
   const updateEntradaGroupedPayment = useCallback(async (
@@ -1176,10 +1177,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (entrada.formaPagamento.toUpperCase() === 'PIX' && entrada.nomePagador) {
         orderUpdates.pixPaidBy = entrada.nomePagador;
       }
-      await updateOrder(osId, orderUpdates);
+      await updateOrder(osId, orderUpdates, { silent: true });
     }
 
-    toast.success('Entrada atualizada com sucesso!');
+    toast.success(`Lançamento atualizado nas ${targetGroup.osIds.length} O.S. do grupo.`);
   }, [groupedPayments, refreshGroupedPayments, updateOrder]);
 
   const deleteEntradaGroupedPayment = useCallback(async (
@@ -1240,10 +1241,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (lastEntrada?.formaPagamento.toUpperCase() === 'PIX' && lastEntrada.nomePagador) {
         orderUpdates.pixPaidBy = lastEntrada.nomePagador;
       }
-      await updateOrder(osId, orderUpdates);
+      await updateOrder(osId, orderUpdates, { silent: true });
     }
 
-    toast.success('Lançamento removido!');
+    toast.success(`Lançamento removido das ${targetGroup.osIds.length} O.S. do grupo.`);
   }, [groupedPayments, refreshGroupedPayments, updateOrder]);
 
   const getGroupedPaymentForOrder = useCallback((orderId: number): PagamentoAgrupado | undefined => {
@@ -1314,7 +1315,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           entryValue: allocatedPaid,
           balanceValue: Math.max(0, net - allocatedPaid),
           paymentDate: nowIso.split('T')[0]
-        });
+        }, { silent: true });
       }
     } else {
       // Reset all orders in group to 'Não Pago'
@@ -1322,7 +1323,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         await updateOrder(osId, {
           paymentStatus: 'Não Pago',
           entryValue: 0
-        });
+        }, { silent: true });
       }
     }
 

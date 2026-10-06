@@ -15,6 +15,7 @@ export default function Home() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [newOrderClientId, setNewOrderClientId] = useState<string | undefined>(undefined);
   const { isLoaded } = useStore();
   const mainRef = useRef<HTMLElement>(null);
 
@@ -45,6 +46,13 @@ export default function Home() {
     setCurrentView('new-os');
   };
 
+  const handleNewOrderForClient = (clientId: string) => {
+    setEditingOrder(null);
+    setIsReadOnly(false);
+    setNewOrderClientId(clientId);
+    setCurrentView('new-os');
+  };
+
   const handleViewOrder = (order: Order) => {
     setEditingOrder(order);
     setIsReadOnly(true);
@@ -56,7 +64,7 @@ export default function Home() {
       case 'dashboard':
         return <Dashboard onEdit={handleEditOrder} onView={handleViewOrder} />;
       case 'clients':
-        return <Clients onEdit={handleEditOrder} onView={handleViewOrder} />;
+        return <Clients onEdit={handleEditOrder} onView={handleViewOrder} onNewOrder={handleNewOrderForClient} />;
       case 'history':
         return <History />;
       case 'prices':
@@ -66,7 +74,9 @@ export default function Home() {
           <OSForm
             order={editingOrder || undefined}
             readOnly={isReadOnly}
+            initialClientId={editingOrder ? undefined : newOrderClientId}
             onComplete={() => {
+              setNewOrderClientId(undefined);
               setEditingOrder(null);
               setIsReadOnly(false);
               setCurrentView('dashboard');
@@ -84,6 +94,7 @@ export default function Home() {
         currentView={currentView}
         onViewChange={(view) => {
           setEditingOrder(null);
+          setNewOrderClientId(undefined);
           setIsReadOnly(false);
           setCurrentView(view);
         }}

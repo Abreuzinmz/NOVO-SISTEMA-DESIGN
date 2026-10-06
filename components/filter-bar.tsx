@@ -201,10 +201,10 @@ function ActiveFilters({ filters, clients, onRemoveFilter, onClear, count }: {
   }
   if (filters.motorModel) tags.push({ key: 'motorModel', label: 'Motor: ' + filters.motorModel });
   if (filters.displacement) tags.push({ key: 'displacement', label: 'Cilindrada: ' + filters.displacement });
-  if (filters.paymentMethod) tags.push({ key: 'paymentMethod', label: 'Forma Pagto: ' + filters.paymentMethod });
-  if (filters.paymentStatus) tags.push({ key: 'paymentStatus', label: 'Status Pagto: ' + filters.paymentStatus });
+  if (filters.paymentMethod) tags.push({ key: 'paymentMethod', label: 'Forma de pagamento: ' + filters.paymentMethod });
+  if (filters.paymentStatus) tags.push({ key: 'paymentStatus', label: 'Pagamento: ' + filters.paymentStatus });
   if (filters.serviceType) tags.push({ key: 'serviceType', label: 'Serviço: ' + filters.serviceType });
-  if (filters.serviceStatus) tags.push({ key: 'serviceStatus', label: 'Status Serviço: ' + filters.serviceStatus });
+  if (filters.serviceStatus) tags.push({ key: 'serviceStatus', label: 'Status: ' + filters.serviceStatus });
   if (filters.dateFrom) tags.push({ key: 'dateFrom', label: 'De: ' + filters.dateFrom });
   if (filters.dateTo) tags.push({ key: 'dateTo', label: 'Até: ' + filters.dateTo });
   if (filters.minValue) tags.push({ key: 'minValue', label: 'Min: R$ ' + filters.minValue });
@@ -218,12 +218,12 @@ function ActiveFilters({ filters, clients, onRemoveFilter, onClear, count }: {
     <div className="flex flex-wrap items-center gap-2 pt-1">
       <div className="flex items-center gap-1.5 mr-1">
         <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-        <span className="text-[10px] text-muted-foreground/70 font-bold uppercase tracking-wider">Filtros Ativos:</span>
+        <span className="text-[10px] text-muted-foreground/70 font-bold uppercase tracking-wider">Filtros ativos:</span>
       </div>
       {tags.map((t) => <FilterTag key={t.key} label={t.label} onRemove={() => onRemoveFilter(t.key)} />)}
       {tags.length > 1 && (
         <button onClick={onClear} className="text-[10px] text-muted-foreground hover:text-destructive transition-colors font-bold uppercase tracking-wider ml-1">
-          Limpar Tudo
+          Limpar tudo
         </button>
       )}
     </div>
@@ -327,6 +327,12 @@ export function FilterBar({
 
   const hasActiveFilters = useMemo(() => Object.values(filters).some((v) => v !== ''), [filters]);
   const activeFilterCount = useMemo(() => Object.values(filters).filter((v) => v !== '').length, [filters]);
+  const drawerFilterCount = useMemo(
+    () => (['osId', 'clientId', 'clientType', 'motorModel', 'displacement', 'paymentMethod', 'serviceType', 'partsLeft', 'payerName', 'dateFrom', 'dateTo', 'minValue', 'maxValue'] as (keyof FilterValues)[])
+      .concat(showStatusInBar ? [] : ['serviceStatus'])
+      .filter((k) => filters[k] !== '').length,
+    [filters, showStatusInBar]
+  );
   const selectedClientName = useMemo(() => clients.find((c) => c.id === filters.clientId)?.name || '', [clients, filters.clientId]);
 
   const updateFilter = (key: keyof FilterValues, value: string | null) => {
@@ -347,19 +353,153 @@ export function FilterBar({
       <div className='flex items-center justify-between gap-3 flex-wrap'>
         <div className='flex items-end gap-2 flex-wrap flex-1 min-w-0'>
           {showSearch && (
-            <div className='flex items-end gap-2 flex-wrap'>
-              <FilterField label='Buscar' className='flex-1 min-w-[180px] max-w-[240px]'>
+            <div className='flex items-end gap-2 flex-wrap flex-1 min-w-[220px] max-w-[320px]'>
+              <FilterField label='Buscar' className='flex-1 min-w-[220px] max-w-[320px]'>
                 <div className='relative'>
                   <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/60' />
                   <Input
-                    placeholder='O.S., nome, telefone...'
+                    placeholder='Nº da O.S., cliente, telefone ou motor'
                     value={localSearch}
                     onChange={(e) => setLocalSearch(e.target.value)}
                     className='h-8 pl-9 pr-3 text-xs rounded-lg bg-card border-border w-full shadow-xs'
                   />
                 </div>
               </FilterField>
-              <FilterField label='Nº O.S.' className='w-[110px]'>
+            </div>
+          )}
+
+          {showPaymentStatus && (
+            <FilterField label='Pagamento'>
+              <select
+                value={filters.paymentStatus}
+                onChange={(e) => updateFilter('paymentStatus', e.target.value)}
+                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer max-w-[135px]'
+                title='Status de Pagamento'
+              >
+                <option value=''>Todos</option>
+                <option value='Não Pago'>Não pago</option>
+                <option value='Entrada'>Entrada</option>
+                <option value='Pago'>Pago</option>
+              </select>
+            </FilterField>
+          )}
+
+          {showStatusInBar && showServiceStatus && (
+            <FilterField label='Status'>
+              <select
+                value={filters.serviceStatus}
+                onChange={(e) => updateFilter('serviceStatus', e.target.value)}
+                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer max-w-[135px]'
+                title='Status Ordem'
+              >
+                <option value=''>Todos</option>
+                {serviceStatuses.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </FilterField>
+          )}
+
+          <Button
+            variant='outline'
+            onClick={() => setShowAdvancedFilters((prev) => !prev)}
+            className={cn(
+              'h-8 px-3 gap-2 font-semibold text-xs rounded-lg transition-all border-border shrink-0',
+              showAdvancedFilters ? 'bg-secondary text-foreground' : 'bg-card hover:bg-secondary/40 text-foreground'
+            )}
+          >
+            <SlidersHorizontal className='w-3.5 h-3.5 stroke-[1.5]' />
+            Mais filtros
+            {drawerFilterCount > 0 && (
+              <span className='min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center px-1'>
+                {drawerFilterCount}
+              </span>
+            )}
+          </Button>
+
+          {hasActiveFilters && (
+            <Button
+              variant='ghost'
+              size='sm'
+              onClick={onClear}
+              className='h-8 px-2.5 gap-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 font-semibold text-xs rounded-lg transition-all shrink-0'
+            >
+              <RotateCcw className='w-3.5 h-3.5 stroke-[1.5]' /> Limpar filtros
+            </Button>
+          )}
+        </div>
+
+        <div className='flex items-center gap-3 shrink-0'>
+          {loading && <Loader2 className='w-3.5 h-3.5 animate-spin text-foreground' />}
+          <span className='text-sm text-muted-foreground'>
+            {resultCount === totalCount
+              ? <><span className='font-bold text-foreground tabular-nums'>{totalCount}</span> O.S.</>
+              : <><span className='font-bold text-foreground tabular-nums'>{resultCount}</span> de <span className='tabular-nums'>{totalCount}</span> O.S.</>}
+          </span>
+        </div>
+      </div>
+
+      {showAdvancedFilters && (
+        <div className="fixed inset-0 z-[9999] flex justify-end overflow-hidden">
+          {/* Backdrop Overlay */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-200" 
+            onClick={() => setShowAdvancedFilters(false)}
+          />
+
+          {/* Slide-over Drawer Panel */}
+          <div className="relative z-10 w-full max-w-md sm:max-w-lg h-full bg-card border-l border-border shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-200">
+            {/* Drawer Header */}
+            <div className="p-4 border-b border-border/80 flex items-center justify-between bg-muted/30 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <SlidersHorizontal className="w-4 h-4 text-primary stroke-[2]" />
+                <h3 className="text-sm font-extrabold uppercase tracking-wider text-foreground">Mais filtros</h3>
+                {activeFilterCount > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-foreground text-background text-[10px] font-bold">
+                    {activeFilterCount} ativo(s)
+                  </span>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                onClick={() => setShowAdvancedFilters(false)}
+                className="w-8 h-8 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground p-0 flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* Drawer Body (Scrollable) */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                {/* Ordenação */}
+                <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-2 col-span-1 sm:col-span-2'>
+                  <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
+                    <ArrowUpDown className='w-3.5 h-3.5 text-foreground/70' />
+                    <span className='text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground/80'>Ordenar Resultados Por</span>
+                  </div>
+                  <div className='flex flex-wrap items-center gap-1.5 pt-1'>
+                    {sortOptions.map((opt) => (
+                      <SortButton 
+                        key={opt.field} 
+                        label={opt.label} 
+                        field={opt.field} 
+                        currentField={sort.field}
+                        direction={sort.direction} 
+                        onSort={(f, d) => onSortChange({ field: f, direction: d })} 
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mais critérios (antes ficavam todos na barra principal) */}
+                <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-3 col-span-1 sm:col-span-2'>
+                  <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
+                    <SlidersHorizontal className='w-3.5 h-3.5 text-foreground/70' />
+                    <span className='text-xs font-bold uppercase tracking-wide text-muted-foreground'>Pagamento, motor e serviço</span>
+                  </div>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                    {showSearch && (
+              <FilterField className='w-full' label='Nº da O.S.'>
                 <div className='relative'>
                   <Hash className='absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/60' />
                   <Input
@@ -370,16 +510,14 @@ export function FilterBar({
                   />
                 </div>
               </FilterField>
-            </div>
-          )}
-
+                    )}
           {/* Controls do Grupo Financeiro sempre visíveis */}
           {showPaymentMethod && (
-            <FilterField label='Forma Pagto'>
+            <FilterField className='w-full' label='Forma de pagamento'>
               <select
                 value={filters.paymentMethod}
                 onChange={(e) => updateFilter('paymentMethod', e.target.value)}
-                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer max-w-[135px]'
+                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer w-full'
                 title='Forma de Pagamento'
               >
                 <option value=''>Todas</option>
@@ -393,38 +531,8 @@ export function FilterBar({
             </FilterField>
           )}
 
-          {showStatusInBar && showPaymentStatus && (
-            <FilterField label='Status Pagto'>
-              <select
-                value={filters.paymentStatus}
-                onChange={(e) => updateFilter('paymentStatus', e.target.value)}
-                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer max-w-[135px]'
-                title='Status de Pagamento'
-              >
-                <option value=''>Todos</option>
-                <option value='Não Pago'>Não Pago</option>
-                <option value='Entrada'>Entrada</option>
-                <option value='Pago'>Pago</option>
-              </select>
-            </FilterField>
-          )}
-
-          {showStatusInBar && showServiceStatus && (
-            <FilterField label='Status Ordem'>
-              <select
-                value={filters.serviceStatus}
-                onChange={(e) => updateFilter('serviceStatus', e.target.value)}
-                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer max-w-[135px]'
-                title='Status Ordem'
-              >
-                <option value=''>Todos</option>
-                {serviceStatuses.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </FilterField>
-          )}
-
           {showPayerName && (
-            <FilterField label='Pagador' className='w-[130px]'>
+            <FilterField label='Pagador' className='w-full'>
               <div className='relative'>
                 <User className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/60' />
                 <Input
@@ -438,11 +546,11 @@ export function FilterBar({
           )}
 
           {showPartsLeft && (
-            <FilterField label='Material Deixado'>
+            <FilterField className='w-full' label='Material deixado'>
               <select
                 value={filters.partsLeft}
                 onChange={(e) => updateFilter('partsLeft', e.target.value)}
-                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer max-w-[135px]'
+                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer w-full'
                 title='Material Deixado'
               >
                 <option value=''>Todos</option>
@@ -452,11 +560,11 @@ export function FilterBar({
           )}
 
           {showMotor && (
-            <FilterField label='Motor'>
+            <FilterField className='w-full' label='Motor'>
             <Popover open={motorOpen} onOpenChange={setMotorOpen}>
               <PopoverTrigger
                 render={
-                  <Button variant='outline' role='combobox' className='h-8 px-2.5 text-xs font-semibold rounded-lg bg-card border border-border justify-between max-w-[135px] shrink-0'>
+                  <Button variant='outline' role='combobox' className='h-8 px-2.5 text-xs font-semibold rounded-lg bg-card border border-border justify-between w-full shrink-0'>
                     <span className="truncate">{filters.motorModel || 'Todos'}</span>
                     <ChevronsUpDown className='ml-1 h-3 w-3 shrink-0 opacity-40' />
                   </Button>
@@ -496,11 +604,11 @@ export function FilterBar({
           )}
 
           {showDisplacement && (
-            <FilterField label='Cilindrada'>
+            <FilterField className='w-full' label='Cilindrada'>
               <select
                 value={filters.displacement}
                 onChange={(e) => updateFilter('displacement', e.target.value)}
-                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer max-w-[135px]'
+                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer w-full'
                 title='Cilindrada'
               >
                 <option value=''>Todas</option>
@@ -510,11 +618,11 @@ export function FilterBar({
           )}
 
           {showServiceType && (
-            <FilterField label='Tipo Serviço'>
+            <FilterField className='w-full' label='Tipo de serviço'>
             <Popover open={serviceTypeOpen} onOpenChange={setServiceTypeOpen}>
               <PopoverTrigger
                 render={
-                  <Button variant='outline' role='combobox' className='h-8 px-2.5 text-xs font-semibold rounded-lg bg-card border border-border justify-between max-w-[135px] shrink-0'>
+                  <Button variant='outline' role='combobox' className='h-8 px-2.5 text-xs font-semibold rounded-lg bg-card border border-border justify-between w-full shrink-0'>
                     <span className="truncate">{filters.serviceType || 'Todos'}</span>
                     <ChevronsUpDown className='ml-1 h-3 w-3 shrink-0 opacity-40' />
                   </Button>
@@ -553,99 +661,6 @@ export function FilterBar({
             </FilterField>
           )}
 
-          <Button
-            variant='outline' 
-            onClick={() => setShowAdvancedFilters((prev) => !prev)}
-            className={cn(
-              'h-8 px-3 gap-2 font-bold uppercase tracking-wider text-[10px] rounded-lg transition-all border-border relative overflow-hidden shrink-0',
-              showAdvancedFilters ? 'bg-secondary text-foreground' : 'bg-card hover:bg-secondary/40 text-muted-foreground'
-            )}
-          >
-            <SlidersHorizontal className='w-3.5 h-3.5 stroke-[1.5]' />
-            FILTROS AVANÇADOS
-            {activeFilterCount > 0 && (
-              <span className='min-w-[18px] h-4 rounded-md bg-foreground text-background text-[9px] font-bold flex items-center justify-center shadow-xs px-1'>
-                {activeFilterCount}
-              </span>
-            )}
-            <ChevronDown className={cn('w-3 h-3 transition-transform duration-200', showAdvancedFilters && 'rotate-180')} />
-          </Button>
-
-          {hasActiveFilters && (
-            <Button 
-              variant='ghost' 
-              size='sm' 
-              onClick={onClear} 
-              className='h-8 px-2.5 gap-1.5 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10 font-bold uppercase tracking-wider text-[10px] rounded-lg transition-all shrink-0'
-            >
-              <RotateCcw className='w-3 h-3 stroke-[1.5]' /> Resetar
-            </Button>
-          )}
-        </div>
-
-        <div className='flex items-center gap-3 shrink-0'>
-          {loading && <Loader2 className='w-3.5 h-3.5 animate-spin text-foreground' />}
-          <div className='bg-secondary/35 px-2.5 py-0.5 rounded-lg border border-border'>
-            <span className='text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60'>
-              <span className='text-foreground font-mono text-xs font-bold'>{resultCount}</span>
-              <span className='mx-1 opacity-30'>/</span>
-              <span className='font-mono text-xs font-bold'>{totalCount}</span>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {showAdvancedFilters && (
-        <div className="fixed inset-0 z-[9999] flex justify-end overflow-hidden">
-          {/* Backdrop Overlay */}
-          <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-200" 
-            onClick={() => setShowAdvancedFilters(false)}
-          />
-
-          {/* Slide-over Drawer Panel */}
-          <div className="relative z-10 w-full max-w-md sm:max-w-lg h-full bg-card border-l border-border shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-200">
-            {/* Drawer Header */}
-            <div className="p-4 border-b border-border/80 flex items-center justify-between bg-muted/30 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <SlidersHorizontal className="w-4 h-4 text-primary stroke-[2]" />
-                <h3 className="text-sm font-extrabold uppercase tracking-wider text-foreground">Filtros Avançados</h3>
-                {activeFilterCount > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-foreground text-background text-[10px] font-bold">
-                    {activeFilterCount} ativo(s)
-                  </span>
-                )}
-              </div>
-              <Button
-                variant="ghost"
-                onClick={() => setShowAdvancedFilters(false)}
-                className="w-8 h-8 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground p-0 flex items-center justify-center"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* Drawer Body (Scrollable) */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
-                {/* Ordenação */}
-                <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-2 col-span-1 sm:col-span-2'>
-                  <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
-                    <ArrowUpDown className='w-3.5 h-3.5 text-foreground/70' />
-                    <span className='text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground/80'>Ordenar Resultados Por</span>
-                  </div>
-                  <div className='flex flex-wrap items-center gap-1.5 pt-1'>
-                    {sortOptions.map((opt) => (
-                      <SortButton 
-                        key={opt.field} 
-                        label={opt.label} 
-                        field={opt.field} 
-                        currentField={sort.field}
-                        direction={sort.direction} 
-                        onSort={(f, d) => onSortChange({ field: f, direction: d })} 
-                      />
-                    ))}
                   </div>
                 </div>
 
@@ -727,30 +742,13 @@ export function FilterBar({
                 )}
 
                 {/* Status */}
-                {!showStatusInBar && (showPaymentStatus || showServiceStatus) && (
+                {!showStatusInBar && showServiceStatus && (
                   <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-2'>
                     <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
                       <Check className='w-3.5 h-3.5 text-foreground/70' />
                       <span className='text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground/80'>Status</span>
                     </div>
                     <div className='space-y-2'>
-                      {showPaymentStatus && (
-                        <div className='space-y-1'>
-                          <Label className='text-[9px] font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
-                            <Check className='w-2.5 h-2.5 text-muted-foreground/50' /> Status Pagamento
-                          </Label>
-                          <select
-                            value={filters.paymentStatus}
-                            onChange={(e) => updateFilter('paymentStatus', e.target.value)}
-                            className='h-8 text-xs font-semibold rounded-lg bg-background border border-border px-2 w-full text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer'
-                          >
-                            <option value=''>Todos</option>
-                            <option value='Não Pago'>Não Pago</option>
-                            <option value='Entrada'>Entrada</option>
-                            <option value='Pago'>Pago</option>
-                          </select>
-                        </div>
-                      )}
                       {showServiceStatus && (
                         <div className='space-y-1'>
                           <Label className='text-[9px] font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>

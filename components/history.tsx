@@ -2,7 +2,9 @@
 
 import React, { useState, useMemo } from 'react';
 import { useStore, Order, Client } from '@/lib/store';
-import { Calendar, Layers } from 'lucide-react';
+import { Calendar } from 'lucide-react';
+import { PaymentBadge } from '@/components/ui/status-badges';
+import { getOrderPaymentSummary, formatBRL } from '@/lib/payment';
 import { FilterBar } from '@/components/filter-bar';
 import { useOrderFilters } from '@/hooks/use-order-filters';
 import { OSViewModal } from '@/components/os-view-modal';
@@ -34,7 +36,7 @@ const HistoryOrderRow = React.memo(({ order, client, mechanic, groupedPayment, o
 
   return (
     <div 
-      className="grid grid-cols-[80px_1.4fr_1fr_1.2fr_120px_115px_120px] gap-x-2 md:gap-x-4 items-center border-b border-border last:border-b-0 hover:bg-secondary/20 transition-all cursor-pointer px-3 md:px-4 py-3.5 min-w-[850px]"
+      className="grid grid-cols-[80px_1.4fr_1fr_1.2fr_120px_115px_160px] gap-x-2 md:gap-x-4 items-center border-b border-border last:border-b-0 hover:bg-secondary/20 transition-all cursor-pointer px-3 md:px-4 py-3.5 min-w-[850px]"
       onClick={() => onView(order)}
     >
       <div className="font-mono font-bold text-foreground text-xs">#{order.osNumber || order.id}</div>
@@ -95,65 +97,21 @@ const HistoryOrderRow = React.memo(({ order, client, mechanic, groupedPayment, o
       <div className="text-right font-mono font-bold text-foreground/80 text-xs pr-4 flex flex-col items-end justify-center">
         <span>{order.netValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
       </div>
-      <div className="flex items-center justify-center">
-        {groupedPayment ? (
-          groupedPayment.status === 'pagamento_parcial' ? (
-            <div className="relative group/tooltip inline-block" onClick={(e) => e.stopPropagation()}>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 cursor-help">
-                <Layers className="w-3 h-3 stroke-[2]" />
-                AGRUPADO (PARCIAL)
-              </span>
-              {distinctMethods && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover/tooltip:block z-50 px-2.5 py-1 text-[10px] font-bold text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 rounded shadow-md whitespace-nowrap pointer-events-none">
-                  {distinctMethods}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="relative group/tooltip inline-block" onClick={(e) => e.stopPropagation()}>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 cursor-help">
-                <Layers className="w-3 h-3 stroke-[2]" />
-                AGRUPADO
-              </span>
-              {distinctMethods && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover/tooltip:block z-50 px-2.5 py-1 text-[10px] font-bold text-white bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 rounded shadow-md whitespace-nowrap pointer-events-none">
-                  {distinctMethods}
-                </div>
-              )}
-            </div>
-          )
-        ) : (() => {
-          let totalPago = 0;
-          if (Array.isArray(order.paymentEntries) && order.paymentEntries.length > 0) {
-            totalPago = order.paymentEntries.reduce((acc: number, curr: any) => acc + (parseFloat(curr.amount || curr.valor || 0) || 0), 0);
-          } else if (order.entryValue && Number(order.entryValue) > 0) {
-            totalPago = Number(order.entryValue);
-          }
-          const netVal = Number(order.netValue) || 0;
-          const isFullyPaid = order.paymentStatus === 'Pago' || (netVal > 0 && totalPago >= netVal);
-
-          if (isFullyPaid) {
-            return (
-              <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#34C759]/10 text-[#34C759] border border-[#34C759]/20">
-                {order.paymentMethod ? order.paymentMethod.toUpperCase() : 'PAGO'}
-              </span>
-            );
-          }
-
-          const isPartial = order.paymentStatus === 'Entrada' || (totalPago > 0 && totalPago < netVal);
-
-          if (isPartial) {
-            return (
-              <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                PAGO PARCIAL
-              </span>
-            );
-          }
-
+      <div className="flex flex-col items-center justify-center gap-0.5">
+        {(() => {
+          const summary = getOrderPaymentSummary(order, groupedPayment);
+          const methods = groupedPayment ? distinctMethods : (order.paymentMethod || '');
           return (
-            <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#34C759]/10 text-[#34C759] border border-[#34C759]/20">
-              {order.paymentMethod ? order.paymentMethod.toUpperCase() : 'PAGO'}
-            </span>
+            <>
+              <PaymentBadge situation={summary.situation} grouped={!!groupedPayment} />
+              {summary.situation === 'pago' ? (
+                methods && <span className="text-xs text-muted-foreground">{methods}</span>
+              ) : (
+                <span className="text-xs font-semibold text-red-600 dark:text-red-400">
+                  falta {formatBRL(summary.balance)}{groupedPayment ? ' (grupo)' : ''}
+                </span>
+              )}
+            </>
           );
         })()}
       </div>
@@ -247,7 +205,7 @@ export function History() {
       <div className="rounded-lg border bg-card border-border transition-colors duration-200 overflow-x-auto shadow-sm">
         <div className="min-w-[850px] w-full">
           {/* Header */}
-          <div className="grid grid-cols-[80px_1.4fr_1fr_1.2fr_120px_115px_120px] gap-x-2 md:gap-x-4 items-center border-b border-border bg-muted/20 py-3 px-3 md:px-4 font-bold text-[9px] font-mono uppercase tracking-wider text-muted-foreground/80">
+          <div className="grid grid-cols-[80px_1.4fr_1fr_1.2fr_120px_115px_160px] gap-x-2 md:gap-x-4 items-center border-b border-border bg-muted/20 py-3 px-3 md:px-4 font-bold text-[9px] font-mono uppercase tracking-wider text-muted-foreground/80">
             <div>Nº O.S.</div>
             <div>Cliente</div>
             <div className="pr-4">Mec. Responsável</div>

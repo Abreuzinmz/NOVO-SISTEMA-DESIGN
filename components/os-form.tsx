@@ -134,11 +134,14 @@ export interface MotorSpec {
 function OSFormImpl({
   onComplete,
   order,
-  readOnly = false
+  readOnly = false,
+  initialClientId
 }: {
   onComplete?: () => void,
   order?: Order,
-  readOnly?: boolean
+  readOnly?: boolean,
+  /** Cliente já escolhido ao abrir uma O.S. nova (ex.: a partir da tela de Clientes) */
+  initialClientId?: string
 }) {
   const { clients, addClient, updateClient, deleteClient, addOrder, updateOrder, orders, refreshClients } = useStore();
   const confirmDialog = useConfirmDialog();
@@ -149,7 +152,9 @@ function OSFormImpl({
 
   // Form State
   const [osNumber, setOsNumber] = useState(order?.id?.toString() || '');
-  const [clientId, setClientId] = useState(order?.clientId || '');
+  const [clientId, setClientId] = useState(order?.clientId || initialClientId || '');
+  const [clientError, setClientError] = useState('');
+  useEffect(() => { if (clientId) setClientError(''); }, [clientId]);
   const [mechanicId, setMechanicId] = useState(order?.mechanicId || '');
   const [mechanicSearchText, setMechanicSearchText] = useState('');
   const [isMechanicSelectorOpen, setIsMechanicSelectorOpen] = useState(false);
@@ -2256,7 +2261,9 @@ function OSFormImpl({
     // Robust clientId validation - never save undefined/null/empty
     const trimmedClientId = (clientId || '').toString().trim();
     if (!trimmedClientId || trimmedClientId === 'undefined' || trimmedClientId === 'null') {
-      toast.error('Selecione um cliente válido.');
+      setClientError('Escolha o cliente desta O.S. (busque pelo nome, telefone ou CPF/CNPJ).');
+      clientTriggerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      clientTriggerRef.current?.focus();
       return;
     }
 
@@ -2440,8 +2447,8 @@ function OSFormImpl({
               </Button>
             )}
             {!readOnly && (
-              <Button size="lg" type="submit" className="bg-foreground text-background font-extrabold h-11 px-6 rounded-lg text-xs hover:bg-foreground/90 transition-all shadow-md cursor-pointer">
-                {order ? "Salvar Alterações" : "Gerar Ordem de Serviço"}
+              <Button size="lg" type="submit" className="solid-btn font-bold h-10 px-5 rounded-lg text-sm shadow-sm cursor-pointer">
+                {order ? "Salvar alterações" : "Salvar O.S."}
               </Button>
             )}
           </div>
@@ -2515,14 +2522,14 @@ function OSFormImpl({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Linha 2: Cliente Selector */}
                     <div className="space-y-1.5">
-                      <Label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">CLIENTE</Label>
+                      <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide ml-1">Cliente <span className="text-red-500">*</span></Label>
                       <div className="relative w-full">
                         <div className="relative">
                           <Input
                             ref={clientTriggerRef}
                             type="text"
                             disabled={readOnly || !!clientId}
-                            placeholder="Pesquisar por nome, telefone, CPF/CNPJ..."
+                            placeholder="Buscar por nome, telefone ou CPF/CNPJ"
                             value={clientId ? (selectedClient?.name || '') : clientSearchText}
                             onChange={(e) => {
                               const val = e.target.value;
@@ -2547,8 +2554,10 @@ function OSFormImpl({
                             className={cn(
                               "w-full h-12 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 pl-4 text-[15px] font-semibold text-[#111827] dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-100 focus:border-slate-400 transition-all",
                               (clientId || clientSearchText) ? "pr-10" : "pr-4",
-                              clientId && "bg-slate-50 dark:bg-zinc-900/60 font-bold opacity-100 cursor-default"
+                              clientId && "bg-slate-50 dark:bg-zinc-900/60 font-bold opacity-100 cursor-default",
+                              clientError && "border-red-500 ring-2 ring-red-500/20"
                             )}
+                            aria-invalid={!!clientError}
                           />
                           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
                             {(clientId || clientSearchText) && !readOnly && (
@@ -2566,6 +2575,9 @@ function OSFormImpl({
                             )}
                           </div>
                         </div>
+                        {clientError && (
+                          <p role="alert" className="mt-1.5 ml-1 text-sm font-semibold text-red-600 dark:text-red-400">{clientError}</p>
+                        )}
 
                         {/* Portal dropdown estilo card flutuante fiel à imagem */}
                         {isClientSelectorOpen && typeof window !== 'undefined' && createPortal(
@@ -4229,20 +4241,20 @@ function OSFormImpl({
             </div>
           </div>
 
-          {/* Bottom actions bar */}
-          <div className="flex justify-between pt-4 pb-10">
+          {/* Barra de ações fixa no rodapé: salvar sempre à vista */}
+          <div className="sticky bottom-0 z-30 -mx-2 px-2 py-3 flex items-center justify-between gap-3 bg-background/95 backdrop-blur border-t border-border pointer-events-auto print:hidden">
             <Button
               type="button"
-              size="lg"
+              variant="outline"
               onClick={() => setIsPreviewOpen(true)}
-              className="bg-neutral-800 hover:bg-neutral-700 text-white font-extrabold h-11 px-6 rounded-lg text-xs transition-all shadow-md cursor-pointer flex items-center gap-2 border border-neutral-700"
+              className="h-10 px-4 rounded-lg text-sm font-semibold gap-2 cursor-pointer"
             >
-              <Printer className="w-4.5 h-4.5" />
-              Imprimir O.S.
+              <Printer className="w-4 h-4" />
+              Imprimir
             </Button>
             {!readOnly && (
-              <Button size="lg" type="submit" className="bg-foreground text-background font-extrabold h-11 px-6 rounded-lg text-xs hover:bg-foreground/90 transition-all shadow-md cursor-pointer">
-                {order ? "Salvar Alterações" : "Gerar Ordem de Serviço"}
+              <Button type="submit" className="solid-btn font-bold h-10 px-6 rounded-lg text-sm shadow-sm cursor-pointer">
+                {order ? "Salvar alterações" : "Salvar O.S."}
               </Button>
             )}
           </div>
@@ -4780,7 +4792,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 export function OSForm(props: React.ComponentProps<typeof OSFormImpl>) {
   // Remonta o formulário sempre que muda a O.S. em edição (ou volta para "nova"),
   // para que o estado de uma edição anterior não apareça em outra O.S.
-  const formKey = props.order ? `edit-${props.order.id}` : 'new';
+  const formKey = props.order ? `edit-${props.order.id}` : `new-${props.initialClientId || ''}`;
   return (
     <ErrorBoundary key={formKey}>
       <OSFormImpl {...props} />
