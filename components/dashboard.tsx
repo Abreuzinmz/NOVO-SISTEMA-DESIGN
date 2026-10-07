@@ -444,7 +444,6 @@ export function Dashboard({
     allServiceTypes,
     clientOptions,
     allPartsLeft,
-    statusCounts,
   } = useOrderFilters({
     storageKey: 'dashboard',
     orders: activeOrders,
@@ -583,8 +582,15 @@ export function Dashboard({
     <div className="space-y-6">
       {/* ═══ HEADER BAR ═══ */}
       <div className="flex items-center justify-between gap-4 p-4 -mx-8 -mt-8 bg-card border-b border-border transition-colors duration-200">
+        <div className="flex items-center gap-6 min-w-0 flex-1">
+        {/* Título da página */}
+        <div className="shrink-0">
+          <h2 className="text-lg font-extrabold tracking-tight text-foreground leading-tight">O.S. em Andamento</h2>
+          <p className="text-muted-foreground text-xs">Ordens de serviço abertas na oficina.</p>
+        </div>
+
         {/* Search Input */}
-        <div className="relative w-96 max-w-full">
+        <div className="relative w-96 max-w-full min-w-0">
           <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground/60 stroke-[1.5]" />
           <input
             type="text"
@@ -604,6 +610,7 @@ export function Dashboard({
               <X className="w-3.5 h-3.5 stroke-[2]" />
             </button>
           )}
+        </div>
         </div>
 
         {/* Actions & Profile */}
@@ -647,14 +654,6 @@ export function Dashboard({
       {/* ═══ GERENCIAMENTO TAB CONTENT ═══ */}
       {activeTab === 'gerenciamento' && (
         <>
-          {/* ═══ PAGE TITLE & SUBTITLE ═══ */}
-          <div className="flex justify-between items-end gap-4 flex-wrap pt-2">
-            <div>
-              <h2 className="text-2xl font-extrabold tracking-tight text-foreground">O.S. em Andamento</h2>
-              <p className="text-muted-foreground mt-0.5 text-sm">Ordens de serviço abertas na oficina.</p>
-            </div>
-          </div>
-
           {/* ═══ FILTER BAR ═══ */}
           {(
             <FilterBar
@@ -679,7 +678,6 @@ export function Dashboard({
               showStatusInBar={true}
               pageSize={pageSize}
               onPageSizeChange={setPageSize}
-              statusCounts={statusCounts}
             />
           )}
 
@@ -735,12 +733,6 @@ export function Dashboard({
       {/* ═══ VISÃO AMPLA TAB CONTENT ═══ */}
       {activeTab === 'visao-ampla' && (
         <div className="space-y-6">
-          {/* ═══ PAGE TITLE & SUBTITLE ═══ */}
-          <div className="pt-2">
-            <h2 className="text-2xl font-extrabold tracking-tight text-foreground">O.S. em Andamento</h2>
-            <p className="text-muted-foreground mt-0.5 text-sm">Ordens de serviço abertas na oficina, uma por linha.</p>
-          </div>
-
           {/* ═══ SEARCH BAR ═══ */}
           <div className="relative w-full max-w-2xl">
             <Search className="absolute left-3.5 top-3 w-4 h-4 text-muted-foreground/60 stroke-[1.5]" />

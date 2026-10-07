@@ -102,8 +102,6 @@ export interface FilterBarProps {
   /** Quando informado, mostra "Exibir N" na barra */
   pageSize?: number;
   onPageSizeChange?: (size: number) => void;
-  /** Contagem de O.S. por status (com os demais filtros aplicados), exibida nos chips */
-  statusCounts?: { total: number; byStatus: Record<string, number> };
 }
 
 // ═══ Status da O.S.: ordem e nomes usados nos chips ═══
@@ -345,7 +343,6 @@ export function FilterBar({
   showPayerName = true,
   pageSize,
   onPageSizeChange,
-  statusCounts,
 }: FilterBarProps) {
   const [panelOpen, setPanelOpen] = useState(false);
 
@@ -396,7 +393,7 @@ export function FilterBar({
     serviceStatuses.forEach((s) => { if (s && !list.includes(s)) list.push(s); });
     if (filters.serviceStatus && !list.includes(filters.serviceStatus)) list.push(filters.serviceStatus);
     return list;
-  }, [serviceStatuses, statusCounts, filters.serviceStatus]);
+  }, [serviceStatuses, filters.serviceStatus]);
 
   const clientName = clients.find((c) => c.id === filters.clientId)?.name || 'Cliente selecionado';
   const brDate = (v: string) => v.split('-').reverse().join('/');
@@ -421,7 +418,6 @@ export function FilterBar({
       'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors cursor-pointer',
       active ? 'bg-foreground text-background' : 'bg-muted text-foreground hover:bg-accent'
     );
-  const countClass = (active: boolean) => cn('text-xs tabular-nums', active ? 'text-background/70' : 'text-muted-foreground');
 
   return (
     <div className={cn('w-full space-y-3', className)}>
@@ -431,14 +427,12 @@ export function FilterBar({
           <div className='contents' role='tablist' aria-label='Status da O.S.'>
             <button type='button' role='tab' aria-selected={!filters.serviceStatus} onClick={() => updateFilter('serviceStatus', '')} className={chipClass(!filters.serviceStatus)}>
               Todas
-              {statusCounts && <span className={countClass(!filters.serviceStatus)}>{statusCounts.total}</span>}
             </button>
             {statusChips.map((s) => {
               const active = filters.serviceStatus === s;
               return (
                 <button key={s} type='button' role='tab' aria-selected={active} onClick={() => updateFilter('serviceStatus', active ? '' : s)} className={chipClass(active)}>
                   {STATUS_LABEL[s] || s}
-                  {statusCounts && <span className={countClass(active)}>{statusCounts.byStatus[s] || 0}</span>}
                 </button>
               );
             })}
@@ -524,8 +518,8 @@ export function FilterBar({
             />
           )}
 
-          {/* Sem os chips de status (que já mostram as quantidades), exibe a contagem aqui */}
-          {(loading || !showServiceStatus || !statusCounts) && (
+          {/* Contagem só aparece quando não há chips de status */}
+          {(loading || !showServiceStatus) && (
             <span className='text-sm text-muted-foreground whitespace-nowrap pl-1'>
               {loading && <Loader2 className='inline w-3.5 h-3.5 mr-1 animate-spin' />}
               {resultCount === totalCount
