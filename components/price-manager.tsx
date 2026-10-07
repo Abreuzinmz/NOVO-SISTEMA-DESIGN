@@ -13,8 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -37,12 +35,14 @@ import {
   Layers,
   Coins,
   X,
-  Star
+  Star,
+  MessageSquare
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { List } from 'react-window';
 
-// Wrapper component for MotorRow to use with react-window List
+// ═══ Lista de motores (virtualizada: são ~160 motores) ═══
 interface MotorRowPropsData {
   filteredMotors: MotorModel[];
   motorPrices: MotorPrice[];
@@ -73,7 +73,7 @@ const MotorRowWrapper = React.memo(({
   const count = motorPrices.filter(p => (p.motorId === m.id || resolveMotorName(p.motorId).toUpperCase() === m.id.toUpperCase()) && p.price > 0).length;
   const isSelected = selectedMotor.toUpperCase() === m.id.toUpperCase() || selectedMotor === m.id;
   return (
-    <div style={style} className="pr-2.5 pb-2">
+    <div style={style} className="pr-1.5 pb-1">
       <MotorRow
         motor={m}
         isSelected={isSelected}
@@ -86,156 +86,6 @@ const MotorRowWrapper = React.memo(({
   );
 });
 MotorRowWrapper.displayName = 'MotorRowWrapper';
-
-// Wrapper component for ServiceCard to use with react-window List
-interface ServiceCardPropsData {
-  combinedPricingList: {
-    id: string;
-    name: string;
-    category: string;
-    prices: MotorPrice[];
-    isCustom: boolean;
-    defaultPrice: number;
-  }[];
-  selectedMotor: string;
-  handleOpenObservation: (id: string, name: string, obsText: string) => void;
-  handleDeleteObservation: (id: string) => void;
-  handleOpenDefinePrice: (id: string, name: string, priceItem?: MotorPrice) => void;
-  handleDeletePriceClick: (id: string) => void;
-}
-
-interface ServiceCardWrapperProps extends ServiceCardPropsData {
-  index: number;
-  style: React.CSSProperties;
-}
-
-const ServiceCardWrapper = React.memo(({
-  index,
-  style,
-  combinedPricingList,
-  selectedMotor,
-  handleOpenObservation,
-  handleDeleteObservation,
-  handleOpenDefinePrice,
-  handleDeletePriceClick
-}: ServiceCardWrapperProps) => {
-  const svc = combinedPricingList[index];
-  if (!svc) return null;
-  return (
-    <div style={style} className="pr-2.5 pb-3">
-      <ServiceCard
-        svc={svc}
-        selectedMotor={selectedMotor}
-        onOpenObservation={handleOpenObservation}
-        onDeleteObservation={handleDeleteObservation}
-        onOpenDefinePrice={handleOpenDefinePrice}
-        onDeletePriceClick={handleDeletePriceClick}
-      />
-    </div>
-  );
-});
-ServiceCardWrapper.displayName = 'ServiceCardWrapper';
-
-interface CatalogRowPropsData {
-  combinedCatalogList: Array<
-    | { type: 'header'; id: string; label: string }
-    | { type: 'standard'; id: string; name: string }
-    | { type: 'custom'; id: string; name: string; defaultPrice: number }
-  >;
-  setEditServiceId: (id: string) => void;
-  setEditServiceName: (name: string) => void;
-  setEditServicePrice: (price: string) => void;
-  setIsEditServiceOpen: (open: boolean) => void;
-  handleDeleteServiceClick: (id: string, name: string) => void;
-}
-
-interface CatalogRowWrapperProps extends CatalogRowPropsData {
-  index: number;
-  style: React.CSSProperties;
-}
-
-const CatalogRowWrapper = React.memo(({
-  index,
-  style,
-  combinedCatalogList,
-  setEditServiceId,
-  setEditServiceName,
-  setEditServicePrice,
-  setIsEditServiceOpen,
-  handleDeleteServiceClick
-}: CatalogRowWrapperProps) => {
-  const item = combinedCatalogList[index];
-  if (!item) return null;
-
-  if (item.type === 'header') {
-    return (
-      <div style={style} className="px-1 py-1 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border dark:border-border/60 flex items-end">
-        {item.label}
-      </div>
-    );
-  }
-
-  if (item.type === 'custom') {
-    return (
-      <div style={style} className="pb-1.5 pr-2.5">
-        <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/60 dark:bg-card/30 border border-border text-xs font-semibold group h-full">
-          <div className="flex flex-col min-w-0">
-            <span className="font-extrabold text-foreground uppercase truncate">
-              {item.name}
-            </span>
-            {item.defaultPrice > 0 && (
-              <span className="text-xs font-mono text-muted-foreground mt-0.5">
-                Padrão: {item.defaultPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-              </span>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => {
-                setEditServiceId(item.id);
-                setEditServiceName(item.name);
-                setEditServicePrice(item.defaultPrice.toString());
-                setIsEditServiceOpen(true);
-              }}
-              className="h-6 w-6 text-muted-foreground hover:text-danger hover:bg-muted dark:hover:bg-card rounded"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => handleDeleteServiceClick(item.id, item.name)}
-              className="h-6 w-6 text-muted-foreground hover:text-danger hover:bg-danger/10 rounded"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // standard item
-  return (
-    <div style={style} className="pb-1.5 pr-2.5">
-      <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/60 dark:bg-card/30 border border-border dark:border-border/40 text-xs h-full">
-        <span className="font-extrabold text-foreground dark:text-foreground/80 uppercase tracking-wide truncate max-w-[150px] lg:max-w-full">
-          {item.name}
-        </span>
-        <Badge variant="outline" className="text-xs uppercase tracking-wider bg-muted dark:bg-background font-bold shrink-0 text-muted-foreground border-border">
-          Padrão
-        </Badge>
-      </div>
-    </div>
-  );
-});
-CatalogRowWrapper.displayName = 'CatalogRowWrapper';
-
 
 // Custom hook to observe container dimensions
 function useContainerHeight(ref: React.RefObject<HTMLDivElement | null>) {
@@ -255,7 +105,6 @@ function useContainerHeight(ref: React.RefObject<HTMLDivElement | null>) {
   return height;
 }
 
-// Memoized Motor Row item
 interface MotorRowProps {
   motor: MotorModel;
   isSelected: boolean;
@@ -269,216 +118,115 @@ const MotorRow = React.memo(({ motor, isSelected, count, onSelect, onDelete, onT
   return (
     <div
       onClick={() => onSelect(motor.id)}
-      className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
-        isSelected
-          ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-          : 'bg-muted/60 dark:bg-card hover:bg-muted dark:hover:bg-card border-border'
-      }`}
+      className={cn(
+        'group h-full flex items-center gap-2 px-3 rounded-lg cursor-pointer transition-colors',
+        isSelected ? 'bg-muted' : 'hover:bg-muted/60'
+      )}
     >
-      <div className="flex items-center gap-2 min-w-0 flex-1">
-        {/* Star icon button */}
-        <button
-          onClick={(e) => onToggleFavorite(motor.id, motor.is_favorite, e)}
-          className={`p-1 hover:scale-110 transition-transform shrink-0 ${
-            motor.is_favorite 
-              ? 'text-warning hover:text-warning' 
-              : isSelected 
-                ? 'text-muted-foreground hover:text-white' 
-                : 'text-muted-foreground hover:text-muted-foreground dark:hover:text-foreground'
-          }`}
-        >
-          {motor.is_favorite ? (
-            <Star className="w-4 h-4 fill-warning text-warning" />
-          ) : (
-            <Star className="w-4 h-4" />
-          )}
-        </button>
-
-        <div className="flex flex-col min-w-0 flex-1">
-          <span className="font-extrabold text-xs uppercase tracking-wide truncate">{motor.id}</span>
-          <span className={`text-xs font-bold uppercase tracking-wider mt-0.5 ${
-            isSelected 
-              ? 'opacity-80' 
-              : 'text-muted-foreground'
-          }`}>
-            {count} {count === 1 ? 'preço' : 'preços'}
-          </span>
-        </div>
-      </div>
-      
-      <Button
-        variant="ghost"
-        size="icon-xs"
+      <span className={cn('flex-1 min-w-0 truncate text-sm uppercase', isSelected ? 'font-bold text-foreground' : 'font-medium text-foreground/90')}>
+        {motor.id}
+      </span>
+      <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+        {count} {count === 1 ? 'preço' : 'preços'}
+      </span>
+      <button
+        type="button"
+        title={motor.is_favorite ? 'Tirar dos favoritos' : 'Marcar como favorito'}
+        onClick={(e) => onToggleFavorite(motor.id, motor.is_favorite, e)}
+        className={cn(
+          'w-6 h-6 flex items-center justify-center rounded-md shrink-0 transition-opacity',
+          motor.is_favorite ? 'text-warning' : 'hidden group-hover:flex text-muted-foreground hover:text-warning'
+        )}
+      >
+        <Star className={cn('w-4 h-4', motor.is_favorite && 'fill-warning')} />
+      </button>
+      <button
+        type="button"
+        title="Remover motor"
         onClick={(e) => onDelete(motor.id, e)}
-        className={`h-6 w-6 rounded-md hover:bg-danger/10 hover:text-danger transition-colors ${
-          isSelected 
-            ? 'text-muted-foreground hover:text-danger hover:bg-card/10 dark:hover:bg-background/10' 
-            : 'text-muted-foreground'
-        }`}
+        className="w-6 h-6 hidden group-hover:flex items-center justify-center rounded-md shrink-0 text-muted-foreground hover:text-danger hover:bg-danger/10"
       >
         <Trash2 className="w-3.5 h-3.5" />
-      </Button>
+      </button>
     </div>
   );
 });
 MotorRow.displayName = 'MotorRow';
 
-// Memoized Service Card Component
-interface ServiceCardProps {
-  svc: {
-    id: string;
-    name: string;
-    category: string;
-    prices: MotorPrice[];
-    isCustom: boolean;
-    defaultPrice: number;
-  };
-  selectedMotor: string;
-  onOpenObservation: (id: string, name: string, obsText: string) => void;
-  onDeleteObservation: (id: string) => void;
-  onOpenDefinePrice: (id: string, name: string, priceItem?: MotorPrice) => void;
-  onDeletePriceClick: (id: string) => void;
+// ═══ Campo de preço editável direto na tabela ═══
+const formatPriceInput = (n?: number) =>
+  n && n > 0 ? n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+
+/** "1.250,50", "250,5", "250.50" ou "40" → número; vazio → null; inválido → NaN */
+function parsePriceInput(s: string): number | null {
+  let c = s.trim().replace(/R\$|\s/g, '');
+  if (!c) return null;
+  if (c.includes(',')) c = c.replace(/\./g, '').replace(',', '.');
+  else if (/^\d{1,3}(\.\d{3})+$/.test(c)) c = c.replace(/\./g, '');
+  const n = Number(c);
+  if (!isFinite(n) || n < 0) return NaN;
+  return Math.round(n * 100) / 100;
 }
 
-const ServiceCard = React.memo(({
-  svc,
-  selectedMotor,
-  onOpenObservation,
-  onDeleteObservation,
-  onOpenDefinePrice,
-  onDeletePriceClick
-}: ServiceCardProps) => {
-  const isPriced = svc.prices.some(p => p.price > 0);
-  const standardPriceItem = svc.prices.find(p => p.subName === '');
-  const observationText = standardPriceItem?.observation || '';
+function PriceInput({ value, onCommit, label }: { value?: number; onCommit: (v: number | null) => void; label: string }) {
+  const [text, setText] = useState(formatPriceInput(value));
+  const focused = useRef(false);
+  const skipCommit = useRef(false);
+
+  useEffect(() => { if (!focused.current) setText(formatPriceInput(value)); }, [value]);
+
+  const commit = () => {
+    if (skipCommit.current) { skipCommit.current = false; setText(formatPriceInput(value)); return; }
+    const n = parsePriceInput(text);
+    if (Number.isNaN(n)) {
+      toast.error('Preço inválido. Use números, por exemplo 250,00.');
+      setText(formatPriceInput(value));
+      return;
+    }
+    const next = n && n > 0 ? n : null;
+    const current = value && value > 0 ? value : null;
+    setText(formatPriceInput(next ?? undefined));
+    if (next !== current) {
+      onCommit(next);
+      // Ao apagar, volta a mostrar o valor atual até a remoção acontecer (ou ser cancelada na confirmação)
+      if (next === null) setText(formatPriceInput(value));
+    }
+  };
 
   return (
-    <div className="pt-3 px-4 pb-3 bg-muted/60 dark:bg-card border border-border rounded-xl hover:border-border transition-all space-y-2 min-h-0 mb-3">
-      {/* Service title row */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1 min-w-0">
-          <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
-            {svc.category}
-          </span>
-          <h4 className="font-extrabold text-xs text-foreground uppercase tracking-wide truncate">
-            {svc.name}
-          </h4>
-        </div>
-        
-        <div className="flex items-center gap-2 shrink-0">
-          <Badge
-            variant="outline"
-            className={`text-xs font-bold px-2 py-0.5 rounded border shrink-0 ${
-              isPriced
-                ? 'bg-success/10 text-success border-success/20'
-                : 'bg-muted-foreground/10 text-muted-foreground border-border'
-            }`}
-          >
-            {isPriced ? 'Com preço' : 'Sem preço'}
-          </Badge>
-          <Button
-            size="xs"
-            onClick={() => onOpenDefinePrice(svc.id, svc.name)}
-            className="solid-btn text-xs font-bold h-7 px-3 rounded-lg flex items-center gap-1.5"
-          >
-            <Plus className="w-3 h-3" />
-            {isPriced ? 'Outra medida' : 'Definir preço'}
-          </Button>
-        </div>
-      </div>
-
-      {/* Observation Field */}
-      <div className="pt-0.5">
-        {observationText ? (
-          <div className="p-2.5 bg-muted/60 dark:bg-card/80 border border-border dark:border-border/80 rounded-lg flex items-start justify-between gap-3 text-xs">
-            <div className="space-y-1 min-w-0">
-              <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground block">
-                Observação:
-              </span>
-              <p className="text-foreground/80 font-medium italic select-text">
-                {observationText}
-              </p>
-            </div>
-            <div className="flex items-center gap-1 shrink-0">
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => onOpenObservation(svc.id, svc.name, observationText)}
-                className="h-6 w-6 text-muted-foreground hover:text-danger hover:bg-muted dark:hover:bg-card rounded"
-              >
-                <Pencil className="w-3 h-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => onDeleteObservation(svc.id)}
-                className="h-6 w-6 text-muted-foreground hover:text-danger hover:bg-danger/10 rounded"
-              >
-                <X className="w-3 h-3" />
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={() => onOpenObservation(svc.id, svc.name, '')}
-            className="text-xs text-muted-foreground hover:text-foreground font-semibold transition-colors flex items-center gap-1"
-          >
-            <Plus className="w-3 h-3" /> Adicionar observação
-          </button>
-        )}
-      </div>
-
-      {/* Variations list */}
-      {svc.prices.some(p => p.price > 0 || p.subName !== '') && (
-        <div className="border-t border-border/50 pt-2.5 space-y-2">
-          {svc.prices.filter(p => p.price > 0 || p.subName !== '').map((priceItem) => (
-            <div 
-              key={priceItem.id} 
-              className="flex items-center justify-between p-2 rounded-lg bg-card dark:bg-background border border-border dark:border-border/60 shadow-sm text-xs font-semibold"
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                <span className="text-foreground uppercase truncate">
-                  {priceItem.subName 
-                    ? `${svc.name} — ${priceItem.subName}` 
-                    : `${svc.name} (Padrão)`
-                  }
-                </span>
-              </div>
-              
-              <div className="flex items-center gap-3 shrink-0 ml-4">
-                <span className="font-mono font-bold text-foreground">
-                  {priceItem.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                </span>
-                
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={() => onOpenDefinePrice(svc.id, svc.name, priceItem)}
-                    className="h-7 w-7 text-muted-foreground hover:text-danger hover:bg-muted dark:hover:bg-card rounded-full"
-                  >
-                    <Pencil className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={() => onDeletePriceClick(priceItem.id)}
-                    className="h-7 w-7 text-muted-foreground hover:text-danger hover:bg-muted dark:hover:bg-card rounded-full"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
+    <div className="flex items-center h-9 gap-2 rounded-lg border border-border bg-card px-3 transition-colors hover:border-foreground/25 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+      <span className="text-xs text-muted-foreground">R$</span>
+      <input
+        inputMode="decimal"
+        aria-label={label}
+        value={text}
+        placeholder="—"
+        onFocus={(e) => { focused.current = true; e.currentTarget.select(); }}
+        onBlur={() => { focused.current = false; commit(); }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur();
+          if (e.key === 'Escape') { skipCommit.current = true; e.currentTarget.blur(); }
+        }}
+        onChange={(e) => setText(e.target.value)}
+        className="w-full min-w-0 bg-transparent text-right text-sm font-semibold tabular-nums text-foreground outline-none"
+      />
     </div>
   );
-});
-ServiceCard.displayName = 'ServiceCard';
+}
+
+type PricingItem = {
+  id: string;
+  name: string;
+  category: string;
+  prices: MotorPrice[];
+  isCustom: boolean;
+  defaultPrice: number;
+};
+
+// Nome em caixa normal para leitura (os dados ficam em maiúsculas)
+const sentenceCase = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
+
+const CUSTOM_CATEGORY = 'SERVIÇOS PERSONALIZADOS';
 
 export function PriceManager() {
   const { 
@@ -513,6 +261,9 @@ export function PriceManager() {
   const [serviceSearch, setServiceSearch] = useState('');
   const [catalogSearch, setCatalogSearch] = useState('');
   const [onlyPriced, setOnlyPriced] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
 
   // Debounced search states
   const [debouncedMotorSearch, setDebouncedMotorSearch] = useState('');
@@ -543,11 +294,6 @@ export function PriceManager() {
   // Height refs for virtualization
   const motorsContainerRef = useRef<HTMLDivElement>(null);
   const motorsContainerHeight = useContainerHeight(motorsContainerRef);
-  const servicesContainerRef = useRef<HTMLDivElement>(null);
-  const servicesContainerHeight = useContainerHeight(servicesContainerRef);
-  const servicesListRef = useRef<any>(null);
-  const catalogContainerRef = useRef<HTMLDivElement>(null);
-  const catalogContainerHeight = useContainerHeight(catalogContainerRef);
 
   const [scale, setScale] = useState(1);
 
@@ -961,14 +707,6 @@ export function PriceManager() {
     return list;
   }, [catalogSearch, filteredCatalogServices]);
 
-  const getCatalogItemSize = useCallback((index: number) => {
-    const item = combinedCatalogList[index];
-    if (!item) return 44;
-    if (item.type === 'header') return 24;
-    if (item.type === 'custom' && item.defaultPrice > 0) return 54;
-    return 44;
-  }, [combinedCatalogList]);
-
   // Combine standard and custom services for the selected motor pricing column
   const combinedPricingList = useMemo(() => {
     const q = debouncedServiceSearch.toLowerCase().trim();
@@ -1023,146 +761,127 @@ export function PriceManager() {
       list.push({
         id: svc.id,
         name: svcName,
-        category: 'SERVIÇOS PERSONALIZADOS',
+        category: CUSTOM_CATEGORY,
         prices: pricesForThisMotorAndService,
         isCustom: true,
         defaultPrice: svc.defaultPrice
       });
     });
 
-    return list.sort((a, b) => (a.category || '').localeCompare(b.category || '') || (a.name || '').localeCompare(b.name || ''));
+    return list;
   }, [selectedMotor, motorPrices, customServices, debouncedServiceSearch, onlyPriced, resolveMotorName, resolveServiceId]);
 
-  const getItemSize = useCallback((index: number) => {
-    const svc = combinedPricingList[index];
-    if (!svc) return Math.round(174 * scale);
-
-    let size = 92; // base: título + categoria + botão na mesma linha + observação + espaçamento
-    
-    const standardPriceItem = svc.prices.find(p => p.subName === '');
-    const observationText = standardPriceItem?.observation || '';
-    if (observationText) {
-      size += 55;
-    }
-
-    const pricedVariations = svc.prices.filter(p => p.price > 0 || p.subName !== '');
-    if (pricedVariations.length > 0) {
-      size += pricedVariations.length * 52 + 16;
-    }
-    
-    return Math.round((size + 12) * scale);
-  }, [combinedPricingList, scale]);
-
-  useEffect(() => {
-    if (servicesListRef.current && typeof servicesListRef.current.resetAfterIndex === 'function') {
-      servicesListRef.current.resetAfterIndex(0);
-    }
-  }, [combinedPricingList, scale]);
-
   // Counters
-  const catalogedServicesCount = SERVICE_CATEGORIES.reduce((acc, cat) => acc + cat.services.length, 0) + customServices.length;
-  const activePricesCount = useMemo(() => {
-    return motorPrices.filter(p => p.price > 0).length;
-  }, [motorPrices]);
-
   const activePricesForSelectedMotorCount = useMemo(() => {
     return motorPrices.filter(p => (p.motorId === selectedMotor || resolveMotorName(p.motorId).toUpperCase() === selectedMotor.toUpperCase()) && p.price > 0).length;
   }, [motorPrices, selectedMotor, resolveMotorName]);
 
+  // Categorias na ordem do catálogo (+ personalizados) para as abas e o agrupamento
+  const categoryTabs = useMemo(() => {
+    const tabs = SERVICE_CATEGORIES.map(c => ({ key: c.name, label: sentenceCase(c.name) }));
+    if (customServices.length > 0) tabs.push({ key: CUSTOM_CATEGORY, label: 'Personalizados' });
+    return tabs;
+  }, [customServices.length]);
+
+  const pricingGroups = useMemo(() => {
+    const keys = categoryFilter ? [categoryFilter] : categoryTabs.map(t => t.key);
+    return keys
+      .map(key => ({
+        key,
+        label: categoryTabs.find(t => t.key === key)?.label || key,
+        items: combinedPricingList.filter(s => s.category === key),
+      }))
+      .filter(g => g.items.length > 0);
+  }, [combinedPricingList, categoryFilter, categoryTabs]);
+
+  // Salva o preço digitado na linha (vazio ou zero remove o preço)
+  const commitPrice = useCallback(async (serviceId: string, subName: string, value: number | null, existing?: MotorPrice) => {
+    if (!selectedMotor) return;
+    setSaveState('saving');
+    let ok = true;
+    if (value === null) {
+      if (existing) {
+        // mantém a observação do serviço, se houver
+        ok = subName === '' && existing.observation
+          ? await saveMotorPrice(selectedMotor, serviceId, '', 0, existing.observation, { silent: true })
+          : await deleteMotorPrice(existing.id, { silent: true });
+      }
+    } else {
+      ok = await saveMotorPrice(selectedMotor, serviceId, subName, value, undefined, { silent: true });
+    }
+    setSaveState(ok ? 'saved' : 'error');
+  }, [selectedMotor, saveMotorPrice, deleteMotorPrice]);
+
+  const tabClass = (active: boolean) =>
+    cn(
+      'h-8 px-3.5 rounded-full text-sm font-medium whitespace-nowrap border transition-colors cursor-pointer',
+      active ? 'bg-foreground text-background border-foreground' : 'bg-card text-foreground border-border hover:bg-muted'
+    );
+
   return (
-    <div className="space-y-6 select-none max-w-7xl mx-auto h-[calc(100vh-4rem)] flex flex-col">
-      {/* ═══ BARRA SUPERIOR DE STATS ═══ */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 shrink-0">
+    <div className="space-y-5 max-w-7xl mx-auto h-[calc(100vh-4rem)] flex flex-col">
+      {/* ═══ CABEÇALHO ═══ */}
+      <div className="flex flex-wrap items-end justify-between gap-4 shrink-0">
         <div>
           <h2 className="text-2xl font-extrabold tracking-tight text-foreground">Tabela de Preços</h2>
-          <p className="text-muted-foreground mt-0.5 text-sm">Preço de cada serviço por motor. Escolha o motor à esquerda.</p>
+          <p className="text-muted-foreground mt-0.5 text-sm">Escolha o motor e digite o preço de cada serviço. Salva sozinho.</p>
         </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Stats Indicators */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg text-sm text-muted-foreground">
-            <Layers className="w-3.5 h-3.5 text-muted-foreground" />
-            <span>Motores:</span>
-            <span className="font-bold text-foreground tabular-nums">{motors.length}</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg text-sm text-muted-foreground">
-            <Wrench className="w-3.5 h-3.5 text-muted-foreground" />
-            <span>Serviços:</span>
-            <span className="font-bold text-foreground tabular-nums">{catalogedServicesCount}</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg text-sm text-muted-foreground">
-            <Coins className="w-3.5 h-3.5 text-muted-foreground" />
-            <span>Preços definidos:</span>
-            <span className="font-bold text-foreground tabular-nums">{activePricesCount}</span>
-          </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsCatalogOpen(true)}
+            className="h-10 px-4 rounded-xl border-border bg-card text-sm font-semibold gap-2"
+          >
+            <Wrench className="w-4 h-4" /> Serviços do catálogo
+          </Button>
+          <Button
+            onClick={() => setIsNewMotorOpen(true)}
+            className="solid-btn h-10 px-4 rounded-xl text-sm font-bold gap-2"
+          >
+            <Plus className="w-4 h-4" /> Novo motor
+          </Button>
         </div>
       </div>
 
-      {/* ═══ CONTEÚDO PRINCIPAL (3 COLUNAS) ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0 pb-2">
-        
-        {/* ═══ COLUNA 1: MOTORES (3/12 width) ═══ */}
-        <div className="lg:col-span-3 bg-card dark:bg-background border border-border rounded-xl p-4 flex flex-col min-h-0 shadow-lg relative">
-          <div className="flex items-center justify-between mb-4 shrink-0">
-            <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider text-foreground">
-              <Layers className="w-4 h-4 text-muted-foreground" />
-              <span>Motores ({motors.length})</span>
-            </div>
-            <Button
-              size="xs"
-              onClick={() => setIsNewMotorOpen(true)}
-              className="solid-btn text-xs font-bold px-2.5 h-7 rounded-lg"
-            >
-              <Plus className="w-3 h-3 mr-1" />
-              Novo
-            </Button>
-          </div>
+      {/* ═══ CONTEÚDO: motores à esquerda, preços à direita ═══ */}
+      <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-5 flex-1 min-h-0 pb-2">
 
-          {/* Search bar */}
-          <div className="relative mb-3 shrink-0">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+        {/* ── Motores ── */}
+        <div className="bg-card border border-border rounded-2xl p-3 flex flex-col min-h-0 shadow-sm">
+          <div className="relative shrink-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Pesquisar motor..."
+              placeholder="Buscar motor"
               value={motorSearch}
               onChange={e => setMotorSearch(e.target.value)}
-              className="pl-9 text-xs h-9 rounded-lg border-border bg-muted/60 dark:bg-card focus-visible:ring-primary/40"
+              className="pl-9 text-sm h-10 rounded-xl border-border bg-card focus-visible:ring-primary/30"
             />
           </div>
 
-          {/* Filters "Todos" and "Favoritos" */}
-          <div className="flex gap-1 bg-muted dark:bg-card p-1 rounded-lg mb-3 shrink-0">
-            <button
-              onClick={() => setFavoriteFilter('all')}
-              className={`flex-1 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
-                favoriteFilter === 'all'
-                  ? 'bg-card dark:bg-muted text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground/80'
-              }`}
-            >
-              Todos
-            </button>
-            <button
-              onClick={() => setFavoriteFilter('favorites')}
-              className={`flex-1 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
-                favoriteFilter === 'favorites'
-                  ? 'bg-card dark:bg-muted text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground/80'
-              }`}
-            >
-              Favoritos
-            </button>
+          <div className="flex items-center gap-1 mt-2.5 mb-2 shrink-0">
+            {(['all', 'favorites'] as const).map(f => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFavoriteFilter(f)}
+                className={cn(
+                  'h-7 px-3 rounded-full text-xs font-medium transition-colors cursor-pointer inline-flex items-center gap-1',
+                  favoriteFilter === f ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+              >
+                {f === 'favorites' && <Star className="w-3 h-3" />}
+                {f === 'all' ? `Todos (${motors.length})` : 'Favoritos'}
+              </button>
+            ))}
           </div>
 
-          {/* Motors list scroll area */}
           <div ref={motorsContainerRef} className="flex-1 min-h-0">
             {motorsContainerHeight > 0 && (
               <List<MotorRowPropsData>
                 style={{ height: motorsContainerHeight, width: "100%" }}
                 rowCount={filteredMotors.length}
-                rowHeight={72}
+                rowHeight={Math.round(46 * scale)}
                 rowComponent={MotorRowWrapper as any}
                 rowProps={{
                   filteredMotors,
@@ -1175,163 +894,264 @@ export function PriceManager() {
               />
             )}
             {filteredMotors.length === 0 && (
-              <div className="py-8 text-center text-xs text-muted-foreground italic">
-                Nenhum motor encontrado
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                {isLoadingMotors ? 'Carregando motores…' : 'Nenhum motor encontrado'}
               </div>
             )}
           </div>
         </div>
 
-        {/* ═══ COLUNA 2: TABELA DE PREÇOS DO MOTOR (6/12 width) ═══ */}
-        <div className="lg:col-span-6 bg-card dark:bg-background border border-border rounded-xl p-4 flex flex-col min-h-0 shadow-lg">
-          {/* Header block */}
-          <div className="p-3.5 bg-secondary/40 border border-border rounded-xl text-foreground flex items-center justify-between mb-4 shrink-0">
-            <div className="space-y-0.5">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Preços do motor</span>
-              <h3 className="font-bold text-sm uppercase tracking-wide">{selectedMotor || 'SELECIONE UM MOTOR'}</h3>
+        {/* ── Preços do motor selecionado ── */}
+        <div className="bg-card border border-border rounded-2xl flex flex-col min-h-0 shadow-sm overflow-hidden">
+          {/* Cabeçalho do motor */}
+          <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-4 border-b border-border shrink-0">
+            <div className="min-w-0">
+              <h3 className="text-2xl font-bold tracking-tight text-foreground uppercase truncate">{selectedMotor || 'Selecione um motor'}</h3>
+              {selectedMotor && (
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {activePricesForSelectedMotorCount} {activePricesForSelectedMotorCount === 1 ? 'preço definido' : 'preços definidos'}
+                </p>
+              )}
             </div>
-            
             {selectedMotor && (
-              <Button
-                size="xs"
-                variant="outline"
-                onClick={() => setIsCopyPricesOpen(true)}
-                className="bg-card border-border text-foreground text-sm font-semibold h-8 rounded-lg flex items-center gap-1.5"
-              >
-                <Copy className="w-3.5 h-3.5" />
-                Copiar de outro motor
-              </Button>
-            )}
-          </div>
-
-          {/* Search/Filters bar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4 shrink-0">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Pesquisar serviço nesta tabela..."
-                value={serviceSearch}
-                onChange={e => setServiceSearch(e.target.value)}
-                className="pl-9 text-xs h-9 rounded-lg border-border bg-muted/60 dark:bg-card focus-visible:ring-primary/40"
-              />
-            </div>
-            
-            <div className="flex items-center gap-2 px-1">
-              <Checkbox 
-                id="only-priced" 
-                checked={onlyPriced} 
-                onCheckedChange={(checked) => setOnlyPriced(!!checked)}
-                className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary rounded"
-              />
-              <label 
-                htmlFor="only-priced" 
-                className="text-xs font-bold uppercase tracking-wider text-muted-foreground select-none cursor-pointer"
-              >
-                Apenas precificados
-              </label>
-            </div>
-          </div>
-
-          {/* Scrollable list of services and prices */}
-          <div ref={servicesContainerRef} className="flex-1 min-h-0">
-            {servicesContainerHeight > 0 && (
-              <List<ServiceCardPropsData>
-                listRef={servicesListRef}
-                style={{ height: servicesContainerHeight, width: "100%" }}
-                rowCount={combinedPricingList.length}
-                rowHeight={getItemSize}
-                rowComponent={ServiceCardWrapper as any}
-                rowProps={{
-                  combinedPricingList,
-                  selectedMotor,
-                  handleOpenObservation,
-                  handleDeleteObservation,
-                  handleOpenDefinePrice,
-                  handleDeletePriceClick
-                }}
-              />
-            )}
-
-            {combinedPricingList.length === 0 && (
-              <div className="py-12 text-center text-xs text-muted-foreground italic">
-                {selectedMotor 
-                  ? 'Nenhum serviço correspondente aos filtros' 
-                  : 'Selecione um motor na coluna da esquerda para gerenciar seus preços'
-                }
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ═══ COLUNA 3: SERVIÇOS CATALOGADOS (3/12 width) ═══ */}
-        <div className="lg:col-span-3 bg-card dark:bg-background border border-border rounded-xl p-4 flex flex-col min-h-0 shadow-lg justify-between">
-          <div className="flex flex-col min-h-0 flex-1">
-            <div className="flex items-center justify-between mb-4 shrink-0">
-              <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider text-foreground">
-                <Wrench className="w-4 h-4 text-muted-foreground" />
-                <span>Serviços Catalogados ({catalogedServicesCount})</span>
-              </div>
-              <Button
-                size="xs"
-                onClick={() => setIsNewServiceOpen(true)}
-                className="solid-btn text-xs font-bold px-2.5 h-7 rounded-lg"
-              >
-                <Plus className="w-3 h-3 mr-1" />
-                Novo
-              </Button>
-            </div>
-
-            {/* Search Input */}
-            <div className="relative mb-3 shrink-0">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Pesquisar catálogo..."
-                value={catalogSearch}
-                onChange={e => setCatalogSearch(e.target.value)}
-                className="pl-9 text-xs h-9 rounded-lg border-border bg-muted/60 dark:bg-card focus-visible:ring-primary/40"
-              />
-            </div>
-
-            {/* Catalog services scroll area */}
-            <div ref={catalogContainerRef} className="flex-1 min-h-0">
-              {catalogContainerHeight > 0 && (
-                <List<CatalogRowPropsData>
-                  style={{ height: catalogContainerHeight, width: "100%" }}
-                  rowCount={combinedCatalogList.length}
-                  rowHeight={getCatalogItemSize as any}
-                  rowComponent={CatalogRowWrapper as any}
-                  rowProps={{
-                    combinedCatalogList,
-                    setEditServiceId,
-                    setEditServiceName,
-                    setEditServicePrice,
-                    setIsEditServiceOpen,
-                    handleDeleteServiceClick
-                  }}
-                />
-              )}
-              {combinedCatalogList.length === 0 && (
-                <div className="py-8 text-center text-xs text-muted-foreground italic">
-                  Nenhum serviço encontrado no catálogo
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="relative w-52">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Buscar serviço"
+                    value={serviceSearch}
+                    onChange={e => setServiceSearch(e.target.value)}
+                    className="pl-9 text-sm h-9 rounded-xl border-border bg-card focus-visible:ring-primary/30"
+                  />
                 </div>
-              )}
-            </div>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCopyPricesOpen(true)}
+                  className="h-9 px-3.5 rounded-xl border-border bg-card text-sm font-semibold gap-2"
+                >
+                  <Copy className="w-4 h-4" /> Copiar preços de outro motor
+                </Button>
+              </div>
+            )}
           </div>
 
-          {/* Footer note card */}
-          <div className="mt-4 p-3 bg-secondary/30 border border-border text-muted-foreground rounded-xl space-y-1.5 shrink-0">
-            <div className="flex items-center gap-1.5 text-xs font-bold uppercase text-foreground tracking-wide">
-              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-              <span>Aviso do Catálogo</span>
-            </div>
-            <p className="text-xs leading-relaxed font-semibold">
-              Qualquer serviço registrado no Catálogo fica disponível para todos os motores. Use as tabelas para customizar preços individuais.
-            </p>
+          {/* Abas de categoria + busca */}
+          <div className="flex flex-wrap items-center gap-2 px-6 py-3.5 border-b border-border shrink-0">
+            <button type="button" onClick={() => setCategoryFilter('')} className={tabClass(!categoryFilter)}>Todos</button>
+            {categoryTabs.map(t => (
+              <button key={t.key} type="button" onClick={() => setCategoryFilter(categoryFilter === t.key ? '' : t.key)} className={tabClass(categoryFilter === t.key)}>
+                {t.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setOnlyPriced(v => !v)}
+              className={cn(tabClass(onlyPriced), 'ml-auto inline-flex items-center gap-1.5')}
+              title="Mostrar só os serviços com preço neste motor"
+            >
+              {onlyPriced && <Check className="w-3.5 h-3.5" />} Só com preço
+            </button>
+          </div>
+
+          {/* Cabeçalho da tabela */}
+          <div className="grid grid-cols-[minmax(0,1fr)_170px_96px] gap-4 px-6 py-2.5 bg-muted/50 border-b border-border text-xs font-semibold uppercase tracking-wide text-muted-foreground shrink-0">
+            <div>Serviço</div>
+            <div>Preço neste motor</div>
+            <div className="text-right">Opções</div>
+          </div>
+
+          {/* Linhas */}
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            {!selectedMotor ? (
+              <div className="py-16 text-center text-sm text-muted-foreground">Selecione um motor à esquerda para ver e editar os preços.</div>
+            ) : pricingGroups.length === 0 ? (
+              <div className="py-16 text-center text-sm text-muted-foreground">Nenhum serviço encontrado com esses filtros.</div>
+            ) : (
+              pricingGroups.map(group => (
+                <div key={group.key}>
+                  {!categoryFilter && (
+                    <div className="px-6 pt-4 pb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group.label}</div>
+                  )}
+                  {group.items.map(svc => {
+                    const base = svc.prices.find(p => p.subName === '');
+                    const variations = svc.prices.filter(p => p.subName !== '');
+                    const observation = base?.observation || '';
+                    return (
+                      <div key={svc.id} className="border-b border-border last:border-b-0">
+                        <div className="group grid grid-cols-[minmax(0,1fr)_170px_96px] gap-4 items-center px-6 py-2.5 hover:bg-muted/30 transition-colors">
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium text-foreground truncate" title={svc.name}>{sentenceCase(svc.name)}</div>
+                            {observation && (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenObservation(svc.id, svc.name, observation)}
+                                className="block max-w-full text-left text-xs text-muted-foreground italic truncate hover:text-foreground cursor-pointer"
+                                title="Editar observação"
+                              >
+                                {observation}
+                              </button>
+                            )}
+                          </div>
+                          <PriceInput
+                            value={base?.price}
+                            label={`Preço de ${svc.name} no motor ${selectedMotor}`}
+                            onCommit={(v) => commitPrice(svc.id, '', v, base)}
+                          />
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenDefinePrice(svc.id, svc.name)}
+                              title="Adicionar preço para uma medida (ex.: 0.25, 8 válvulas)"
+                              className="h-8 px-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <Plus className="w-3.5 h-3.5" /> Medida
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenObservation(svc.id, svc.name, observation)}
+                              title={observation ? 'Editar observação' : 'Adicionar observação'}
+                              className={cn(
+                                'w-8 h-8 rounded-lg inline-flex items-center justify-center hover:bg-muted cursor-pointer',
+                                observation ? 'text-foreground' : 'text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100'
+                              )}
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Preços por medida */}
+                        {variations.map(v => (
+                          <div key={v.id} className="group grid grid-cols-[minmax(0,1fr)_170px_96px] gap-4 items-center px-6 py-2 bg-muted/20">
+                            <div className="min-w-0 pl-4 text-sm text-muted-foreground truncate">
+                              <span className="text-muted-foreground/60 mr-1.5">↳</span>Medida <span className="font-medium text-foreground uppercase">{v.subName}</span>
+                            </div>
+                            <PriceInput
+                              value={v.price}
+                              label={`Preço de ${svc.name} medida ${v.subName}`}
+                              onCommit={(val) => val === null ? handleDeletePriceClick(v.id) : commitPrice(svc.id, v.subName, val, v)}
+                            />
+                            <div className="flex justify-end">
+                              <button
+                                type="button"
+                                onClick={() => handleDeletePriceClick(v.id)}
+                                title="Remover esta medida"
+                                className="w-8 h-8 rounded-lg inline-flex items-center justify-center text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-danger hover:bg-danger/10 cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Rodapé */}
+          <div className="flex items-center justify-between gap-4 px-6 py-3 border-t border-border text-sm shrink-0">
+            <span className="text-muted-foreground">Preços em branco ficam livres para digitar na O.S.</span>
+            <span className={cn(
+              'font-medium whitespace-nowrap',
+              saveState === 'saved' && 'text-success',
+              saveState === 'saving' && 'text-muted-foreground',
+              saveState === 'error' && 'text-danger'
+            )}>
+              {saveState === 'saved' && 'Alterações salvas'}
+              {saveState === 'saving' && 'Salvando…'}
+              {saveState === 'error' && 'Erro ao salvar'}
+            </span>
           </div>
         </div>
       </div>
+
+      {/* ═══ DIALOG: SERVIÇOS DO CATÁLOGO ═══ */}
+      {isCatalogOpen && (
+        <Dialog open={isCatalogOpen} onOpenChange={setIsCatalogOpen}>
+          <DialogContent className="max-w-lg bg-card border border-border rounded-2xl shadow-2xl p-0 gap-0 overflow-hidden">
+            <DialogHeader className="px-6 pt-5 pb-4 border-b border-border">
+              <div className="flex items-start justify-between gap-4 pr-8">
+                <div>
+                  <DialogTitle className="text-lg font-bold text-foreground">Serviços do catálogo</DialogTitle>
+                  <DialogDescription className="text-sm text-muted-foreground mt-0.5">
+                    Ficam disponíveis em todos os motores. O preço de cada motor é definido na tabela.
+                  </DialogDescription>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pt-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Buscar serviço"
+                    value={catalogSearch}
+                    onChange={e => setCatalogSearch(e.target.value)}
+                    className="pl-9 text-sm h-9 rounded-xl border-border bg-card"
+                  />
+                </div>
+                <Button onClick={() => setIsNewServiceOpen(true)} className="solid-btn h-9 px-3.5 rounded-xl text-sm font-bold gap-1.5">
+                  <Plus className="w-4 h-4" /> Novo serviço
+                </Button>
+              </div>
+            </DialogHeader>
+            <div className="max-h-[60vh] overflow-y-auto px-3 py-2">
+              {combinedCatalogList.length === 0 && (
+                <div className="py-8 text-center text-sm text-muted-foreground">Nenhum serviço encontrado</div>
+              )}
+              {combinedCatalogList.map(item => {
+                if (item.type === 'header') {
+                  return (
+                    <div key={item.id} className="px-3 pt-3 pb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {item.label}
+                    </div>
+                  );
+                }
+                return (
+                  <div key={item.id} className="group flex items-center gap-3 px-3 h-11 rounded-lg hover:bg-muted/60">
+                    <span className="flex-1 min-w-0 truncate text-sm font-medium text-foreground">{sentenceCase(item.name)}</span>
+                    {item.type === 'custom' ? (
+                      <>
+                        {item.defaultPrice > 0 && (
+                          <span className="text-xs text-muted-foreground tabular-nums">
+                            padrão {item.defaultPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          title="Editar serviço"
+                          onClick={() => {
+                            setEditServiceId(item.id);
+                            setEditServiceName(item.name);
+                            setEditServicePrice(item.defaultPrice.toString());
+                            setIsEditServiceOpen(true);
+                          }}
+                          className="w-8 h-8 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          title="Remover serviço"
+                          onClick={() => handleDeleteServiceClick(item.id, item.name)}
+                          className="w-8 h-8 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-danger hover:bg-danger/10 cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">padrão do sistema</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* ═══ DIALOG: NOVO MOTOR ═══ */}
       {isNewMotorOpen && (
