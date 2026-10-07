@@ -58,6 +58,17 @@ import {
   SelectTrigger
 } from '@/components/ui/select';
 
+// Faixa colorida à esquerda de cada O.S., na cor do status
+const STATUS_ACCENT: Record<string, string> = {
+  'Na Fila': 'border-l-muted-foreground/40',
+  'Em Andamento': 'border-l-info',
+  'Aguardando Peça': 'border-l-warning',
+  'Pronto': 'border-l-success',
+  'Levou': 'border-l-levou',
+};
+
+const motorChip = 'inline-flex items-center h-5 px-1.5 rounded-md bg-muted border border-border text-[11px] font-semibold text-muted-foreground tabular-nums uppercase';
+
 interface DashboardOrderRowProps {
   order: Order;
   client: any;
@@ -108,15 +119,15 @@ const DashboardOrderRow = React.memo(({
       id={`order-row-${order.id}`}
       onClick={() => onView(order)}
       className={cn(
-        "relative group rounded-lg border transition-colors duration-150 cursor-pointer",
-        "grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_176px_104px_32px] xl:grid-cols-[88px_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.1fr)_104px_200px_112px_40px] gap-x-3 items-center px-4 py-2.5 min-h-[56px]",
-        "dark:bg-card dark:border-border/40 dark:hover:bg-muted",
-        "bg-card border-border/70 hover:bg-muted/70"
+        "relative group rounded-xl border border-l-4 bg-card shadow-sm transition-all duration-150 cursor-pointer hover:shadow-md hover:bg-muted/30",
+        "grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_176px_104px_32px] xl:grid-cols-[88px_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.4fr)_100px_188px_108px_36px] gap-x-3 items-center pl-5 pr-4 py-3.5 min-h-[72px]",
+        "border-t-border/70 border-r-border/70 border-b-border/70",
+        STATUS_ACCENT[order.serviceStatus] || 'border-l-border'
       )}
     >
       {/* Nº O.S. */}
       <div className="min-w-0">
-        <div className="font-mono font-bold text-base text-foreground tabular-nums">
+        <div className="font-mono font-extrabold text-xl text-info tabular-nums leading-none">
           #{order.osNumber || order.id}
         </div>
         {arrival && (
@@ -128,10 +139,10 @@ const DashboardOrderRow = React.memo(({
 
       {/* Cliente */}
       <div className="min-w-0" title={client?.nickname ? `${client.nickname} (${client.name || ''})` : client?.name}>
-        <div className="font-bold text-foreground text-sm uppercase leading-tight line-clamp-2 break-words">
+        <div className="font-extrabold text-foreground text-sm uppercase leading-tight line-clamp-2 break-words">
           {client?.nickname || client?.name || 'Cliente removido'}
         </div>
-        <div className="text-xs text-muted-foreground truncate">
+        <div className="text-[11px] font-semibold uppercase text-muted-foreground truncate mt-0.5 tabular-nums">
           {[client?.nickname ? client.name : '', client?.phone].filter(Boolean).join(' · ')}
         </div>
         {mechanicLabel && (
@@ -140,7 +151,7 @@ const DashboardOrderRow = React.memo(({
       </div>
 
       {/* Mecânico responsável (em telas menores vai para baixo do cliente) */}
-      <div className="hidden xl:block min-w-0 text-sm font-medium uppercase truncate" title={mechanicLabel || 'Sem mecânico'}>
+      <div className="hidden xl:block min-w-0 text-sm font-semibold uppercase truncate" title={mechanicLabel || 'Sem mecânico'}>
         {mechanicLabel ? <span className="text-foreground">{mechanicLabel}</span> : <span className="text-muted-foreground">—</span>}
       </div>
 
@@ -148,11 +159,10 @@ const DashboardOrderRow = React.memo(({
       <div className="min-w-0" title={motorTitle || 'Motor não especificado'}>
         {parsedMotors.length > 0 ? (
           parsedMotors.map((pm, idx) => (
-            <div key={idx} className="text-sm leading-tight">
-              <span className="font-bold text-foreground uppercase">{pm.model}</span>
-              {(pm.disp || pm.cylinders) && (
-                <span className="text-xs text-muted-foreground"> {[pm.disp, pm.cylinders].filter(Boolean).join(' · ')}</span>
-              )}
+            <div key={idx} className="flex flex-wrap items-center gap-1.5 text-sm leading-tight py-0.5">
+              <span className="font-extrabold text-foreground uppercase">{pm.model}</span>
+              {pm.disp && <span className={motorChip}>{pm.disp}</span>}
+              {pm.cylinders && <span className={motorChip}>{pm.cylinders}</span>}
             </div>
           ))
         ) : (
@@ -210,7 +220,7 @@ const DashboardOrderRow = React.memo(({
       </div>
 
       {/* Pagamento */}
-      <div className="flex flex-col items-start gap-0.5">
+      <div className="flex flex-col items-center gap-0.5">
         <PaymentBadge situation={payment.situation} grouped={!!groupedPayment} />
       </div>
 
@@ -683,19 +693,19 @@ export function Dashboard({
           {/* ═══ TABLE ═══ */}
           <div className="w-full space-y-3">
             {/* Table Header (Grid matching row cols) */}
-            <div className="hidden md:grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_176px_104px_32px] xl:grid-cols-[88px_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.1fr)_104px_200px_112px_40px] gap-x-3 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="hidden md:grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_176px_104px_32px] xl:grid-cols-[88px_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.4fr)_100px_188px_108px_36px] gap-x-3 pl-[25px] pr-4 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
               <div>Nº O.S.</div>
               <div>Cliente</div>
-              <div className="hidden xl:block">Mecânico</div>
+              <div className="hidden xl:block">Mec. responsável</div>
               <div>Motor</div>
               <div className="hidden xl:block">Chegada</div>
               <div className="text-center">Status</div>
-              <div>Pagamento</div>
+              <div className="text-center">Pagamento</div>
               <div></div>
             </div>
 
             {/* Table Body (List of card rows) */}
-            <div className="space-y-1.5">
+            <div className="space-y-2.5">
               {filteredOrders.length === 0 ? (
                 <div className="rounded-xl border border-border bg-card p-12 text-center text-muted-foreground/60 font-medium text-xs">
                   Nenhuma ordem de serviço ativa encontrada.
