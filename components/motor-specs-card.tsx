@@ -713,7 +713,7 @@ export function MotorSpecsCard({
           </div>
         ) : (
           <div className="space-y-4">
-            <div className={cn('grid gap-4', motors.length > 1 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1')}>
+            <div className={cn('grid gap-4', motors.length > 1 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 w-full max-w-xl mx-auto')}>
               {motors.map((m, idx) => {
                 const brand = m.brand || detectBrandFromName(`${m.model} ${m.cars || ''}`);
                 const tiles: Array<{ key: string; label: string; value: string; icon: React.ReactNode; orange?: boolean }> = [];
@@ -724,9 +724,9 @@ export function MotorSpecsCard({
                 if (m.showExtra && m.cars) tiles.push({ key: 'veiculo', label: 'Veículo', value: m.cars.toUpperCase(), icon: <Car className="w-4 h-4" /> });
                 if (m.showExtra && m.aspiration) tiles.push({ key: 'aspiracao', label: 'Aspiração', value: m.aspiration.toUpperCase(), icon: <Zap className="w-4 h-4" />, orange: true });
                 return (
-                  <div key={idx} className="rounded-xl border border-border bg-card p-4 shadow-sm space-y-3 animate-in fade-in-50 duration-200">
-                    <div className="flex items-start gap-3">
-                      <BrandLogo brand={brand} size={48} />
+                  <div key={idx} className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4 animate-in fade-in-50 duration-200">
+                    <div className="flex items-start gap-4">
+                      <BrandLogo brand={brand} size={60} className="rounded-xl" />
                       <div className="flex-1 min-w-0">
                         <h4 className="text-base font-extrabold uppercase text-foreground truncate" title={m.model}>{m.model}</h4>
                         <div className="text-xs font-semibold uppercase text-muted-foreground truncate">{brand || 'Montadora não identificada'}</div>
@@ -781,7 +781,7 @@ export function MotorSpecsCard({
               <button
                 type="button"
                 onClick={() => { resetForm(); setAddingAnother(true); setTimeout(() => document.getElementById('motor-spec-search')?.focus(), 0); }}
-                className="w-full rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/40 px-4 py-4 text-center transition-colors cursor-pointer"
+                className="block w-full max-w-md mx-auto rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/40 px-4 py-4 text-center transition-colors cursor-pointer"
               >
                 <div className="flex items-center justify-center gap-1.5 text-sm font-bold text-foreground">
                   <Plus className="w-4 h-4" /> Adicionar mais um motor
