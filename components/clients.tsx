@@ -32,12 +32,17 @@ import {
   Pencil,
   Trash2,
   AlertTriangle,
-  X
+  X,
+  Tag,
+  FileText,
+  Users,
+  Wrench
 } from 'lucide-react';
 import { cn, formatMotorDisplay, formatMotorModelAndCylinders } from '@/lib/utils';
 import { 
   Dialog, 
   DialogContent, 
+  DialogDescription,
   DialogHeader, 
   DialogTitle, 
   DialogFooter,
@@ -122,6 +127,48 @@ function buildClientBalances(
     map.set(o.clientId, entry);
   }
   return map;
+}
+
+// ═══ FORMULÁRIO DE CLIENTE: seções, rótulos e campos com ícone ═══
+
+const iconInputClass = 'premium-input h-11 pl-10 pr-3 text-sm rounded-xl';
+
+function FormSection({ icon: Icon, title, hint, description, children }: {
+  icon: React.ElementType; title: string; hint?: string; description?: string; children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-xl border border-border bg-muted/30 px-5 py-4 space-y-3">
+      <div>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="flex items-center gap-2.5 text-base font-bold text-foreground">
+            <Icon className="w-5 h-5 stroke-[1.75]" /> {title}
+          </h3>
+          {hint && <span className="text-xs text-muted-foreground text-right">{hint}</span>}
+        </div>
+        {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function FieldLabel({ htmlFor, children, required, optional }: { htmlFor?: string; children: React.ReactNode; required?: boolean; optional?: boolean }) {
+  return (
+    <label htmlFor={htmlFor} className="flex items-center gap-2 text-sm font-medium text-foreground">
+      {children}
+      {required && <span className="text-danger">*</span>}
+      {optional && <span className="px-2 py-0.5 rounded-full bg-muted text-xs font-normal text-muted-foreground">Opcional</span>}
+    </label>
+  );
+}
+
+function IconField({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
+  return (
+    <div className="relative">
+      <Icon className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+      {children}
+    </div>
+  );
 }
 
 // ═══ CLIENT ROW (LIST ITEM) COMPONENT ═══
@@ -398,142 +445,181 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
                 Adicionar Cliente
               </Button>
             } />
-            <DialogContent className="sm:max-w-[500px] rounded-lg bg-popover border-border">
-              <DialogHeader>
-                <DialogTitle className="text-md font-extrabold flex items-center gap-2 text-foreground">
-                  <User className="w-5 h-5 stroke-[1.5]" />
-                  Novo Cliente
-                </DialogTitle>
+            <DialogContent showCloseButton={false} className="relative sm:max-w-[720px] max-h-[94vh] p-0 gap-0 rounded-2xl bg-popover border-border overflow-hidden flex flex-col">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                title="Fechar"
+                className="absolute top-5 right-5 w-9 h-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer z-10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <DialogHeader className="flex-row items-center gap-4 px-7 pt-5 pb-4 space-y-0 text-left">
+                <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center shrink-0">
+                  <User className="w-6 h-6 stroke-[1.75] text-foreground" />
+                </div>
+                <div className="min-w-0">
+                  <DialogTitle className="text-2xl font-bold tracking-tight text-foreground">Novo Cliente</DialogTitle>
+                  <DialogDescription className="text-sm text-muted-foreground mt-0.5">Cadastre um novo cliente no sistema.</DialogDescription>
+                </div>
               </DialogHeader>
-              <form onSubmit={handleAddClient} className="space-y-4 py-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="name" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Nome completo</Label>
-                    <Input id="name" placeholder="Nome completo" value={newName} onChange={e => setNewName(e.target.value.toUpperCase())} className="premium-input uppercase placeholder:normal-case text-xs h-9 rounded-lg" />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="nickname" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Apelido / Nome Fantasia (Opcional)</Label>
-                    <Input id="nickname" placeholder="Apelido ou nome fantasia" value={newNickname} onChange={e => setNewNickname(e.target.value.toUpperCase())} className="premium-input uppercase placeholder:normal-case text-xs h-9 rounded-lg" />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="document" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">CPF/CNPJ (Opcional)</Label>
-                    <MaskedInput id="document" placeholder="000.000.000-00" value={newDocument} mask={maskCPFCNPJ} unmask={cleanNumeric} onValueChange={setNewDocument} className="premium-input text-xs h-9 rounded-lg" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Telefone (Opcional)</Label>
-                    <MaskedInput id="phone" placeholder="(00) 00000-0000" value={newPhone} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewPhone} className="premium-input text-xs h-9 rounded-lg" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone2" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Telefone 2 (Opcional)</Label>
-                    <MaskedInput id="phone2" placeholder="(11) 99999-9999" value={newPhone2} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewPhone2} className="premium-input text-xs h-9 rounded-lg" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">WhatsApp (Opcional)</Label>
-                    <MaskedInput id="whatsapp" placeholder="(00) 00000-0000" value={newWhatsapp} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewWhatsapp} className="premium-input text-xs h-9 rounded-lg" />
-                  </div>
-                  <div className="space-y-2 col-span-1 md:col-span-2">
-                    <Label htmlFor="city" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Cidade (Opcional)</Label>
-                    <Input id="city" placeholder="Ex: Curitiba - PR" value={newCity} onChange={e => setNewCity(e.target.value)} className="premium-input text-xs h-9 rounded-lg" />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Tipo de Cliente</Label>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setNewClientType('regular')}
-                        className={cn(
-                          "flex-1 h-9 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all",
-                          newClientType === 'regular'
-                            ? "bg-secondary text-foreground border-border"
-                            : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-secondary/40"
-                        )}
-                      >
-                        CLIENTE
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setNewClientType('mechanic')}
-                        className={cn(
-                          "flex-1 h-9 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all",
-                          newClientType === 'mechanic'
-                            ? "bg-info/10 text-info border-info/20 rounded px-1.5 flex items-center justify-center flex-shrink-0"
-                            : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-secondary/40"
-                        )}
-                      >
-                        MECÂNICO
-                      </button>
+              <form onSubmit={handleAddClient} className="flex flex-col min-h-0 flex-1">
+                <div className="flex-1 min-h-0 overflow-y-auto px-7 pb-4 space-y-3">
+                  <FormSection icon={User} title="Dados principais" hint="Informações básicas do cliente.">
+                    <div className="space-y-1.5">
+                      <FieldLabel htmlFor="name" required>Nome completo</FieldLabel>
+                      <IconField icon={User}>
+                        <Input id="name" placeholder="Digite o nome completo do cliente" value={newName} onChange={e => setNewName(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} autoFocus />
+                      </IconField>
                     </div>
-                  </div>
-                  {newClientType === 'regular' && (
-                    <div ref={newMechContainerRef} className="space-y-2 md:col-span-2 relative">
-                      <Label htmlFor="default-mechanic" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Mecânico Padrão (Opcional)</Label>
-                      <div className="relative">
-                        <Input
-                          id="default-mechanic"
-                          placeholder="Pesquisar por nome ou apelido..."
-                          value={newMechSearch}
-                          onChange={(e) => {
-                            setNewMechSearch(e.target.value);
-                            setIsNewMechDropdownOpen(true);
-                            if (!e.target.value) {
-                              setNewDefaultMechanicId('');
-                            }
-                          }}
-                          onFocus={() => setIsNewMechDropdownOpen(true)}
-                          onBlur={() => {
-                            setTimeout(() => {
-                              setIsNewMechDropdownOpen(false);
-                              if (newDefaultMechanicId) {
-                                const foundMech = clients.find(c => c.id === newDefaultMechanicId);
-                                if (foundMech) {
-                                  setNewMechSearch(foundMech.nickname ? `${foundMech.nickname.toUpperCase()} (${foundMech.name})` : foundMech.name);
-                                }
-                              }
-                            }, 150);
-                          }}
-                          className="premium-input text-xs h-9 rounded-lg w-full"
-                        />
-                        {isNewMechDropdownOpen && (
-                          <div className="absolute z-[1200] w-full mt-1 max-h-[160px] overflow-y-auto bg-card border border-border rounded-lg shadow-lg">
-                            {filteredNewMech.length === 0 ? (
-                              <div className="p-2 text-xs text-muted-foreground/60 italic text-center">Nenhum mecânico encontrado</div>
-                            ) : (
-                              filteredNewMech.map((mech) => {
-                                const selectedName = mech.nickname ? `${mech.nickname.toUpperCase()} (${mech.name})` : mech.name;
-                                const handleSelect = () => {
-                                  setNewDefaultMechanicId(mech.id);
-                                  setNewMechSearch(selectedName);
-                                  setIsNewMechDropdownOpen(false);
-                                };
-                                return (
-                                  <button
-                                    key={mech.id}
-                                    type="button"
-                                    onMouseDown={(e) => {
-                                      e.preventDefault();
-                                      handleSelect();
-                                    }}
-                                    onPointerDown={(e) => {
-                                      e.preventDefault();
-                                      handleSelect();
-                                    }}
-                                    onClick={handleSelect}
-                                    className="w-full text-left px-3 py-2 text-xs hover:bg-secondary text-foreground font-semibold"
-                                  >
-                                    {mech.name} {mech.nickname ? `(${mech.nickname})` : ''}
-                                  </button>
-                                );
-                              })
-                            )}
-                          </div>
-                        )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <FieldLabel htmlFor="nickname" optional>Apelido / Nome fantasia</FieldLabel>
+                        <IconField icon={Tag}>
+                          <Input id="nickname" placeholder="Apelido ou nome fantasia" value={newNickname} onChange={e => setNewNickname(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
+                        </IconField>
+                      </div>
+                      <div className="space-y-1.5">
+                        <FieldLabel htmlFor="document" optional>CPF/CNPJ</FieldLabel>
+                        <IconField icon={FileText}>
+                          <MaskedInput id="document" placeholder="000.000.000-00" value={newDocument} mask={maskCPFCNPJ} unmask={cleanNumeric} onValueChange={setNewDocument} className={iconInputClass} />
+                        </IconField>
                       </div>
                     </div>
-                  )}
+                  </FormSection>
+
+                  <FormSection icon={Phone} title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <FieldLabel htmlFor="phone" optional>Telefone</FieldLabel>
+                        <IconField icon={Phone}>
+                          <MaskedInput id="phone" placeholder="(00) 00000-0000" value={newPhone} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewPhone} className={iconInputClass} />
+                        </IconField>
+                      </div>
+                      <div className="space-y-1.5">
+                        <FieldLabel htmlFor="phone2" optional>Telefone 2</FieldLabel>
+                        <IconField icon={Phone}>
+                          <MaskedInput id="phone2" placeholder="(11) 99999-9999" value={newPhone2} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewPhone2} className={iconInputClass} />
+                        </IconField>
+                      </div>
+                      <div className="space-y-1.5">
+                        <FieldLabel htmlFor="whatsapp" optional>WhatsApp</FieldLabel>
+                        <IconField icon={MessageCircle}>
+                          <MaskedInput id="whatsapp" placeholder="(00) 00000-0000" value={newWhatsapp} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewWhatsapp} className={iconInputClass} />
+                        </IconField>
+                      </div>
+                    </div>
+                  </FormSection>
+
+                  <FormSection icon={MapPin} title="Localização" hint="Cidade do cliente.">
+                    <div className="space-y-1.5">
+                      <FieldLabel htmlFor="city" optional>Cidade</FieldLabel>
+                      <IconField icon={MapPin}>
+                        <Input id="city" placeholder="Ex: Curitiba - PR" value={newCity} onChange={e => setNewCity(e.target.value)} className={iconInputClass} />
+                      </IconField>
+                    </div>
+                  </FormSection>
+
+                  <FormSection icon={Users} title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
+                    <div className="grid grid-cols-2 rounded-xl border border-border bg-card p-1 gap-1" role="radiogroup" aria-label="Tipo de cliente">
+                      {([
+                        { value: 'regular', label: 'Cliente', icon: User },
+                        { value: 'mechanic', label: 'Mecânico', icon: Wrench },
+                      ] as const).map(opt => {
+                        const active = newClientType === opt.value;
+                        const Icon = opt.icon;
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            role="radio"
+                            aria-checked={active}
+                            onClick={() => setNewClientType(opt.value)}
+                            className={cn(
+                              'h-12 rounded-lg flex items-center justify-center gap-2.5 text-base font-semibold transition-colors cursor-pointer',
+                              active ? 'bg-muted text-foreground shadow-sm ring-1 ring-border' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                            )}
+                          >
+                            <Icon className={cn('w-5 h-5', active && opt.value === 'regular' && 'fill-current')} />
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {newClientType === 'regular' && (
+                      <div ref={newMechContainerRef} className="space-y-1.5 relative">
+                        <FieldLabel htmlFor="default-mechanic" optional>Mecânico padrão</FieldLabel>
+                        <div className="relative">
+                          <IconField icon={Wrench}>
+                            <Input
+                              id="default-mechanic"
+                              placeholder="Pesquisar por nome ou apelido..."
+                              value={newMechSearch}
+                              onChange={(e) => {
+                                setNewMechSearch(e.target.value);
+                                setIsNewMechDropdownOpen(true);
+                                if (!e.target.value) {
+                                  setNewDefaultMechanicId('');
+                                }
+                              }}
+                              onFocus={() => setIsNewMechDropdownOpen(true)}
+                              onBlur={() => {
+                                setTimeout(() => {
+                                  setIsNewMechDropdownOpen(false);
+                                  if (newDefaultMechanicId) {
+                                    const foundMech = clients.find(c => c.id === newDefaultMechanicId);
+                                    if (foundMech) {
+                                      setNewMechSearch(foundMech.nickname ? `${foundMech.nickname.toUpperCase()} (${foundMech.name})` : foundMech.name);
+                                    }
+                                  }
+                                }, 150);
+                              }}
+                              className={iconInputClass}
+                            />
+                          </IconField>
+                          {isNewMechDropdownOpen && (
+                            <div className="absolute z-[1200] w-full mt-1 max-h-[160px] overflow-y-auto bg-card border border-border rounded-xl shadow-lg p-1">
+                              {filteredNewMech.length === 0 ? (
+                                <div className="p-2 text-sm text-muted-foreground text-center">Nenhum mecânico encontrado</div>
+                              ) : (
+                                filteredNewMech.map((mech) => {
+                                  const selectedName = mech.nickname ? `${mech.nickname.toUpperCase()} (${mech.name})` : mech.name;
+                                  const handleSelect = () => {
+                                    setNewDefaultMechanicId(mech.id);
+                                    setNewMechSearch(selectedName);
+                                    setIsNewMechDropdownOpen(false);
+                                  };
+                                  return (
+                                    <button
+                                      key={mech.id}
+                                      type="button"
+                                      onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        handleSelect();
+                                      }}
+                                      onPointerDown={(e) => {
+                                        e.preventDefault();
+                                        handleSelect();
+                                      }}
+                                      onClick={handleSelect}
+                                      className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-muted text-foreground font-medium"
+                                    >
+                                      {mech.name} {mech.nickname ? `(${mech.nickname})` : ''}
+                                    </button>
+                                  );
+                                })
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </FormSection>
                 </div>
-                <DialogFooter className="pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="border-border text-muted-foreground hover:bg-secondary/40 rounded-lg text-xs h-9">Cancelar</Button>
-                  <Button type="submit" className="solid-btn font-bold rounded-lg text-xs h-9">Salvar Cliente</Button>
+                <DialogFooter className="mx-0 mb-0 px-7 py-4 border-t border-border bg-popover flex-row justify-end gap-3 rounded-none">
+                  <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="h-11 px-6 rounded-xl border-border text-muted-foreground hover:bg-muted text-base font-semibold">Cancelar</Button>
+                  <Button type="submit" className="solid-btn h-11 px-6 rounded-xl text-base font-bold">Salvar Cliente</Button>
                 </DialogFooter>
               </form>
             </DialogContent>
