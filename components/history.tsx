@@ -42,14 +42,14 @@ const HistoryOrderRow = React.memo(({ order, client, mechanic, groupedPayment, o
       <div className="font-mono font-bold text-foreground text-xs">#{order.osNumber || order.id}</div>
       <div className="min-w-0 pr-2 flex flex-col justify-center gap-0.5">
         {client?.nickname && (
-          <span className="font-semibold text-[13px] text-blue-500 dark:text-blue-400 uppercase tracking-wide truncate">
+          <span className="font-semibold text-[13px] text-info uppercase tracking-wide truncate">
             {client.nickname.toUpperCase()}
           </span>
         )}
         <div className="font-bold text-foreground text-xs truncate flex items-center gap-1.5 flex-wrap">
           <span className="truncate">{client?.name || 'Cliente Removido'}</span>
           {client?.clientType === 'mechanic' && (
-            <span className="inline-flex items-center px-1 py-0.2 text-xs font-black tracking-widest uppercase rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">
+            <span className="inline-flex items-center px-1 py-0.2 text-xs font-bold tracking-wider uppercase rounded bg-info/10 text-info border border-info/20 shrink-0">
               Mecânico
             </span>
           )}
@@ -107,7 +107,7 @@ const HistoryOrderRow = React.memo(({ order, client, mechanic, groupedPayment, o
               {summary.situation === 'pago' ? (
                 methods && <span className="text-xs text-muted-foreground">{methods}</span>
               ) : (
-                <span className="text-xs font-semibold text-red-600 dark:text-red-400">
+                <span className="text-xs font-semibold text-danger">
                   falta {formatBRL(summary.balance)}{groupedPayment ? ' (grupo)' : ''}
                 </span>
               )}

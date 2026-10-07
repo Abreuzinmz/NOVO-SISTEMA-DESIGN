@@ -126,8 +126,8 @@ const ServiceItemRow = memo(({
     onDragOver={(e) => onDragOver(e, index)}
     onDrop={onDrop}
     className={cn(
-      "hover:bg-muted dark:hover:bg-white/[0.02] border-b border-border last:border-b-0 transition-all duration-300 group",
-      draggedIndex === index && "opacity-40 bg-muted/50 dark:bg-white/[0.01]"
+      "hover:bg-muted dark:hover:bg-foreground/[0.02] border-b border-border last:border-b-0 transition-all duration-300 group",
+      draggedIndex === index && "opacity-40 bg-muted/50 dark:bg-foreground/[0.01]"
     )}
   >
     <td className="px-2 py-2 text-center w-10">
@@ -153,7 +153,7 @@ const ServiceItemRow = memo(({
             type="button"
             disabled={readOnly}
             onClick={() => onEditMeasure?.(svc)}
-            className="text-xs font-black uppercase tracking-wider text-primary/80 hover:text-primary w-fit bg-primary/5 hover:bg-primary/10 border border-primary/20 dark:border-primary/10 rounded px-1.5 py-0.5 mt-0.5 transition-all flex items-center gap-1 cursor-pointer disabled:cursor-default"
+            className="text-xs font-bold uppercase tracking-wider text-primary/80 hover:text-primary w-fit bg-primary/5 hover:bg-primary/10 border border-primary/20 dark:border-primary/10 rounded px-1.5 py-0.5 mt-0.5 transition-all flex items-center gap-1 cursor-pointer disabled:cursor-default"
           >
             {svc.id === 'eix-retificar' ? 'Editar Medidas' : `Medida: ${svc.measure}`}
             {!readOnly && <span className="text-xs opacity-60">✍</span>}
@@ -161,14 +161,14 @@ const ServiceItemRow = memo(({
         )}
         {motorsList && motorsList.length >= 2 && (
           <div className="mt-1 flex items-center gap-1">
-            <span className="text-xs font-black uppercase text-amber-600 dark:text-amber-400">Motor:</span>
+            <span className="text-xs font-bold uppercase text-warning">Motor:</span>
             <select
               value={svc.motorId ?? '0'}
               onChange={(e) => onUpdate(svc.id, { motorId: e.target.value })}
               disabled={readOnly}
-              className="text-xs font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30 rounded px-1.5 py-0.5 focus:outline-none cursor-pointer disabled:cursor-default"
+              className="text-xs font-bold bg-warning/10 text-warning border border-warning/30 rounded px-1.5 py-0.5 focus:outline-none cursor-pointer disabled:cursor-default"
             >
-              <option value="all" className="bg-background text-foreground font-black">
+              <option value="all" className="bg-background text-foreground font-bold">
                 ⚡ Todos os motores
               </option>
               {motorsList.map((m, idx) => {
@@ -185,18 +185,18 @@ const ServiceItemRow = memo(({
       </div>
     </td>
     <td className="px-3 py-2">
-      <div className="flex items-center justify-center gap-1.5 bg-muted dark:bg-black/20 rounded-lg border border-border p-1 w-fit mx-auto">
+      <div className="flex items-center justify-center gap-1.5 bg-muted dark:bg-background/20 rounded-lg border border-border p-1 w-fit mx-auto">
         <Button
           type="button"
           variant="ghost"
           size="icon-xs"
-          className="h-6 w-6 rounded-md hover:bg-muted-foreground/10 hover:text-red-400"
+          className="h-6 w-6 rounded-md hover:bg-muted-foreground/10 hover:text-danger"
           disabled={readOnly || svc.quantity <= 1}
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); onUpdate(svc.id, { quantity: svc.quantity - 1 }); }}
         >
           <Plus className="w-3 h-3 rotate-45" />
         </Button>
-        <span className="text-xs font-black w-6 text-center text-foreground/80">{svc.quantity}</span>
+        <span className="text-xs font-bold w-6 text-center text-foreground/80">{svc.quantity}</span>
         <Button
           type="button"
           variant="ghost"
@@ -211,7 +211,7 @@ const ServiceItemRow = memo(({
     </td>
     <td className="px-3 py-2">
       <div className="relative ml-auto w-32 group">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-primary/60 group-focus-within:text-primary">R$</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-primary/60 group-focus-within:text-primary">R$</span>
         <Input
           type="number"
           step="0.01"
@@ -239,14 +239,14 @@ const ServiceItemRow = memo(({
             if (e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault();
           }}
           onWheel={(e) => e.currentTarget.blur()}
-          className="service-value-input pl-9 h-7 text-right font-mono text-xs font-black bg-input border-border focus-visible:ring-1 focus-visible:ring-primary/20 rounded-lg transition-all [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield]"
+          className="service-value-input pl-9 h-7 text-right font-mono text-xs font-bold bg-input border-border focus-visible:ring-1 focus-visible:ring-primary/20 rounded-lg transition-all [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield]"
           placeholder="0,00"
           disabled={readOnly}
         />
       </div>
     </td>
     <td className="px-3 py-2 text-right">
-      <span className="text-xs font-black font-mono text-foreground/90">
+      <span className="text-xs font-bold font-mono text-foreground/90">
         {formatCurrency(svc.value * svc.quantity)}
       </span>
     </td>
@@ -259,7 +259,7 @@ const ServiceItemRow = memo(({
             size="icon-xs"
             disabled={isDuplicateDisabled}
             className={cn(
-              "h-7 w-7 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-all rounded-lg flex items-center justify-center shadow-xs",
+              "h-7 w-7 border-warning/30 text-warning hover:bg-warning/10 transition-all rounded-lg flex items-center justify-center shadow-xs",
               isDuplicateDisabled ? "opacity-30 cursor-not-allowed" : "opacity-90 hover:opacity-100 cursor-pointer"
             )}
             title={
@@ -281,7 +281,7 @@ const ServiceItemRow = memo(({
             type="button"
             variant="outline"
             size="icon-xs"
-            className="h-7 w-7 border-red-500/30 text-red-500 hover:bg-red-500/10 opacity-70 hover:opacity-100 transition-all rounded-lg flex items-center justify-center shadow-xs cursor-pointer"
+            className="h-7 w-7 border-danger/30 text-danger hover:bg-danger/10 opacity-70 hover:opacity-100 transition-all rounded-lg flex items-center justify-center shadow-xs cursor-pointer"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemove(svc.id); }}
             title="Remover serviço"
           >
@@ -904,14 +904,14 @@ export const ServiceCatalog = memo(({
     <div className="space-y-4">
       {/* Seletor de Motor para O.S. com Múltiplos Motores */}
       {motorsList && motorsList.length >= 2 && (
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+        <div className="bg-warning/10 border border-warning/30 rounded-xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-warning/20 text-warning flex items-center justify-center font-bold text-xs shrink-0">
               <Wrench className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs font-black uppercase tracking-wider text-foreground">
-                Este serviço é de qual motor? <span className="text-amber-600 dark:text-amber-400">*</span>
+              <div className="text-xs font-bold uppercase tracking-wider text-foreground">
+                Este serviço é de qual motor? <span className="text-warning">*</span>
               </div>
               <div className="text-xs text-muted-foreground font-medium">
                 A O.S. possui {motorsList.length} motores vinculados. Selecione o motor para associar o serviço.
@@ -924,9 +924,9 @@ export const ServiceCatalog = memo(({
               value={selectedMotorIndex}
               onChange={(e) => setSelectedMotorIndex(e.target.value)}
               disabled={readOnly}
-              className="w-full sm:w-64 h-9 px-3 text-xs font-bold rounded-lg border border-amber-500/40 bg-background text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
+              className="w-full sm:w-64 h-9 px-3 text-xs font-bold rounded-lg border border-warning/40 bg-background text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-warning cursor-pointer"
             >
-              <option value="all" className="bg-background text-foreground font-black">
+              <option value="all" className="bg-background text-foreground font-bold">
                 ⚡ Todos os motores (Serviço Comum)
               </option>
               {motorsList.map((m, idx) => {
@@ -967,7 +967,7 @@ export const ServiceCatalog = memo(({
                   ref={highlightedServiceRef}
                   size="sm"
                   className={cn(
-                    "w-full max-w-xs text-xs font-black uppercase tracking-widest rounded-lg h-9",
+                    "w-full max-w-xs text-xs font-bold uppercase tracking-wider rounded-lg h-9",
                     highlightedServiceIndex === 0 && "ring-2 ring-primary bg-primary text-primary-foreground"
                   )}
                   onClick={() => handleAddCustomService(globalSearch)}
@@ -1005,7 +1005,7 @@ export const ServiceCatalog = memo(({
                         isSelected 
                           ? "bg-primary/10 border-primary/30" 
                           : "bg-input border-border hover:bg-muted hover:border-foreground/10",
-                        isHighlighted && "ring-2 ring-primary border-primary bg-primary/15 dark:bg-white/[0.08]"
+                        isHighlighted && "ring-2 ring-primary border-primary bg-primary/15 dark:bg-foreground/[0.08]"
                       )}
                     >
                       <div className="flex items-center gap-2.5 min-w-0 relative z-10">
@@ -1016,7 +1016,7 @@ export const ServiceCatalog = memo(({
                           {isSelected && <Check className="w-3 h-3 stroke-[4]" />}
                         </div>
                         <div className="flex flex-col">
-                          <span className={cn("text-xs font-black uppercase tracking-wide truncate", isSelected ? "text-primary" : "text-foreground/80")}>
+                          <span className={cn("text-xs font-bold uppercase tracking-wide truncate", isSelected ? "text-primary" : "text-foreground/80")}>
                             {item.name}
                           </span>
                           <span className="text-xs text-muted-foreground font-bold">{formatCurrency(item.defaultPrice)}</span>
@@ -1059,7 +1059,7 @@ export const ServiceCatalog = memo(({
                         disabled={readOnly}
                       >
                         <span className={cn(
-                          "text-xs font-black uppercase tracking-wider transition-colors",
+                          "text-xs font-bold uppercase tracking-wider transition-colors",
                           openCategory === cat.id ? "text-primary" : "text-foreground/90"
                         )}>
                           {cat.name}
@@ -1067,7 +1067,7 @@ export const ServiceCatalog = memo(({
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs font-medium uppercase tracking-[0.1em] text-muted-foreground/40">Explorar</span>
                           {selectedByCategory[cat.id] > 0 && (
-                            <Badge className="h-4 min-w-[16px] px-1 text-xs font-black bg-primary text-primary-foreground rounded-md border-none shadow-lg amber-glow">
+                            <Badge className="h-4 min-w-[16px] px-1 text-xs font-bold bg-primary text-primary-foreground rounded-md border-none shadow-lg amber-glow">
                               {selectedByCategory[cat.id]}
                             </Badge>
                           )}
@@ -1081,7 +1081,7 @@ export const ServiceCatalog = memo(({
                     sideOffset={10}
                   >
                     <div className="flex flex-col h-full">
-                      <div className="p-2.5 border-b border-border bg-muted dark:bg-white/[0.02]">
+                      <div className="p-2.5 border-b border-border bg-muted dark:bg-foreground/[0.02]">
                         <div className="relative group flex items-center">
                           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary/40 group-focus-within:text-primary transition-colors pointer-events-none" />
                           <Input 
@@ -1117,8 +1117,8 @@ export const ServiceCatalog = memo(({
                                 onClick={(e) => handleCatalogToggle(svc, e)}
                                 className={cn(
                                   "w-full flex items-center justify-between py-2 px-2.5 transition-all rounded-lg text-left group",
-                                  isSelected ? "bg-primary/10 text-primary" : "hover:bg-muted/80 dark:hover:bg-white/5",
-                                  isHighlighted && "bg-primary/15 dark:bg-white/[0.1] ring-1 ring-primary/30"
+                                  isSelected ? "bg-primary/10 text-primary" : "hover:bg-muted/80 dark:hover:bg-foreground/5",
+                                  isHighlighted && "bg-primary/15 dark:bg-foreground/[0.1] ring-1 ring-primary/30"
                                 )}
                               >
                                 <div className="flex items-center gap-2.5 min-w-0">
@@ -1128,7 +1128,7 @@ export const ServiceCatalog = memo(({
                                   )}>
                                     {isSelected && <Check className="w-3 h-3 stroke-[4]" />}
                                   </div>
-                                  <span className={cn("text-xs truncate uppercase tracking-tight", isSelected ? "font-black text-primary" : "font-black text-foreground")}>
+                                  <span className={cn("text-xs truncate uppercase tracking-tight", isSelected ? "font-bold text-primary" : "font-bold text-foreground")}>
                                     {svc.name}
                                   </span>
                                 </div>
@@ -1137,12 +1137,12 @@ export const ServiceCatalog = memo(({
                           })}
                         </div>
                       </ScrollArea>
-                      <div className="p-1.5 border-t border-border bg-muted/30 dark:bg-white/[0.01] flex justify-end">
+                      <div className="p-1.5 border-t border-border bg-muted/30 dark:bg-foreground/[0.01] flex justify-end">
                         <Button
                           type="button"
                           variant="ghost"
                           size="xs"
-                          className="text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground h-6 px-2.5 rounded-md cursor-pointer"
+                          className="text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground h-6 px-2.5 rounded-md cursor-pointer"
                           onClick={() => setOpenCategory(null)}
                         >
                           Fechar
@@ -1175,7 +1175,7 @@ export const ServiceCatalog = memo(({
                       disabled={readOnly}
                     >
                       <span className={cn(
-                        "text-xs font-black uppercase tracking-wider transition-colors",
+                        "text-xs font-bold uppercase tracking-wider transition-colors",
                         openCategory === 'custom' ? "text-primary" : "text-foreground/90"
                       )}>
                         PERSONALIZADOS
@@ -1192,7 +1192,7 @@ export const ServiceCatalog = memo(({
                   sideOffset={10}
                 >
                   <div className="flex flex-col h-full">
-                    <div className="p-2.5 border-b border-border bg-muted dark:bg-white/[0.02]">
+                    <div className="p-2.5 border-b border-border bg-muted dark:bg-foreground/[0.02]">
                       <div className="relative group flex items-center">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary/40 group-focus-within:text-primary transition-colors pointer-events-none" />
                         <Input 
@@ -1228,8 +1228,8 @@ export const ServiceCatalog = memo(({
                               }) : null}
                               className={cn(
                                 "w-full flex items-center justify-between py-2 px-2.5 transition-all rounded-lg text-left group",
-                                isSelected ? "bg-primary/10 text-primary" : "hover:bg-muted/80 dark:hover:bg-white/5",
-                                isHighlighted && "bg-primary/15 dark:bg-white/[0.1] ring-1 ring-primary/30"
+                                isSelected ? "bg-primary/10 text-primary" : "hover:bg-muted/80 dark:hover:bg-foreground/5",
+                                isHighlighted && "bg-primary/15 dark:bg-foreground/[0.1] ring-1 ring-primary/30"
                               )}
                             >
                               <button
@@ -1253,7 +1253,7 @@ export const ServiceCatalog = memo(({
                                 )}>
                                   {isSelected && <Check className="w-3 h-3 stroke-[4]" />}
                                 </div>
-                                <span className={cn("text-xs truncate uppercase tracking-tight flex-1", isSelected ? "font-black text-primary" : "font-black text-foreground")}>
+                                <span className={cn("text-xs truncate uppercase tracking-tight flex-1", isSelected ? "font-bold text-primary" : "font-bold text-foreground")}>
                                   {svc.name}
                                 </span>
                               </button>
@@ -1278,7 +1278,7 @@ export const ServiceCatalog = memo(({
                                         e.stopPropagation();
                                         setDeleteTarget(svc);
                                       }}
-                                      className="p-1 rounded hover:bg-red-500/10 text-muted-foreground/40 hover:text-red-500 transition-colors cursor-pointer"
+                                      className="p-1 rounded hover:bg-danger/10 text-muted-foreground/40 hover:text-danger transition-colors cursor-pointer"
                                     >
                                       <Trash2 className="w-3 h-3" />
                                     </button>
@@ -1290,12 +1290,12 @@ export const ServiceCatalog = memo(({
                         })}
                       </div>
                     </ScrollArea>
-                    <div className="p-1.5 border-t border-border bg-muted/30 dark:bg-white/[0.01] flex justify-end">
+                    <div className="p-1.5 border-t border-border bg-muted/30 dark:bg-foreground/[0.01] flex justify-end">
                       <Button
                         type="button"
                         variant="ghost"
                         size="xs"
-                        className="text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground h-6 px-2.5 rounded-md cursor-pointer"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground h-6 px-2.5 rounded-md cursor-pointer"
                         onClick={() => setOpenCategory(null)}
                       >
                         Fechar
@@ -1315,14 +1315,14 @@ export const ServiceCatalog = memo(({
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3 pt-3 border-t border-border">
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-5 bg-primary rounded-full shadow-[0_0_10px_rgba(200,169,107,0.3)]" />
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-foreground/80">Serviços na Ordem</h4>
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-foreground/80">Serviços na Ordem</h4>
             </div>
 
             <div className="flex flex-wrap gap-1.5">
               {selectedServices.map((svc) => (
-                <Badge key={svc.id} variant="secondary" className="h-6 pl-2.5 pr-1 text-xs font-black uppercase tracking-wider bg-muted dark:bg-white/[0.03] text-foreground/60 rounded-lg gap-1.5 border border-border hover:bg-muted-foreground/10 transition-colors">
+                <Badge key={svc.id} variant="secondary" className="h-6 pl-2.5 pr-1 text-xs font-bold uppercase tracking-wider bg-muted dark:bg-foreground/[0.03] text-foreground/60 rounded-lg gap-1.5 border border-border hover:bg-muted-foreground/10 transition-colors">
                   {svc.name}
-                  <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemoveService(svc.id); }} className="w-4 h-4 flex items-center justify-center rounded hover:bg-red-500/10 hover:text-red-500 transition-colors">
+                  <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemoveService(svc.id); }} className="w-4 h-4 flex items-center justify-center rounded hover:bg-danger/10 hover:text-danger transition-colors">
                     <X className="w-3 h-3" />
                   </button>
                 </Badge>
@@ -1333,13 +1333,13 @@ export const ServiceCatalog = memo(({
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-left border-collapse table-fixed">
                   <thead>
-                    <tr className="bg-muted dark:bg-white/[0.02] border-b border-border">
+                    <tr className="bg-muted dark:bg-foreground/[0.02] border-b border-border">
                       <th className="w-10 px-2 py-2.5"></th>
-                      <th className="px-3 py-2.5 text-xs font-black uppercase tracking-widest text-muted-foreground/60 w-[40%]">Serviço</th>
-                      <th className="px-3 py-2.5 text-xs font-black uppercase tracking-widest text-muted-foreground/60 text-center w-28">Quantidade</th>
-                      <th className="px-3 py-2.5 text-xs font-black uppercase tracking-widest text-muted-foreground/60 text-right w-36">Vlr. Unitário</th>
-                      <th className="px-3 py-2.5 text-xs font-black uppercase tracking-widest text-muted-foreground/60 text-right w-36">Total Item</th>
-                      <th className="px-3 py-2.5 text-xs font-black uppercase tracking-widest text-muted-foreground/60 text-center w-28">Ações</th>
+                      <th className="px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 w-[40%]">Serviço</th>
+                      <th className="px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-center w-28">Quantidade</th>
+                      <th className="px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-right w-36">Vlr. Unitário</th>
+                      <th className="px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-right w-36">Total Item</th>
+                      <th className="px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-center w-28">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1370,11 +1370,11 @@ export const ServiceCatalog = memo(({
               </div>
               <div className="p-3.5 bg-primary/5 border-t border-border flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground block mb-0.5">Subtotal do Catálogo</span>
-                  <p className="text-xs text-muted-foreground/40 font-bold uppercase tracking-widest">Base para cálculos finais</p>
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground block mb-0.5">Subtotal do Catálogo</span>
+                  <p className="text-xs text-muted-foreground/40 font-bold uppercase tracking-wider">Base para cálculos finais</p>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-xl font-black font-mono text-primary shadow-sm">{formatCurrency(subtotal)}</span>
+                  <span className="text-xl font-bold font-mono text-primary shadow-sm">{formatCurrency(subtotal)}</span>
                   <div className="w-full h-1 bg-primary/20 rounded-full mt-1 overflow-hidden">
                     <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} className="h-full bg-primary" />
                   </div>
@@ -1393,7 +1393,7 @@ export const ServiceCatalog = memo(({
             </DialogHeader>
             <div className="space-y-3 py-2">
               <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground/60">Nome do Serviço</Label>
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">Nome do Serviço</Label>
                 <Input
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
@@ -1401,7 +1401,7 @@ export const ServiceCatalog = memo(({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-black uppercase tracking-wider text-muted-foreground/60">Valor Padrão (R$)</Label>
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">Valor Padrão (R$)</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -1479,7 +1479,7 @@ export const ServiceCatalog = memo(({
                 {/* Biela Section */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-black text-foreground/80 uppercase tracking-wider ml-0.5">Medida Biela</Label>
+                    <Label className="text-xs font-bold text-foreground/80 uppercase tracking-wider ml-0.5">Medida Biela</Label>
                     <span className="text-xs font-bold text-primary/60 bg-primary/5 px-2 py-0.5 rounded border border-primary/10">Biela</span>
                   </div>
                   
@@ -1496,9 +1496,9 @@ export const ServiceCatalog = memo(({
                         setBielaCustomMeasure('');
                       }}
                       className={cn(
-                        "h-9 rounded-lg border text-xs sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
+                        "h-9 rounded-lg border text-xs sm:text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
                         bielaMeasure === 'nada'
-                          ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-black"
+                          ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-bold"
                           : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-muted/30 font-bold"
                       )}
                       style={{ flex: 1, minWidth: 0 }}
@@ -1514,9 +1514,9 @@ export const ServiceCatalog = memo(({
                         setBielaCustomMeasure('');
                       }}
                       className={cn(
-                        "h-9 rounded-lg border text-xs font-black tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
+                        "h-9 rounded-lg border text-xs font-bold tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
                         bielaMeasure === 'STD'
-                          ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-black"
+                          ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-bold"
                           : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-muted/30 font-bold"
                       )}
                       style={{ flex: 1, minWidth: 0 }}
@@ -1534,9 +1534,9 @@ export const ServiceCatalog = memo(({
                           setBielaCustomMeasure('');
                         }}
                         className={cn(
-                          "h-9 rounded-lg border text-xs font-black tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
+                          "h-9 rounded-lg border text-xs font-bold tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
                           bielaMeasure === measure
-                            ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-black"
+                            ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-bold"
                             : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-muted/30 font-bold"
                         )}
                         style={{ flex: 1, minWidth: 0 }}
@@ -1552,9 +1552,9 @@ export const ServiceCatalog = memo(({
                         setBielaMeasure('personalizado');
                       }}
                       className={cn(
-                        "h-9 rounded-lg border text-xs sm:text-xs font-black tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
+                        "h-9 rounded-lg border text-xs sm:text-xs font-bold tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
                         bielaMeasure === 'personalizado'
-                          ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-black"
+                          ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-bold"
                           : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-muted/30 font-bold"
                       )}
                       style={{ flex: 1, minWidth: 0 }}
@@ -1583,7 +1583,7 @@ export const ServiceCatalog = memo(({
                 {/* Mancal Section */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-black text-foreground/80 uppercase tracking-wider ml-0.5">Medida Mancal</Label>
+                    <Label className="text-xs font-bold text-foreground/80 uppercase tracking-wider ml-0.5">Medida Mancal</Label>
                     <span className="text-xs font-bold text-primary/60 bg-primary/5 px-2 py-0.5 rounded border border-primary/10">Mancal</span>
                   </div>
                   
@@ -1600,9 +1600,9 @@ export const ServiceCatalog = memo(({
                         setMancalCustomMeasure('');
                       }}
                       className={cn(
-                        "h-9 rounded-lg border text-xs sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
+                        "h-9 rounded-lg border text-xs sm:text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
                         mancalMeasure === 'nada'
-                          ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-black"
+                          ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-bold"
                           : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-muted/30 font-bold"
                       )}
                       style={{ flex: 1, minWidth: 0 }}
@@ -1618,9 +1618,9 @@ export const ServiceCatalog = memo(({
                         setMancalCustomMeasure('');
                       }}
                       className={cn(
-                        "h-9 rounded-lg border text-xs font-black tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
+                        "h-9 rounded-lg border text-xs font-bold tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
                         mancalMeasure === 'STD'
-                          ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-black"
+                          ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-bold"
                           : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-muted/30 font-bold"
                       )}
                       style={{ flex: 1, minWidth: 0 }}
@@ -1638,9 +1638,9 @@ export const ServiceCatalog = memo(({
                           setMancalCustomMeasure('');
                         }}
                         className={cn(
-                          "h-9 rounded-lg border text-xs font-black tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
+                          "h-9 rounded-lg border text-xs font-bold tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
                           mancalMeasure === measure
-                            ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-black"
+                            ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-bold"
                             : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-muted/30 font-bold"
                         )}
                         style={{ flex: 1, minWidth: 0 }}
@@ -1656,9 +1656,9 @@ export const ServiceCatalog = memo(({
                         setMancalMeasure('personalizado');
                       }}
                       className={cn(
-                        "h-9 rounded-lg border text-xs sm:text-xs font-black tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
+                        "h-9 rounded-lg border text-xs sm:text-xs font-bold tracking-wider transition-all cursor-pointer flex items-center justify-center text-center px-0.5",
                         mancalMeasure === 'personalizado'
-                          ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-black"
+                          ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-bold"
                           : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-muted/30 font-bold"
                       )}
                       style={{ flex: 1, minWidth: 0 }}
@@ -1692,9 +1692,9 @@ export const ServiceCatalog = memo(({
                       type="button"
                       onClick={() => setSelectedMeasure(measure)}
                       className={cn(
-                        "h-10 rounded-lg border text-xs font-black tracking-wider transition-all cursor-pointer",
+                        "h-10 rounded-lg border text-xs font-bold tracking-wider transition-all cursor-pointer",
                         selectedMeasure === measure
-                          ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-black"
+                          ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-bold"
                           : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-muted/30 font-bold"
                       )}
                     >
@@ -1705,9 +1705,9 @@ export const ServiceCatalog = memo(({
                     type="button"
                     onClick={() => setSelectedMeasure('personalizado')}
                     className={cn(
-                      "h-10 rounded-lg border text-xs font-black tracking-wider transition-all col-span-2 sm:col-span-1 cursor-pointer",
+                      "h-10 rounded-lg border text-xs font-bold tracking-wider transition-all col-span-2 sm:col-span-1 cursor-pointer",
                       selectedMeasure === 'personalizado'
-                        ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-black"
+                        ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 font-bold"
                         : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-muted/30 font-bold"
                     )}
                   >
@@ -1721,7 +1721,7 @@ export const ServiceCatalog = memo(({
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-1.5"
                   >
-                    <Label className="text-xs font-black text-muted-foreground/60 uppercase tracking-wider ml-0.5">Informar Medida</Label>
+                    <Label className="text-xs font-bold text-muted-foreground/60 uppercase tracking-wider ml-0.5">Informar Medida</Label>
                     <Input
                       placeholder="Ex: STD, 1.25, 0.10, etc."
                       value={customMeasure}
@@ -1750,7 +1750,7 @@ export const ServiceCatalog = memo(({
               <Button
                 size="sm"
                 onClick={handleConfirmMeasure}
-                className="text-xs px-4 bg-foreground text-background hover:bg-foreground/90 font-black uppercase tracking-wider h-8"
+                className="text-xs px-4 bg-foreground text-background hover:bg-foreground/90 font-bold uppercase tracking-wider h-8"
               >
                 Confirmar
               </Button>
@@ -1764,7 +1764,7 @@ export const ServiceCatalog = memo(({
         {isVariationDialogOpen && (
           <DialogContent className="max-w-sm bg-card border border-border p-6 rounded-xl shadow-2xl z-[1200]" overlayClassName="z-[1199]">
             <DialogHeader>
-              <DialogTitle className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-2">
+              <DialogTitle className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-primary" />
                 Selecionar Variação do Serviço
               </DialogTitle>
@@ -1796,7 +1796,7 @@ export const ServiceCatalog = memo(({
                   <span className="font-extrabold uppercase text-foreground/90 truncate max-w-[180px]">
                     {p.subName || 'Preço Padrão'}
                   </span>
-                  <span className="font-mono font-black text-foreground">
+                  <span className="font-mono font-bold text-foreground">
                     {p.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </span>
                 </button>

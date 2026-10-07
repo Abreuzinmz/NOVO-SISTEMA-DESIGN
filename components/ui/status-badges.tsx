@@ -8,12 +8,12 @@ import type { PaymentSituation } from '@/lib/payment';
 const pill = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide whitespace-nowrap";
 
 export const SERVICE_STATUS_STYLE: Record<string, { label: string; className: string; dot: string }> = {
-  'Na Fila': { label: 'Na fila', className: 'bg-zinc-500/10 text-zinc-600 dark:text-zinc-300', dot: 'bg-zinc-400' },
-  'Em Andamento': { label: 'Em andamento', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-300', dot: 'bg-blue-500' },
-  'Aguardando Peça': { label: 'Aguardando peça', className: 'bg-yellow-500/15 text-yellow-800 dark:text-yellow-300', dot: 'bg-yellow-500' },
-  'Pronto': { label: 'Pronto', className: 'bg-green-500/10 text-green-700 dark:text-green-400', dot: 'bg-green-500' },
-  'Levou': { label: 'Levou', className: 'bg-violet-500/10 text-violet-700 dark:text-violet-300', dot: 'bg-violet-500' },
-  'Finalizada': { label: 'Finalizada', className: 'border border-zinc-400/50 text-zinc-600 dark:text-zinc-300', dot: 'bg-zinc-400' },
+  'Na Fila': { label: 'Na fila', className: 'bg-muted-foreground/10 text-muted-foreground dark:text-foreground/80', dot: 'bg-muted-foreground/50' },
+  'Em Andamento': { label: 'Em andamento', className: 'bg-info/10 text-info', dot: 'bg-info' },
+  'Aguardando Peça': { label: 'Aguardando peça', className: 'bg-warning/15 text-warning', dot: 'bg-warning' },
+  'Pronto': { label: 'Pronto', className: 'bg-success/10 text-success', dot: 'bg-success' },
+  'Levou': { label: 'Levou', className: 'bg-levou/10 text-levou', dot: 'bg-levou' },
+  'Finalizada': { label: 'Finalizada', className: 'border border-border/50 text-muted-foreground dark:text-foreground/80', dot: 'bg-muted-foreground/50' },
 };
 
 export function ServiceStatusBadge({ status, finished, withMenu, className }: { status: ServiceStatus | string; finished?: boolean; withMenu?: boolean; className?: string }) {
@@ -28,9 +28,9 @@ export function ServiceStatusBadge({ status, finished, withMenu, className }: { 
 }
 
 const PAYMENT_STYLE: Record<PaymentSituation, { label: string; className: string }> = {
-  nao_pago: { label: 'Não pago', className: 'bg-red-500/10 text-red-700 dark:text-red-400' },
-  entrada: { label: 'Entrada', className: 'bg-yellow-500/15 text-yellow-800 dark:text-yellow-300' },
-  pago: { label: 'Pago', className: 'bg-green-500/10 text-green-700 dark:text-green-400' },
+  nao_pago: { label: 'Não pago', className: 'bg-danger/10 text-danger' },
+  entrada: { label: 'Entrada', className: 'bg-warning/15 text-warning' },
+  pago: { label: 'Pago', className: 'bg-success/10 text-success' },
 };
 
 export function PaymentBadge({ situation, grouped, className }: { situation: PaymentSituation; grouped?: boolean; className?: string }) {

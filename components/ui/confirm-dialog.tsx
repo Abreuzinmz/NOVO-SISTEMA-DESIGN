@@ -43,14 +43,14 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
       <Dialog open={isOpen} onOpenChange={(open) => { if (!open) settle(false); }}>
         <DialogContent
           showCloseButton={false}
-          className="w-[min(400px,calc(100vw-48px))] p-0 border border-neutral-300 dark:border-neutral-800 bg-card rounded-2xl overflow-hidden shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08),_0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] outline-none"
+          className="w-[min(400px,calc(100vw-48px))] p-0 border border-border bg-card rounded-xl overflow-hidden shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08),_0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] outline-none"
         >
           <div className="p-6 flex flex-col items-center text-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-[#FF5A5F]/10 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-6 h-6 text-[#FF5A5F] stroke-[2.5]" />
+            <div className="w-12 h-12 rounded-full bg-danger/10 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-6 h-6 text-danger stroke-[2.5]" />
             </div>
             <div className="space-y-1.5">
-              <h2 className="text-sm font-black uppercase tracking-wide text-foreground">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">
                 {options.title}
               </h2>
               {options.description && (
@@ -60,17 +60,17 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2 p-4 border-t border-neutral-300 dark:border-neutral-800 bg-secondary/20">
+          <div className="flex items-center gap-2 p-4 border-t border-border bg-secondary/20">
             <Button
               variant="outline"
               onClick={() => settle(false)}
-              className="flex-1 h-10 rounded-xl border-neutral-300 dark:border-neutral-800 bg-background hover:bg-secondary text-foreground font-black text-xs uppercase tracking-wider"
+              className="flex-1 h-10 rounded-xl border-border bg-background hover:bg-secondary text-foreground font-bold text-xs uppercase tracking-wider"
             >
               {options.cancelLabel || 'Cancelar'}
             </Button>
             <Button
               onClick={() => settle(true)}
-              className="flex-1 h-10 rounded-xl bg-[#FF5A5F] hover:bg-[#FF5A5F]/90 text-white font-black text-xs uppercase tracking-wider gap-1.5"
+              className="flex-1 h-10 rounded-xl bg-danger hover:bg-danger/90 text-danger-foreground font-bold text-xs uppercase tracking-wider gap-1.5"
             >
               <Trash2 className="w-3.5 h-3.5" />
               {options.confirmLabel || 'Excluir'}

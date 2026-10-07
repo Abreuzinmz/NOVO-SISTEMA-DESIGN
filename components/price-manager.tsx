@@ -169,7 +169,7 @@ const CatalogRowWrapper = React.memo(({
 
   if (item.type === 'header') {
     return (
-      <div style={style} className="px-1 py-1 text-xs font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 border-b border-zinc-100 dark:border-zinc-900/60 flex items-end">
+      <div style={style} className="px-1 py-1 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border dark:border-border/60 flex items-end">
         {item.label}
       </div>
     );
@@ -178,13 +178,13 @@ const CatalogRowWrapper = React.memo(({
   if (item.type === 'custom') {
     return (
       <div style={style} className="pb-1.5 pr-2.5">
-        <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold group h-full">
+        <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/60 dark:bg-card/30 border border-border text-xs font-semibold group h-full">
           <div className="flex flex-col min-w-0">
-            <span className="font-extrabold text-zinc-950 dark:text-zinc-100 uppercase truncate">
+            <span className="font-extrabold text-foreground uppercase truncate">
               {item.name}
             </span>
             {item.defaultPrice > 0 && (
-              <span className="text-xs font-mono text-zinc-500 mt-0.5">
+              <span className="text-xs font-mono text-muted-foreground mt-0.5">
                 Padrão: {item.defaultPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </span>
             )}
@@ -201,7 +201,7 @@ const CatalogRowWrapper = React.memo(({
                 setEditServicePrice(item.defaultPrice.toString());
                 setIsEditServiceOpen(true);
               }}
-              className="h-6 w-6 text-zinc-500 hover:text-red-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded"
+              className="h-6 w-6 text-muted-foreground hover:text-danger hover:bg-muted dark:hover:bg-card rounded"
             >
               <Pencil className="w-3.5 h-3.5" />
             </Button>
@@ -210,7 +210,7 @@ const CatalogRowWrapper = React.memo(({
               variant="ghost"
               size="icon-xs"
               onClick={() => handleDeleteServiceClick(item.id, item.name)}
-              className="h-6 w-6 text-zinc-500 hover:text-red-650 hover:bg-red-500/10 rounded"
+              className="h-6 w-6 text-muted-foreground hover:text-danger hover:bg-danger/10 rounded"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </Button>
@@ -223,11 +223,11 @@ const CatalogRowWrapper = React.memo(({
   // standard item
   return (
     <div style={style} className="pb-1.5 pr-2.5">
-      <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-900/40 text-xs h-full">
-        <span className="font-extrabold text-zinc-800 dark:text-zinc-300 uppercase tracking-wide truncate max-w-[150px] lg:max-w-full">
+      <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/60 dark:bg-card/30 border border-border dark:border-border/40 text-xs h-full">
+        <span className="font-extrabold text-foreground dark:text-foreground/80 uppercase tracking-wide truncate max-w-[150px] lg:max-w-full">
           {item.name}
         </span>
-        <Badge variant="outline" className="text-xs uppercase tracking-widest bg-zinc-100 dark:bg-zinc-950 font-bold shrink-0 text-zinc-500 border-zinc-200 dark:border-zinc-800">
+        <Badge variant="outline" className="text-xs uppercase tracking-wider bg-muted dark:bg-background font-bold shrink-0 text-muted-foreground border-border">
           Padrão
         </Badge>
       </div>
@@ -271,8 +271,8 @@ const MotorRow = React.memo(({ motor, isSelected, count, onSelect, onDelete, onT
       onClick={() => onSelect(motor.id)}
       className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
         isSelected
-          ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-md'
-          : 'bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-900 border-zinc-200 dark:border-zinc-800'
+          ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+          : 'bg-muted/60 dark:bg-card hover:bg-muted dark:hover:bg-card border-border'
       }`}
     >
       <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -281,14 +281,14 @@ const MotorRow = React.memo(({ motor, isSelected, count, onSelect, onDelete, onT
           onClick={(e) => onToggleFavorite(motor.id, motor.is_favorite, e)}
           className={`p-1 hover:scale-110 transition-transform shrink-0 ${
             motor.is_favorite 
-              ? 'text-amber-500 hover:text-amber-600' 
+              ? 'text-warning hover:text-warning' 
               : isSelected 
-                ? 'text-zinc-400 hover:text-white' 
-                : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200'
+                ? 'text-muted-foreground hover:text-white' 
+                : 'text-muted-foreground hover:text-muted-foreground dark:hover:text-foreground'
           }`}
         >
           {motor.is_favorite ? (
-            <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+            <Star className="w-4 h-4 fill-warning text-warning" />
           ) : (
             <Star className="w-4 h-4" />
           )}
@@ -299,7 +299,7 @@ const MotorRow = React.memo(({ motor, isSelected, count, onSelect, onDelete, onT
           <span className={`text-xs font-bold uppercase tracking-wider mt-0.5 ${
             isSelected 
               ? 'opacity-80' 
-              : 'text-zinc-500 dark:text-zinc-400'
+              : 'text-muted-foreground'
           }`}>
             {count} {count === 1 ? 'preço' : 'preços'}
           </span>
@@ -310,10 +310,10 @@ const MotorRow = React.memo(({ motor, isSelected, count, onSelect, onDelete, onT
         variant="ghost"
         size="icon-xs"
         onClick={(e) => onDelete(motor.id, e)}
-        className={`h-6 w-6 rounded-md hover:bg-red-500/10 hover:text-red-600 transition-colors ${
+        className={`h-6 w-6 rounded-md hover:bg-danger/10 hover:text-danger transition-colors ${
           isSelected 
-            ? 'text-zinc-400 hover:text-red-500 hover:bg-white/10 dark:hover:bg-black/10' 
-            : 'text-zinc-500'
+            ? 'text-muted-foreground hover:text-danger hover:bg-card/10 dark:hover:bg-background/10' 
+            : 'text-muted-foreground'
         }`}
       >
         <Trash2 className="w-3.5 h-3.5" />
@@ -353,14 +353,14 @@ const ServiceCard = React.memo(({
   const observationText = standardPriceItem?.observation || '';
 
   return (
-    <div className="pt-3 px-4 pb-3 bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-zinc-300 dark:hover:border-zinc-700 transition-all space-y-2 min-h-0 mb-3">
+    <div className="pt-3 px-4 pb-3 bg-muted/60 dark:bg-card border border-border rounded-xl hover:border-border transition-all space-y-2 min-h-0 mb-3">
       {/* Service title row */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1 min-w-0">
-          <span className="text-xs font-black uppercase text-zinc-500 tracking-wider">
+          <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
             {svc.category}
           </span>
-          <h4 className="font-extrabold text-xs text-zinc-900 dark:text-zinc-100 uppercase tracking-wide truncate">
+          <h4 className="font-extrabold text-xs text-foreground uppercase tracking-wide truncate">
             {svc.name}
           </h4>
         </div>
@@ -370,8 +370,8 @@ const ServiceCard = React.memo(({
             variant="outline"
             className={`text-xs font-bold px-2 py-0.5 rounded border shrink-0 ${
               isPriced
-                ? 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20'
-                : 'bg-zinc-500/10 text-muted-foreground border-zinc-500/20'
+                ? 'bg-success/10 text-success border-success/20'
+                : 'bg-muted-foreground/10 text-muted-foreground border-border'
             }`}
           >
             {isPriced ? 'Com preço' : 'Sem preço'}
@@ -390,12 +390,12 @@ const ServiceCard = React.memo(({
       {/* Observation Field */}
       <div className="pt-0.5">
         {observationText ? (
-          <div className="p-2.5 bg-zinc-100/60 dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800/80 rounded-lg flex items-start justify-between gap-3 text-xs">
+          <div className="p-2.5 bg-muted/60 dark:bg-card/80 border border-border dark:border-border/80 rounded-lg flex items-start justify-between gap-3 text-xs">
             <div className="space-y-1 min-w-0">
               <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground block">
                 Observação:
               </span>
-              <p className="text-zinc-700 dark:text-zinc-300 font-medium italic select-text">
+              <p className="text-foreground/80 font-medium italic select-text">
                 {observationText}
               </p>
             </div>
@@ -404,7 +404,7 @@ const ServiceCard = React.memo(({
                 variant="ghost"
                 size="icon-xs"
                 onClick={() => onOpenObservation(svc.id, svc.name, observationText)}
-                className="h-6 w-6 text-zinc-500 hover:text-red-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded"
+                className="h-6 w-6 text-muted-foreground hover:text-danger hover:bg-muted dark:hover:bg-card rounded"
               >
                 <Pencil className="w-3 h-3" />
               </Button>
@@ -412,7 +412,7 @@ const ServiceCard = React.memo(({
                 variant="ghost"
                 size="icon-xs"
                 onClick={() => onDeleteObservation(svc.id)}
-                className="h-6 w-6 text-zinc-500 hover:text-red-650 hover:bg-red-500/10 rounded"
+                className="h-6 w-6 text-muted-foreground hover:text-danger hover:bg-danger/10 rounded"
               >
                 <X className="w-3 h-3" />
               </Button>
@@ -421,7 +421,7 @@ const ServiceCard = React.memo(({
         ) : (
           <button
             onClick={() => onOpenObservation(svc.id, svc.name, '')}
-            className="text-xs text-zinc-500 hover:text-foreground font-semibold transition-colors flex items-center gap-1"
+            className="text-xs text-muted-foreground hover:text-foreground font-semibold transition-colors flex items-center gap-1"
           >
             <Plus className="w-3 h-3" /> Adicionar observação
           </button>
@@ -430,15 +430,15 @@ const ServiceCard = React.memo(({
 
       {/* Variations list */}
       {svc.prices.some(p => p.price > 0 || p.subName !== '') && (
-        <div className="border-t border-zinc-200/50 dark:border-zinc-800/50 pt-2.5 space-y-2">
+        <div className="border-t border-border/50 pt-2.5 space-y-2">
           {svc.prices.filter(p => p.price > 0 || p.subName !== '').map((priceItem) => (
             <div 
               key={priceItem.id} 
-              className="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900/60 shadow-sm text-xs font-semibold"
+              className="flex items-center justify-between p-2 rounded-lg bg-card dark:bg-background border border-border dark:border-border/60 shadow-sm text-xs font-semibold"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <Tag className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-                <span className="text-zinc-900 dark:text-zinc-200 uppercase truncate">
+                <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <span className="text-foreground uppercase truncate">
                   {priceItem.subName 
                     ? `${svc.name} — ${priceItem.subName}` 
                     : `${svc.name} (Padrão)`
@@ -447,7 +447,7 @@ const ServiceCard = React.memo(({
               </div>
               
               <div className="flex items-center gap-3 shrink-0 ml-4">
-                <span className="font-mono font-black text-zinc-900 dark:text-zinc-100">
+                <span className="font-mono font-bold text-foreground">
                   {priceItem.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </span>
                 
@@ -456,7 +456,7 @@ const ServiceCard = React.memo(({
                     variant="ghost"
                     size="icon-xs"
                     onClick={() => onOpenDefinePrice(svc.id, svc.name, priceItem)}
-                    className="h-7 w-7 text-zinc-500 hover:text-red-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-full"
+                    className="h-7 w-7 text-muted-foreground hover:text-danger hover:bg-muted dark:hover:bg-card rounded-full"
                   >
                     <Pencil className="w-3 h-3" />
                   </Button>
@@ -464,7 +464,7 @@ const ServiceCard = React.memo(({
                     variant="ghost"
                     size="icon-xs"
                     onClick={() => onDeletePriceClick(priceItem.id)}
-                    className="h-7 w-7 text-zinc-500 hover:text-red-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-full"
+                    className="h-7 w-7 text-muted-foreground hover:text-danger hover:bg-muted dark:hover:bg-card rounded-full"
                   >
                     <Trash2 className="w-3 h-3" />
                   </Button>
@@ -1081,19 +1081,19 @@ export function PriceManager() {
         <div className="flex flex-wrap items-center gap-2">
           {/* Stats Indicators */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg text-sm text-muted-foreground">
-            <Layers className="w-3.5 h-3.5 text-zinc-500" />
+            <Layers className="w-3.5 h-3.5 text-muted-foreground" />
             <span>Motores:</span>
             <span className="font-bold text-foreground tabular-nums">{motors.length}</span>
           </div>
 
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg text-sm text-muted-foreground">
-            <Wrench className="w-3.5 h-3.5 text-zinc-500" />
+            <Wrench className="w-3.5 h-3.5 text-muted-foreground" />
             <span>Serviços:</span>
             <span className="font-bold text-foreground tabular-nums">{catalogedServicesCount}</span>
           </div>
 
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg text-sm text-muted-foreground">
-            <Coins className="w-3.5 h-3.5 text-zinc-500" />
+            <Coins className="w-3.5 h-3.5 text-muted-foreground" />
             <span>Preços definidos:</span>
             <span className="font-bold text-foreground tabular-nums">{activePricesCount}</span>
           </div>
@@ -1104,9 +1104,9 @@ export function PriceManager() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0 pb-2">
         
         {/* ═══ COLUNA 1: MOTORES (3/12 width) ═══ */}
-        <div className="lg:col-span-3 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 flex flex-col min-h-0 shadow-lg relative">
+        <div className="lg:col-span-3 bg-card dark:bg-background border border-border rounded-xl p-4 flex flex-col min-h-0 shadow-lg relative">
           <div className="flex items-center justify-between mb-4 shrink-0">
-            <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
+            <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider text-foreground">
               <Layers className="w-4 h-4 text-muted-foreground" />
               <span>Motores ({motors.length})</span>
             </div>
@@ -1122,34 +1122,34 @@ export function PriceManager() {
 
           {/* Search bar */}
           <div className="relative mb-3 shrink-0">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Pesquisar motor..."
               value={motorSearch}
               onChange={e => setMotorSearch(e.target.value)}
-              className="pl-9 text-xs h-9 rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
+              className="pl-9 text-xs h-9 rounded-lg border-border bg-muted/60 dark:bg-card focus-visible:ring-primary/40"
             />
           </div>
 
           {/* Filters "Todos" and "Favoritos" */}
-          <div className="flex gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg mb-3 shrink-0">
+          <div className="flex gap-1 bg-muted dark:bg-card p-1 rounded-lg mb-3 shrink-0">
             <button
               onClick={() => setFavoriteFilter('all')}
-              className={`flex-1 py-1.5 text-xs font-black uppercase tracking-wider rounded-md transition-all ${
+              className={`flex-1 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
                 favoriteFilter === 'all'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                  ? 'bg-card dark:bg-muted text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground/80'
               }`}
             >
               Todos
             </button>
             <button
               onClick={() => setFavoriteFilter('favorites')}
-              className={`flex-1 py-1.5 text-xs font-black uppercase tracking-wider rounded-md transition-all ${
+              className={`flex-1 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
                 favoriteFilter === 'favorites'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                  ? 'bg-card dark:bg-muted text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground/80'
               }`}
             >
               Favoritos
@@ -1175,7 +1175,7 @@ export function PriceManager() {
               />
             )}
             {filteredMotors.length === 0 && (
-              <div className="py-8 text-center text-xs text-zinc-500 italic">
+              <div className="py-8 text-center text-xs text-muted-foreground italic">
                 Nenhum motor encontrado
               </div>
             )}
@@ -1183,12 +1183,12 @@ export function PriceManager() {
         </div>
 
         {/* ═══ COLUNA 2: TABELA DE PREÇOS DO MOTOR (6/12 width) ═══ */}
-        <div className="lg:col-span-6 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 flex flex-col min-h-0 shadow-lg">
+        <div className="lg:col-span-6 bg-card dark:bg-background border border-border rounded-xl p-4 flex flex-col min-h-0 shadow-lg">
           {/* Header block */}
           <div className="p-3.5 bg-secondary/40 border border-border rounded-xl text-foreground flex items-center justify-between mb-4 shrink-0">
             <div className="space-y-0.5">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Preços do motor</span>
-              <h3 className="font-black text-sm uppercase tracking-wide">{selectedMotor || 'SELECIONE UM MOTOR'}</h3>
+              <h3 className="font-bold text-sm uppercase tracking-wide">{selectedMotor || 'SELECIONE UM MOTOR'}</h3>
             </div>
             
             {selectedMotor && (
@@ -1207,13 +1207,13 @@ export function PriceManager() {
           {/* Search/Filters bar */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4 shrink-0">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Pesquisar serviço nesta tabela..."
                 value={serviceSearch}
                 onChange={e => setServiceSearch(e.target.value)}
-                className="pl-9 text-xs h-9 rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
+                className="pl-9 text-xs h-9 rounded-lg border-border bg-muted/60 dark:bg-card focus-visible:ring-primary/40"
               />
             </div>
             
@@ -1222,11 +1222,11 @@ export function PriceManager() {
                 id="only-priced" 
                 checked={onlyPriced} 
                 onCheckedChange={(checked) => setOnlyPriced(!!checked)}
-                className="border-zinc-300 dark:border-zinc-700 data-[state=checked]:bg-primary data-[state=checked]:border-primary rounded"
+                className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary rounded"
               />
               <label 
                 htmlFor="only-priced" 
-                className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 select-none cursor-pointer"
+                className="text-xs font-bold uppercase tracking-wider text-muted-foreground select-none cursor-pointer"
               >
                 Apenas precificados
               </label>
@@ -1254,7 +1254,7 @@ export function PriceManager() {
             )}
 
             {combinedPricingList.length === 0 && (
-              <div className="py-12 text-center text-xs text-zinc-500 italic">
+              <div className="py-12 text-center text-xs text-muted-foreground italic">
                 {selectedMotor 
                   ? 'Nenhum serviço correspondente aos filtros' 
                   : 'Selecione um motor na coluna da esquerda para gerenciar seus preços'
@@ -1265,10 +1265,10 @@ export function PriceManager() {
         </div>
 
         {/* ═══ COLUNA 3: SERVIÇOS CATALOGADOS (3/12 width) ═══ */}
-        <div className="lg:col-span-3 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 flex flex-col min-h-0 shadow-lg justify-between">
+        <div className="lg:col-span-3 bg-card dark:bg-background border border-border rounded-xl p-4 flex flex-col min-h-0 shadow-lg justify-between">
           <div className="flex flex-col min-h-0 flex-1">
             <div className="flex items-center justify-between mb-4 shrink-0">
-              <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
+              <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider text-foreground">
                 <Wrench className="w-4 h-4 text-muted-foreground" />
                 <span>Serviços Catalogados ({catalogedServicesCount})</span>
               </div>
@@ -1284,13 +1284,13 @@ export function PriceManager() {
 
             {/* Search Input */}
             <div className="relative mb-3 shrink-0">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Pesquisar catálogo..."
                 value={catalogSearch}
                 onChange={e => setCatalogSearch(e.target.value)}
-                className="pl-9 text-xs h-9 rounded-lg border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
+                className="pl-9 text-xs h-9 rounded-lg border-border bg-muted/60 dark:bg-card focus-visible:ring-primary/40"
               />
             </div>
 
@@ -1313,7 +1313,7 @@ export function PriceManager() {
                 />
               )}
               {combinedCatalogList.length === 0 && (
-                <div className="py-8 text-center text-xs text-zinc-500 italic">
+                <div className="py-8 text-center text-xs text-muted-foreground italic">
                   Nenhum serviço encontrado no catálogo
                 </div>
               )}
@@ -1336,39 +1336,39 @@ export function PriceManager() {
       {/* ═══ DIALOG: NOVO MOTOR ═══ */}
       {isNewMotorOpen && (
         <Dialog open={isNewMotorOpen} onOpenChange={setIsNewMotorOpen}>
-          <DialogContent className="max-w-sm bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-6">
+          <DialogContent className="max-w-sm bg-card dark:bg-background border border-border rounded-xl shadow-2xl p-6">
             <form onSubmit={handleCreateMotor} className="space-y-4">
               <DialogHeader>
-                <DialogTitle className="text-sm font-black uppercase tracking-wider text-zinc-950 dark:text-zinc-100 flex items-center gap-2">
+                <DialogTitle className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
                   <Layers className="w-4 h-4 text-muted-foreground" />
                   Cadastrar Novo Motor
                 </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-500">
+                <DialogDescription className="text-xs text-muted-foreground">
                   Adicione um novo modelo/marca de motor à base de dados.
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-2">
-                <Label htmlFor="motor-name" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Nome do Motor</Label>
+                <Label htmlFor="motor-name" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Nome do Motor</Label>
                 <Input
                   id="motor-name"
                   type="text"
                   placeholder="Ex: GM, AP, CHT, FIAT"
                   value={newMotorName}
                   onChange={e => setNewMotorName(e.target.value)}
-                  className="text-xs font-bold uppercase placeholder:normal-case h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
+                  className="text-xs font-bold uppercase placeholder:normal-case h-10 border-border bg-muted/60 dark:bg-card focus-visible:ring-primary/40"
                   required
                   autoFocus
                 />
               </div>
 
-              <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-zinc-100 dark:border-zinc-900 pt-4 bg-transparent">
+              <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-border pt-4 bg-transparent">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setIsNewMotorOpen(false)}
-                  className="text-xs border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400"
+                  className="text-xs border-border hover:bg-muted dark:hover:bg-card text-muted-foreground"
                 >
                   Cancelar
                 </Button>
@@ -1388,37 +1388,37 @@ export function PriceManager() {
       {/* ═══ DIALOG: NOVO SERVIÇO ═══ */}
       {isNewServiceOpen && (
         <Dialog open={isNewServiceOpen} onOpenChange={setIsNewServiceOpen}>
-          <DialogContent className="max-w-sm bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-6">
+          <DialogContent className="max-w-sm bg-card dark:bg-background border border-border rounded-xl shadow-2xl p-6">
             <form onSubmit={handleCreateService} className="space-y-4">
               <DialogHeader>
-                <DialogTitle className="text-sm font-black uppercase tracking-wider text-zinc-950 dark:text-zinc-100 flex items-center gap-2">
+                <DialogTitle className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
                   <Wrench className="w-4 h-4 text-muted-foreground" />
                   Cadastrar Novo Serviço
                 </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-500">
+                <DialogDescription className="text-xs text-muted-foreground">
                   Adicione um novo serviço personalizado disponível para todos os motores.
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-3.5">
                 <div className="space-y-1.5">
-                  <Label htmlFor="svc-name" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Descrição do Serviço</Label>
+                  <Label htmlFor="svc-name" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Descrição do Serviço</Label>
                   <Input
                     id="svc-name"
                     type="text"
                     placeholder="Ex.: Retificar bielas"
                     value={newServiceName}
                     onChange={e => setNewServiceName(e.target.value)}
-                    className="text-xs font-bold uppercase placeholder:normal-case h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
+                    className="text-xs font-bold uppercase placeholder:normal-case h-10 border-border bg-muted/60 dark:bg-card focus-visible:ring-primary/40"
                     required
                     autoFocus
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="svc-price" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Preço Padrão (Opcional)</Label>
+                  <Label htmlFor="svc-price" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Preço Padrão (Opcional)</Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-zinc-400">R$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-muted-foreground">R$</span>
                     <Input
                       id="svc-price"
                       type="number"
@@ -1426,19 +1426,19 @@ export function PriceManager() {
                       placeholder="0,00"
                       value={newServicePrice}
                       onChange={e => setNewServicePrice(e.target.value)}
-                      className="pl-9 text-xs font-mono h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
+                      className="pl-9 text-xs font-mono h-10 border-border bg-muted/60 dark:bg-card focus-visible:ring-primary/40"
                     />
                   </div>
                 </div>
               </div>
 
-              <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-zinc-100 dark:border-zinc-900 pt-4 bg-transparent">
+              <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-border pt-4 bg-transparent">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setIsNewServiceOpen(false)}
-                  className="text-xs border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400"
+                  className="text-xs border-border hover:bg-muted dark:hover:bg-card text-muted-foreground"
                 >
                   Cancelar
                 </Button>
@@ -1458,37 +1458,37 @@ export function PriceManager() {
       {/* ═══ DIALOG: EDITAR SERVIÇO ═══ */}
       {isEditServiceOpen && (
         <Dialog open={isEditServiceOpen} onOpenChange={setIsEditServiceOpen}>
-          <DialogContent className="max-w-sm bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-6">
+          <DialogContent className="max-w-sm bg-card dark:bg-background border border-border rounded-xl shadow-2xl p-6">
             <form onSubmit={handleUpdateService} className="space-y-4">
               <DialogHeader>
-                <DialogTitle className="text-sm font-black uppercase tracking-wider text-zinc-950 dark:text-zinc-100 flex items-center gap-2">
+                <DialogTitle className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
                   <Pencil className="w-4 h-4 text-muted-foreground" />
                   Editar Serviço Catalogado
                 </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-500">
+                <DialogDescription className="text-xs text-muted-foreground">
                   Altere os detalhes do serviço personalizado.
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-3.5">
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-svc-name" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Descrição do Serviço</Label>
+                  <Label htmlFor="edit-svc-name" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Descrição do Serviço</Label>
                   <Input
                     id="edit-svc-name"
                     type="text"
                     placeholder="Ex.: Retificar bielas"
                     value={editServiceName}
                     onChange={e => setEditServiceName(e.target.value)}
-                    className="text-xs font-bold uppercase placeholder:normal-case h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
+                    className="text-xs font-bold uppercase placeholder:normal-case h-10 border-border bg-muted/60 dark:bg-card focus-visible:ring-primary/40"
                     required
                     autoFocus
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-svc-price" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Preço Padrão</Label>
+                  <Label htmlFor="edit-svc-price" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Preço Padrão</Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-zinc-400">R$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-muted-foreground">R$</span>
                     <Input
                       id="edit-svc-price"
                       type="number"
@@ -1496,19 +1496,19 @@ export function PriceManager() {
                       placeholder="0,00"
                       value={editServicePrice}
                       onChange={e => setEditServicePrice(e.target.value)}
-                      className="pl-9 text-xs font-mono h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
+                      className="pl-9 text-xs font-mono h-10 border-border bg-muted/60 dark:bg-card focus-visible:ring-primary/40"
                     />
                   </div>
                 </div>
               </div>
 
-              <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-zinc-100 dark:border-zinc-900 pt-4 bg-transparent">
+              <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-border pt-4 bg-transparent">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setIsEditServiceOpen(false)}
-                  className="text-xs border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400"
+                  className="text-xs border-border hover:bg-muted dark:hover:bg-card text-muted-foreground"
                 >
                   Cancelar
                 </Button>
@@ -1528,23 +1528,23 @@ export function PriceManager() {
       {/* ═══ DIALOG: DEFINIR PREÇO POR MOTOR ═══ */}
       {isDefinePriceOpen && (
         <Dialog open={isDefinePriceOpen} onOpenChange={setIsDefinePriceOpen}>
-          <DialogContent className="max-w-sm bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-6">
+          <DialogContent className="max-w-sm bg-card dark:bg-background border border-border rounded-xl shadow-2xl p-6">
             <form onSubmit={handleSavePrice} className="space-y-4">
               <DialogHeader>
-                <DialogTitle className="text-sm font-black uppercase tracking-wider text-zinc-950 dark:text-zinc-100 flex items-center gap-2">
+                <DialogTitle className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-muted-foreground" />
                   {editingPriceId ? 'Alterar Preço do Motor' : 'Definir Preço do Motor'}
                 </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-500">
+                <DialogDescription className="text-xs text-muted-foreground">
                   Defina o preço específico para o motor <strong className="uppercase">{selectedMotor}</strong> no serviço <strong>{priceServiceName}</strong>.
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-3.5">
                 <div className="space-y-1.5">
-                  <Label htmlFor="price-subname" className="text-xs font-black text-zinc-500 uppercase tracking-wider flex items-center justify-between">
+                  <Label htmlFor="price-subname" className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
                     <span>Variação / Especificidade (Opcional)</span>
-                    <span className="text-xs text-zinc-400 lowercase">Ex: 8 válvulas, 1.0, 1.6</span>
+                    <span className="text-xs text-muted-foreground lowercase">Ex: 8 válvulas, 1.0, 1.6</span>
                   </Label>
                   <Input
                     id="price-subname"
@@ -1553,14 +1553,14 @@ export function PriceManager() {
                     value={priceSubName}
                     onChange={e => setPriceSubName(e.target.value)}
                     disabled={!!editingPriceId}
-                    className="text-xs font-bold uppercase placeholder:normal-case h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
+                    className="text-xs font-bold uppercase placeholder:normal-case h-10 border-border bg-muted/60 dark:bg-card focus-visible:ring-primary/40"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="price-value" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Valor do Serviço (R$)</Label>
+                  <Label htmlFor="price-value" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Valor do Serviço (R$)</Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-zinc-400">R$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-muted-foreground">R$</span>
                     <Input
                       id="price-value"
                       type="number"
@@ -1568,7 +1568,7 @@ export function PriceManager() {
                       placeholder="0,00"
                       value={priceValue}
                       onChange={e => setPriceValue(e.target.value)}
-                      className="pl-9 text-xs font-mono h-10 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 focus-visible:ring-primary/40"
+                      className="pl-9 text-xs font-mono h-10 border-border bg-muted/60 dark:bg-card focus-visible:ring-primary/40"
                       required
                       autoFocus
                     />
@@ -1576,13 +1576,13 @@ export function PriceManager() {
                 </div>
               </div>
 
-              <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-zinc-100 dark:border-zinc-900 pt-4 bg-transparent">
+              <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-border pt-4 bg-transparent">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setIsDefinePriceOpen(false)}
-                  className="text-xs border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400"
+                  className="text-xs border-border hover:bg-muted dark:hover:bg-card text-muted-foreground"
                 >
                   Cancelar
                 </Button>
@@ -1602,26 +1602,26 @@ export function PriceManager() {
       {/* ═══ DIALOG: COPIAR TABELA DE PREÇOS ═══ */}
       {isCopyPricesOpen && (
         <Dialog open={isCopyPricesOpen} onOpenChange={setIsCopyPricesOpen}>
-          <DialogContent className="max-w-sm bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-6">
+          <DialogContent className="max-w-sm bg-card dark:bg-background border border-border rounded-xl shadow-2xl p-6">
             <form onSubmit={handleCopyPrices} className="space-y-4">
               <DialogHeader>
-                <DialogTitle className="text-sm font-black uppercase tracking-wider text-zinc-950 dark:text-zinc-100 flex items-center gap-2">
+                <DialogTitle className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
                   <Copy className="w-4 h-4 text-muted-foreground" />
                   Copiar Tabela de Preços
                 </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-500">
+                <DialogDescription className="text-xs text-muted-foreground">
                   Copie todas as configurações de preços de um motor existente para o motor selecionado (<strong className="uppercase">{selectedMotor}</strong>).
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-3.5">
                 <div className="space-y-1.5">
-                  <Label htmlFor="source-motor" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Copiar Preços a Partir de:</Label>
+                  <Label htmlFor="source-motor" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Copiar Preços a Partir de:</Label>
                   <select
                     id="source-motor"
                     value={copySourceMotor}
                     onChange={e => setCopySourceMotor(e.target.value)}
-                    className="w-full h-10 px-3 text-xs font-bold uppercase rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-foreground focus-visible:ring-primary/40 focus:outline-none focus:ring-2 focus:ring-red-600/30"
+                    className="w-full h-10 px-3 text-xs font-bold uppercase rounded-lg border border-border bg-muted/60 dark:bg-card text-foreground focus-visible:ring-primary/40 focus:outline-none focus:ring-2 focus:ring-danger/30"
                     required
                   >
                     <option value="">Selecione um motor...</option>
@@ -1639,8 +1639,8 @@ export function PriceManager() {
                   </select>
                 </div>
 
-                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider">
+                <div className="p-3 bg-danger/10 border border-danger/20 text-danger rounded-xl space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider">
                     <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                     <span>Atenção</span>
                   </div>
@@ -1650,13 +1650,13 @@ export function PriceManager() {
                 </div>
               </div>
 
-              <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-zinc-100 dark:border-zinc-900 pt-4 bg-transparent">
+              <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-border pt-4 bg-transparent">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setIsCopyPricesOpen(false)}
-                  className="text-xs border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400"
+                  className="text-xs border-border hover:bg-muted dark:hover:bg-card text-muted-foreground"
                 >
                   Cancelar
                 </Button>
@@ -1676,39 +1676,39 @@ export function PriceManager() {
       {/* ═══ DIALOG: DEFINIR/EDITAR OBSERVAÇÃO ═══ */}
       {isObservationOpen && (
         <Dialog open={isObservationOpen} onOpenChange={setIsObservationOpen}>
-          <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-6">
+          <DialogContent className="max-w-md bg-card dark:bg-background border border-border rounded-xl shadow-2xl p-6">
             <form onSubmit={handleSaveObservation} className="space-y-4">
               <DialogHeader>
-                <DialogTitle className="text-sm font-black uppercase tracking-wider text-zinc-950 dark:text-zinc-100 flex items-center gap-2">
+                <DialogTitle className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
                   <Tag className="w-4 h-4 text-muted-foreground" />
                   Definir Observação
                 </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-500">
+                <DialogDescription className="text-xs text-muted-foreground">
                   Adicione ou edite uma observação específica para o serviço <strong className="uppercase">{obsServiceName}</strong> no motor <strong className="uppercase">{selectedMotor}</strong>.
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-3.5">
                 <div className="space-y-1.5">
-                  <Label htmlFor="observation-text" className="text-xs font-black text-zinc-500 uppercase tracking-wider">Observação:</Label>
+                  <Label htmlFor="observation-text" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Observação:</Label>
                   <textarea
                     id="observation-text"
                     placeholder="Ex: Preço válido somente para eixo sem solda..."
                     value={obsValue}
                     onChange={e => setObsValue(e.target.value)}
-                    className="w-full min-h-[80px] p-3 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-foreground focus-visible:ring-primary/40 focus:outline-none focus:ring-2 focus:ring-red-600/30 resize-y"
+                    className="w-full min-h-[80px] p-3 text-xs font-semibold rounded-lg border border-border bg-muted/60 dark:bg-card text-foreground focus-visible:ring-primary/40 focus:outline-none focus:ring-2 focus:ring-danger/30 resize-y"
                     maxLength={500}
                   />
                 </div>
               </div>
 
-              <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-zinc-100 dark:border-zinc-900 pt-4 bg-transparent">
+              <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-border pt-4 bg-transparent">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setIsObservationOpen(false)}
-                  className="text-xs border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400"
+                  className="text-xs border-border hover:bg-muted dark:hover:bg-card text-muted-foreground"
                 >
                   Cancelar
                 </Button>

@@ -142,7 +142,7 @@ export function PrintPreviewModal({
       <DialogContent
         showCloseButton={false}
         useFlexLayout={true}
-        className="w-[min(1200px,calc(100vw-48px))] max-h-[calc(100vh-48px)] p-0 border border-neutral-300 dark:border-neutral-800 bg-card rounded-2xl overflow-hidden shadow-2xl z-[9999] flex flex-col gap-0"
+        className="w-[min(1200px,calc(100vw-48px))] max-h-[calc(100vh-48px)] p-0 border border-border bg-card rounded-xl overflow-hidden shadow-2xl z-[9999] flex flex-col gap-0"
         overlayClassName="z-[9998]"
         style={{ transform: 'none' }}
         finalFocus={false}
@@ -150,34 +150,34 @@ export function PrintPreviewModal({
 
 
         {/* Toolbar Header */}
-        <div className="shrink-0 bg-neutral-900 border-b border-neutral-800 p-4 flex items-center justify-between">
+        <div className="shrink-0 bg-card border-b border-border p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Printer className="w-5 h-5 text-neutral-400" />
-            <DialogTitle className="text-sm font-black text-white uppercase tracking-wider">
+            <Printer className="w-5 h-5 text-muted-foreground" />
+            <DialogTitle className="text-sm font-bold text-foreground uppercase tracking-wider">
               Pré-Visualização do Relatório (O.S. #{order.osNumber || order.id})
             </DialogTitle>
           </div>
 
           <div className="flex items-center gap-4">
             {/* Zoom Controls */}
-            <div className="flex items-center gap-1 bg-neutral-800 rounded-lg p-0.5 border border-neutral-700">
+            <div className="flex items-center gap-1 bg-muted rounded-lg p-0.5 border border-border">
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-8 h-8 rounded-md hover:bg-neutral-700 text-neutral-300 hover:text-white"
+                className="w-8 h-8 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground"
                 onClick={() => setZoom(prev => Math.max(0.5, prev - 0.25))}
                 disabled={zoom <= 0.5}
                 title="Diminuir Zoom"
               >
                 <ZoomOut className="w-4 h-4" />
               </Button>
-              <span className="text-xs font-black text-neutral-300 w-12 text-center select-none font-mono">
+              <span className="text-xs font-bold text-foreground w-12 text-center select-none font-mono">
                 {Math.round(zoom * 100)}%
               </span>
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-8 h-8 rounded-md hover:bg-neutral-700 text-neutral-300 hover:text-white"
+                className="w-8 h-8 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground"
                 onClick={() => setZoom(prev => Math.min(1.25, prev + 0.25))}
                 disabled={zoom >= 1.25}
                 title="Aumentar Zoom"
@@ -190,20 +190,21 @@ export function PrintPreviewModal({
             <div className="flex items-center gap-2">
               <Button
                 onClick={handlePrintClick}
-                className="h-9 px-4 rounded-lg solid-btn font-black text-xs uppercase tracking-wider gap-1.5 shadow-sm"
+                className="h-9 px-4 rounded-lg solid-btn font-bold text-xs uppercase tracking-wider gap-1.5 shadow-sm"
               >
                 <Printer className="w-4 h-4" /> Imprimir
               </Button>
               <Button
+                variant="outline"
                 onClick={handlePDFClick}
-                className="h-9 px-4 rounded-lg bg-[#007AFF] hover:bg-[#007AFF]/90 text-white font-black text-xs uppercase tracking-wider gap-1.5 shadow-sm"
+                className="h-9 px-4 rounded-lg border-border bg-card hover:bg-accent text-foreground font-bold text-xs uppercase tracking-wider gap-1.5"
               >
                 <FileDown className="w-4 h-4" /> {isElectron ? 'Salvar PDF' : 'Salvar PDF'}
               </Button>
               <Button
                 variant="outline"
                 onClick={onClose}
-                className="h-9 px-4 rounded-lg border-neutral-700 hover:bg-neutral-800 text-neutral-300 hover:text-white font-black text-xs uppercase tracking-wider gap-1.5"
+                className="h-9 px-4 rounded-lg border-border bg-card hover:bg-accent text-foreground font-bold text-xs uppercase tracking-wider gap-1.5"
               >
                 <X className="w-4 h-4" /> Fechar
               </Button>
@@ -213,7 +214,7 @@ export function PrintPreviewModal({
 
         {/* Scaled Preview Viewport */}
         <div
-          className="overflow-auto flex-1 flex justify-center p-6 bg-neutral-100 dark:bg-neutral-900/60"
+          className="overflow-auto flex-1 flex justify-center p-6 bg-muted dark:bg-card/60"
           style={{ minHeight: '0' }}
         >
           <div
@@ -224,7 +225,7 @@ export function PrintPreviewModal({
             }}
           >
             <div
-              className="shadow-2xl border border-neutral-200"
+              className="shadow-2xl border border-border"
               style={{
                 width: '210mm',
                 height: 'auto',

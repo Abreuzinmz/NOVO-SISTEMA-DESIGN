@@ -31,7 +31,7 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn(
-        "group/calendar bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 p-3 rounded-2xl shadow-xl select-none font-sans text-slate-800 dark:text-zinc-100 w-fit",
+        "group/calendar bg-card dark:bg-muted border border-border p-3 rounded-xl shadow-xl select-none font-sans text-foreground w-fit",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
@@ -55,15 +55,15 @@ function Calendar({
           defaultClassNames.nav
         ),
         button_previous: cn(
-          "h-7 w-7 p-0 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-600 text-slate-700 dark:text-zinc-200 transition-colors cursor-pointer select-none aria-disabled:opacity-50",
+          "h-7 w-7 p-0 flex items-center justify-center rounded-lg bg-muted dark:bg-accent hover:bg-accent dark:hover:bg-accent/70 text-foreground/80 dark:text-foreground transition-colors cursor-pointer select-none aria-disabled:opacity-50",
           defaultClassNames.button_previous
         ),
         button_next: cn(
-          "h-7 w-7 p-0 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-600 text-slate-700 dark:text-zinc-200 transition-colors cursor-pointer select-none aria-disabled:opacity-50",
+          "h-7 w-7 p-0 flex items-center justify-center rounded-lg bg-muted dark:bg-accent hover:bg-accent dark:hover:bg-accent/70 text-foreground/80 dark:text-foreground transition-colors cursor-pointer select-none aria-disabled:opacity-50",
           defaultClassNames.button_next
         ),
         month_caption: cn(
-          "flex h-7 w-full items-center justify-center px-7 text-xs font-bold text-slate-900 dark:text-zinc-100 capitalize",
+          "flex h-7 w-full items-center justify-center px-7 text-xs font-bold text-foreground capitalize",
           defaultClassNames.month_caption
         ),
         dropdowns: cn(
@@ -79,12 +79,12 @@ function Calendar({
           defaultClassNames.dropdown
         ),
         caption_label: cn(
-          "font-bold text-slate-900 dark:text-zinc-100 select-none text-xs capitalize",
+          "font-bold text-foreground select-none text-xs capitalize",
           defaultClassNames.caption_label
         ),
         weekdays: cn("flex text-center mb-1", defaultClassNames.weekdays),
         weekday: cn(
-          "flex-1 text-xs font-medium text-slate-400 dark:text-zinc-400 py-0.5 select-none text-center",
+          "flex-1 text-xs font-medium text-muted-foreground py-0.5 select-none text-center",
           defaultClassNames.weekday
         ),
         week: cn("mt-1 flex w-full gap-1", defaultClassNames.week),
@@ -93,15 +93,15 @@ function Calendar({
           defaultClassNames.day
         ),
         today: cn(
-          "text-blue-600 dark:text-blue-400 font-bold bg-transparent border-0",
+          "text-info font-bold bg-transparent border-0",
           defaultClassNames.today
         ),
         outside: cn(
-          "text-slate-300 dark:text-zinc-500 font-normal aria-selected:text-white",
+          "text-muted-foreground/50 dark:text-muted-foreground font-normal aria-selected:text-primary-foreground",
           defaultClassNames.outside
         ),
         disabled: cn(
-          "text-slate-300 opacity-50 dark:text-zinc-600",
+          "text-muted-foreground/50 opacity-50 dark:text-muted-foreground",
           defaultClassNames.disabled
         ),
         hidden: cn("invisible", defaultClassNames.hidden),
@@ -171,12 +171,12 @@ function CalendarDayButton({
       className={cn(
         "relative isolate z-10 flex aspect-square h-7 w-7 items-center justify-center rounded-lg text-xs font-medium border-0 transition-all cursor-pointer",
         isSelectedSingle
-          ? "bg-blue-600 text-white font-semibold shadow-sm hover:bg-blue-700"
+          ? "bg-primary text-primary-foreground font-semibold shadow-sm hover:bg-primary/90"
           : modifiers.today
-          ? "text-blue-600 dark:text-blue-400 font-bold hover:bg-blue-50 dark:hover:bg-blue-950/30"
+          ? "text-info font-bold hover:bg-info/10 dark:hover:bg-info/30"
           : modifiers.outside
-          ? "text-slate-300 dark:text-zinc-500 font-normal hover:bg-slate-50 dark:hover:bg-zinc-700/50"
-          : "text-slate-800 dark:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-700",
+          ? "text-muted-foreground/50 dark:text-muted-foreground font-normal hover:bg-muted/60 dark:hover:bg-accent/50"
+          : "text-foreground hover:bg-muted dark:hover:bg-accent",
         className
       )}
       {...props}

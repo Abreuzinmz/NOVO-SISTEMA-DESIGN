@@ -90,7 +90,7 @@ export function DatePickerCard({
   return (
     <div
       className={cn(
-        "bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-2xl shadow-xl select-none font-sans text-slate-800 dark:text-zinc-100",
+        "bg-card dark:bg-muted border border-border rounded-xl shadow-xl select-none font-sans text-foreground",
         compact ? "w-[220px] p-2" : "w-[270px] p-3"
       )}
     >
@@ -100,7 +100,7 @@ export function DatePickerCard({
           type="button"
           onClick={handlePrevMonth}
           className={cn(
-            "flex items-center justify-center rounded-lg bg-slate-100 dark:bg-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-600 text-slate-700 dark:text-zinc-200 transition-colors cursor-pointer",
+            "flex items-center justify-center rounded-lg bg-muted dark:bg-accent hover:bg-accent dark:hover:bg-accent/70 text-foreground/80 dark:text-foreground transition-colors cursor-pointer",
             compact ? "w-6 h-6" : "w-7 h-7"
           )}
           aria-label="Mês anterior"
@@ -108,7 +108,7 @@ export function DatePickerCard({
           <ChevronLeft className="w-3.5 h-3.5 stroke-[2.5]" />
         </button>
 
-        <span className={cn("font-bold text-slate-900 dark:text-zinc-100 capitalize", compact ? "text-xs" : "text-xs")}>
+        <span className={cn("font-bold text-foreground capitalize", compact ? "text-xs" : "text-xs")}>
           {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
         </span>
 
@@ -116,7 +116,7 @@ export function DatePickerCard({
           type="button"
           onClick={handleNextMonth}
           className={cn(
-            "flex items-center justify-center rounded-lg bg-slate-100 dark:bg-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-600 text-slate-700 dark:text-zinc-200 transition-colors cursor-pointer",
+            "flex items-center justify-center rounded-lg bg-muted dark:bg-accent hover:bg-accent dark:hover:bg-accent/70 text-foreground/80 dark:text-foreground transition-colors cursor-pointer",
             compact ? "w-6 h-6" : "w-7 h-7"
           )}
           aria-label="Próximo mês"
@@ -128,7 +128,7 @@ export function DatePickerCard({
       {/* Weekday headers */}
       <div className="grid grid-cols-7 text-center mb-1">
         {weekDays.map((day, idx) => (
-          <div key={idx} className={cn("font-medium text-slate-400 dark:text-zinc-400", compact ? "text-xs py-0.5" : "text-xs py-1")}>
+          <div key={idx} className={cn("font-medium text-muted-foreground", compact ? "text-xs py-0.5" : "text-xs py-1")}>
             {day}
           </div>
         ))}
@@ -150,13 +150,13 @@ export function DatePickerCard({
                 "mx-auto flex items-center justify-center font-medium transition-all cursor-pointer rounded-lg",
                 compact ? "h-6 w-6 text-xs" : "h-7 w-7 text-xs",
                 // Selected Day styling (Solid blue rounded square)
-                isSelectedDay && "bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700",
+                isSelectedDay && "bg-primary text-primary-foreground font-semibold rounded-lg shadow-sm hover:bg-primary/90",
                 // Today Day styling (marked ONLY with blue font, no weird border)
-                !isSelectedDay && isTodayDay && "text-blue-600 dark:text-blue-400 font-bold bg-transparent hover:bg-blue-50 dark:hover:bg-blue-950/30",
+                !isSelectedDay && isTodayDay && "text-info font-bold bg-transparent hover:bg-info/10 dark:hover:bg-info/30",
                 // Regular Day in current month
-                !isSelectedDay && !isTodayDay && isCurrentMonthDay && "text-slate-800 dark:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-700",
+                !isSelectedDay && !isTodayDay && isCurrentMonthDay && "text-foreground hover:bg-muted dark:hover:bg-accent",
                 // Outside Month Day
-                !isSelectedDay && !isCurrentMonthDay && "text-slate-300 dark:text-zinc-500 font-normal hover:bg-slate-50 dark:hover:bg-zinc-700/50"
+                !isSelectedDay && !isCurrentMonthDay && "text-muted-foreground/50 dark:text-muted-foreground font-normal hover:bg-muted/60 dark:hover:bg-accent/50"
               )}
             >
               {format(day, "d")}
@@ -166,12 +166,12 @@ export function DatePickerCard({
       </div>
 
       {/* Footer Actions */}
-      <div className="border-t border-slate-100 dark:border-zinc-700/60 pt-2.5 mt-2.5 flex items-center justify-between gap-2">
+      <div className="border-t border-border dark:border-border/60 pt-2.5 mt-2.5 flex items-center justify-between gap-2">
         <button
           type="button"
           onClick={handleCancelClick}
           className={cn(
-            "flex-1 font-semibold text-slate-700 dark:text-zinc-200 bg-white dark:bg-zinc-700 border border-slate-200 dark:border-zinc-600 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-600 transition-all cursor-pointer text-center",
+            "flex-1 font-semibold text-foreground/80 dark:text-foreground bg-card dark:bg-accent border border-border rounded-xl hover:bg-muted/60 dark:hover:bg-accent/70 transition-all cursor-pointer text-center",
             compact ? "py-1 px-2 text-xs" : "py-1.5 px-3 text-xs"
           )}
         >
@@ -181,7 +181,7 @@ export function DatePickerCard({
           type="button"
           onClick={handleConfirmClick}
           className={cn(
-            "flex-1 font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-sm cursor-pointer text-center",
+            "flex-1 font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-xl transition-all shadow-sm cursor-pointer text-center",
             compact ? "py-1 px-2 text-xs" : "py-1.5 px-3 text-xs"
           )}
         >
@@ -325,7 +325,7 @@ export function DatePicker({
           value={valueStr}
           onChange={handleNativeChange}
           className={cn(
-            "w-full h-10 px-3 pr-9 text-xs font-semibold rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden",
+            "w-full h-10 px-3 pr-9 text-xs font-semibold rounded-xl border border-border bg-card text-foreground placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-info/20 focus:border-info transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden",
             className
           )}
         />
@@ -339,7 +339,7 @@ export function DatePicker({
               setIsOpen(!isOpen);
             }
           }}
-          className="absolute right-2 p-1 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-md transition-colors text-blue-600 dark:text-blue-400 disabled:opacity-50 cursor-pointer z-10"
+          className="absolute right-2 p-1 hover:bg-muted rounded-md transition-colors text-info disabled:opacity-50 cursor-pointer z-10"
         >
           <CalendarIcon className="w-4 h-4 stroke-[2]" />
         </button>
@@ -353,7 +353,7 @@ export function DatePicker({
             top: `${popoverPos.top}px`,
             left: `${popoverPos.left}px`,
           }}
-          className="z-[9999] shadow-2xl bg-white dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700 animate-in fade-in zoom-in-95 duration-150"
+          className="z-[9999] shadow-2xl bg-card dark:bg-muted rounded-xl border border-border animate-in fade-in zoom-in-95 duration-150"
         >
           <DatePickerCard
             selectedDate={parsedDate}

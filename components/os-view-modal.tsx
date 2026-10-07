@@ -816,26 +816,26 @@ export function OSViewModal({
         </span>
       );
       case 'Em Andamento': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-[#0EA5E9]/10 text-[#0EA5E9] dark:text-[#38BDF8] border border-[#0EA5E9]/20 dark:border-[#38BDF8]/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#0EA5E9] dark:bg-[#38BDF8] shrink-0" />
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-info/10 text-info border border-info/20">
+          <span className="w-1.5 h-1.5 rounded-full bg-info shrink-0" />
           EM ANDAMENTO
         </span>
       );
       case 'Aguardando Peça': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-warning/10 text-warning border border-warning/20">
+          <span className="w-1.5 h-1.5 rounded-full bg-warning shrink-0" />
           AGUARDANDO PEÇA
         </span>
       );
       case 'Pronto': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-[#34C759]/10 text-[#34C759] border border-[#34C759]/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#34C759] shrink-0" />
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-success/10 text-success border border-success/20">
+          <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
           PRONTO
         </span>
       );
       case 'Levou': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-danger/10 text-danger border border-danger/20">
+          <span className="w-1.5 h-1.5 rounded-full bg-danger shrink-0" />
           LEVOU
         </span>
       );
@@ -845,32 +845,32 @@ export function OSViewModal({
   const getStatusOptionLabel = (status: ServiceStatus) => {
     switch (status) {
       case 'Na Fila': return (
-        <span className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
-          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
+        <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 shrink-0" />
           Na Fila
         </span>
       );
       case 'Em Andamento': return (
-        <span className="flex items-center gap-1.5 text-xs font-bold text-[#0EA5E9] dark:text-[#38BDF8]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#0EA5E9] dark:bg-[#38BDF8] shrink-0" />
+        <span className="flex items-center gap-1.5 text-xs font-bold text-info">
+          <span className="w-1.5 h-1.5 rounded-full bg-info shrink-0" />
           Em Andamento
         </span>
       );
       case 'Aguardando Peça': return (
-        <span className="flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+        <span className="flex items-center gap-1.5 text-xs font-bold text-warning">
+          <span className="w-1.5 h-1.5 rounded-full bg-warning shrink-0" />
           Aguardando Peça
         </span>
       );
       case 'Pronto': return (
-        <span className="flex items-center gap-1.5 text-xs font-bold text-[#34C759]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#34C759] shrink-0" />
+        <span className="flex items-center gap-1.5 text-xs font-bold text-success">
+          <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
           Pronto
         </span>
       );
       case 'Levou': return (
-        <span className="flex items-center gap-1.5 text-xs font-bold text-violet-600 dark:text-violet-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-violet-500 shrink-0" />
+        <span className="flex items-center gap-1.5 text-xs font-bold text-levou">
+          <span className="w-1.5 h-1.5 rounded-full bg-levou shrink-0" />
           Levou
         </span>
       );
@@ -880,17 +880,17 @@ export function OSViewModal({
   const getPaymentBadge = (status: string) => {
     switch (status) {
       case 'Não Pago': return (
-        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-[#FF5A5F]/10 text-[#FF5A5F] border border-[#FF5A5F]/20">
+        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-danger/10 text-danger border border-danger/20">
           NÃO PAGO
         </span>
       );
       case 'Entrada': return (
-        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-warning/10 text-warning border border-warning/20">
           ENTRADA
         </span>
       );
       case 'Pago': return (
-        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-[#34C759]/10 text-[#34C759] border border-[#34C759]/20">
+        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-success/10 text-success border border-success/20">
           PAGO
         </span>
       );
@@ -947,7 +947,7 @@ export function OSViewModal({
       <DialogContent
         showCloseButton={false}
         useFlexLayout={true}
-        className="print-friendly-modal w-[min(1100px,calc(100vw-48px))] max-h-[calc(100vh-48px)] p-0 border border-neutral-300 dark:border-neutral-800 bg-card rounded-2xl overflow-hidden shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08),_0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] outline-none flex flex-col gap-0 print:block print:!static print:!w-full print:!max-w-none print:!h-auto print:border-none print:shadow-none print:bg-white print:overflow-visible"
+        className="print-friendly-modal w-[min(1100px,calc(100vw-48px))] max-h-[calc(100vh-48px)] p-0 border border-border bg-card rounded-xl overflow-hidden shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08),_0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] outline-none flex flex-col gap-0 print:block print:!static print:!w-full print:!max-w-none print:!h-auto print:border-none print:shadow-none print:bg-card print:overflow-visible"
         style={{ transform: 'none' }}
         finalFocus={false}
       >
@@ -995,34 +995,34 @@ export function OSViewModal({
         <div className="flex flex-col flex-1 min-h-0 print:hidden">
 
           {/* ═══ HEADER ═══ */}
-          <div className="shrink-0 border-b border-neutral-300 dark:border-neutral-800 bg-card p-5 flex items-start justify-between print:px-0 print:bg-white">
+          <div className="shrink-0 border-b border-border bg-card p-5 flex items-start justify-between print:px-0 print:bg-card">
             <div className="flex items-start gap-4">
               <div
-                className="py-[11px] px-[16px] rounded-[10px] border border-[#e0e0e0] dark:border-neutral-800 border-l-[4px] bg-white dark:bg-neutral-900 flex flex-col items-center justify-center shadow-sm overflow-hidden shrink-0 select-none"
+                className="py-[11px] px-[16px] rounded-lg border border-border border-l-[4px] bg-card flex flex-col items-center justify-center shadow-sm overflow-hidden shrink-0 select-none"
                 style={{ borderLeftColor: getStatusBorderColor(isEditingStatus ? editServiceStatus : order.serviceStatus) }}
               >
-                <span className="font-black text-xl tracking-tighter text-blue-600 dark:text-blue-400">
+                <span className="font-bold text-xl tracking-tighter text-info">
                   #{String(order.osNumber || order.id).padStart(4, '0')}
                 </span>
-                <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 mt-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground mt-1">
                   O.S. Nº
                 </span>
               </div>
               <div className="pt-1">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-black text-foreground uppercase tracking-tight flex items-baseline gap-1.5 flex-wrap">
+                  <h2 className="text-lg font-bold text-foreground uppercase tracking-tight flex items-baseline gap-1.5 flex-wrap">
                     <span>{client?.name || 'CLIENTE REMOVIDO'}</span>
                     {client?.nickname && (
-                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400 normal-case shrink-0">
+                      <span className="text-xs font-bold text-info normal-case shrink-0">
                         ({client.nickname.toUpperCase()})
                       </span>
                     )}
                   </h2>
                   {client && (
                     <span className={cn(
-                      "inline-flex items-center px-1.5 py-0.5 text-xs font-extrabold tracking-widest uppercase rounded border",
+                      "inline-flex items-center px-1.5 py-0.5 text-xs font-extrabold tracking-wider uppercase rounded border",
                       client.clientType === 'mechanic'
-                        ? "bg-[#0EA5E9]/10 text-[#0EA5E9] border-[#0EA5E9]/20"
+                        ? "bg-info/10 text-info border-info/20"
                         : "bg-secondary text-secondary-foreground border-border"
                     )}>
                       {client.clientType === 'mechanic' ? 'MECÂNICO' : 'CLIENTE'}
@@ -1033,14 +1033,14 @@ export function OSViewModal({
                   {(client?.phone || client?.document?.trim()) && (
                     <div className="flex items-center gap-4">
                       {client?.phone && (
-                        <div className="text-sm font-bold text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5">
-                          <Phone className="w-4 h-4 stroke-[2.5] shrink-0 text-neutral-500 dark:text-neutral-400" />
+                        <div className="text-sm font-bold text-foreground/80 flex items-center gap-1.5">
+                          <Phone className="w-4 h-4 stroke-[2.5] shrink-0 text-muted-foreground" />
                           <span>{client.phone}</span>
                         </div>
                       )}
                       {client?.document?.trim() && (
-                        <div className="text-sm font-bold text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5">
-                          <FileText className="w-4 h-4 stroke-[2.5] shrink-0 text-neutral-500 dark:text-neutral-400" />
+                        <div className="text-sm font-bold text-foreground/80 flex items-center gap-1.5">
+                          <FileText className="w-4 h-4 stroke-[2.5] shrink-0 text-muted-foreground" />
                           <span>CPF/CNPJ: {client.document}</span>
                         </div>
                       )}
@@ -1059,8 +1059,8 @@ export function OSViewModal({
                       const name = m?.name || order.mechanicName;
                       const displayName = nickname ? nickname.toUpperCase() : name;
                       return displayName ? (
-                        <div className="text-xs font-bold text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5 mt-0.5">
-                          <User className="w-4 h-4 stroke-[2.5] shrink-0 text-neutral-500 dark:text-neutral-400" />
+                        <div className="text-xs font-bold text-foreground/80 flex items-center gap-1.5 mt-0.5">
+                          <User className="w-4 h-4 stroke-[2.5] shrink-0 text-muted-foreground" />
                           <span>Mecânico: {displayName}</span>
                         </div>
                       ) : null;
@@ -1078,7 +1078,7 @@ export function OSViewModal({
                       <Button
                         onClick={handleSaveStatus}
                         disabled={isSubmittingPayment}
-                        className="h-8 px-3 rounded-lg solid-btn font-black text-xs uppercase tracking-wider gap-1 shadow-sm disabled:opacity-50"
+                        className="h-8 px-3 rounded-lg solid-btn font-bold text-xs uppercase tracking-wider gap-1 shadow-sm disabled:opacity-50"
                       >
                         {isSubmittingPayment ? (
                           <span>SALVANDO...</span>
@@ -1092,16 +1092,16 @@ export function OSViewModal({
                         onClick={handleDiscardStatus}
                         disabled={isSubmittingPayment}
                         variant="outline"
-                        className="h-8 px-3 rounded-lg border-border bg-background hover:bg-secondary text-foreground font-black text-xs uppercase tracking-wider gap-1 shadow-sm disabled:opacity-50"
+                        className="h-8 px-3 rounded-lg border-border bg-background hover:bg-secondary text-foreground font-bold text-xs uppercase tracking-wider gap-1 shadow-sm disabled:opacity-50"
                       >
                         <X className="w-3.5 h-3.5" /> CANCELAR
                       </Button>
                     </div>
                     <Select value={editServiceStatus} onValueChange={(val) => setEditServiceStatus(val as ServiceStatus)}>
-                      <SelectTrigger className="premium-input h-8 rounded-lg text-xs font-bold bg-card border-neutral-300 dark:border-neutral-800 w-[160px] flex justify-between gap-1.5">
+                      <SelectTrigger className="premium-input h-8 rounded-lg text-xs font-bold bg-card border-border w-[160px] flex justify-between gap-1.5">
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
-                      <SelectContent className="z-[9999] bg-white dark:bg-[#0A0A0C] border border-neutral-300 dark:border-neutral-800 rounded-lg shadow-2xl">
+                      <SelectContent className="z-[9999] bg-card dark:bg-background border border-border rounded-lg shadow-2xl">
                         <SelectItem value="Na Fila">{getStatusOptionLabel("Na Fila")}</SelectItem>
                         <SelectItem value="Em Andamento">{getStatusOptionLabel("Em Andamento")}</SelectItem>
                         <SelectItem value="Aguardando Peça">{getStatusOptionLabel("Aguardando Peça")}</SelectItem>
@@ -1145,7 +1145,7 @@ export function OSViewModal({
                       {order.finished && (order.finishedAt || order.deliveryDate) && (
                         <>
                           <span className="text-xs font-bold text-muted-foreground/40">•</span>
-                          <span className="text-xs font-bold text-[#10B981]">
+                          <span className="text-xs font-bold text-success">
                             Finalizado em: {new Date(order.finishedAt || (order.deliveryDate as string) + 'T12:00:00').toLocaleDateString('pt-BR')}
                           </span>
                         </>
@@ -1174,8 +1174,8 @@ export function OSViewModal({
                   showPartsLeft ? "grid-cols-1 sm:grid-cols-[1.6fr_1fr]" : "grid-cols-1"
                 )}>
                     {showPartsLeft && (
-                      <div className="border border-neutral-300 dark:border-neutral-800 rounded-xl bg-background p-4 shadow-sm min-w-0">
-                        <span className="text-xs font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300 block mb-3">MATERIAL DEIXADO</span>
+                      <div className="border border-border rounded-xl bg-background p-4 shadow-sm min-w-0">
+                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80 block mb-3">MATERIAL DEIXADO</span>
                         {isEditing ? (
                           <div className="flex flex-col gap-2">
                             {editPartsLeft.map((p, idx) => {
@@ -1212,7 +1212,7 @@ export function OSViewModal({
                               variant="outline"
                               size="sm"
                               onClick={handleAddPartLeft}
-                              className="mt-1 h-8 rounded border-dashed text-xs font-black uppercase tracking-wider"
+                              className="mt-1 h-8 rounded border-dashed text-xs font-bold uppercase tracking-wider"
                             >
                               <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar
                             </Button>
@@ -1225,10 +1225,10 @@ export function OSViewModal({
                               return (
                                 <div
                                   key={i}
-                                  className="flex items-center gap-1.5 border border-neutral-300 dark:border-neutral-800 bg-secondary/50 px-3 py-1.5 rounded-lg transition-all hover:bg-secondary/60"
+                                  className="flex items-center gap-1.5 border border-border bg-secondary/50 px-3 py-1.5 rounded-lg transition-all hover:bg-secondary/60"
                                 >
                                   {qty > 1 && (
-                                    <span className="text-xs font-black text-foreground shrink-0">
+                                    <span className="text-xs font-bold text-foreground shrink-0">
                                       ({qty})
                                     </span>
                                   )}
@@ -1244,21 +1244,21 @@ export function OSViewModal({
                     )}
 
                   {/* Motor */}
-                  <div className="border border-neutral-300 dark:border-neutral-800 rounded-xl bg-background p-4 shadow-sm min-w-0">
-                    <span className="text-xs font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300 block mb-3">MOTOR</span>
+                  <div className="border border-border rounded-xl bg-background p-4 shadow-sm min-w-0">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80 block mb-3">MOTOR</span>
                     <div className="space-y-2">
                       {motors.map((m, idx) => (
                         <div key={idx} className="flex items-center flex-wrap gap-x-3 gap-y-1">
-                          <span className="font-black text-sm uppercase tracking-wide text-foreground">
+                          <span className="font-bold text-sm uppercase tracking-wide text-foreground">
                             {m.model || 'MOTOR NÃO INFORMADO'}
                           </span>
                           {m.displacement && (
-                            <span className="font-black text-sm uppercase tracking-wide text-foreground">
+                            <span className="font-bold text-sm uppercase tracking-wide text-foreground">
                               {m.displacement}
                             </span>
                           )}
                           {m.cylinders && (
-                            <span className="font-black text-sm uppercase tracking-wide text-foreground">
+                            <span className="font-bold text-sm uppercase tracking-wide text-foreground">
                               {m.cylinders}
                             </span>
                           )}
@@ -1270,8 +1270,8 @@ export function OSViewModal({
 
                 {/* Peças Adicionais: full-width row so chips can stay on a single line */}
                 {showAdditionalParts && (
-                  <div className="border border-neutral-300 dark:border-neutral-800 rounded-xl bg-background p-4 shadow-sm">
-                    <span className="text-xs font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300 block mb-3">PEÇAS ADICIONAIS</span>
+                  <div className="border border-border rounded-xl bg-background p-4 shadow-sm">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80 block mb-3">PEÇAS ADICIONAIS</span>
                     {isEditing ? (
                       <div className="flex flex-col gap-2">
                         {editAdditionalParts.map((p, idx) => {
@@ -1308,7 +1308,7 @@ export function OSViewModal({
                           variant="outline"
                           size="sm"
                           onClick={handleAddAdditionalPart}
-                          className="mt-1 h-8 rounded border-dashed text-xs font-black uppercase tracking-wider"
+                          className="mt-1 h-8 rounded border-dashed text-xs font-bold uppercase tracking-wider"
                         >
                           <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar
                         </Button>
@@ -1321,10 +1321,10 @@ export function OSViewModal({
                           return (
                             <div
                               key={i}
-                              className="flex items-center gap-1.5 border border-neutral-300 dark:border-neutral-800 bg-secondary/50 px-3 py-1.5 rounded-lg transition-all hover:bg-secondary/60"
+                              className="flex items-center gap-1.5 border border-border bg-secondary/50 px-3 py-1.5 rounded-lg transition-all hover:bg-secondary/60"
                             >
                               {qty > 1 && (
-                                <span className="text-xs font-black text-foreground shrink-0">
+                                <span className="text-xs font-bold text-foreground shrink-0">
                                   ({qty})
                                 </span>
                               )}
@@ -1338,10 +1338,10 @@ export function OSViewModal({
                 )}
 
                 {/* Bottom Section: Services List */}
-                <div className="border border-neutral-300 dark:border-neutral-800 rounded-xl bg-background overflow-hidden shadow-sm">
-                  <div className="bg-secondary/30 px-4 py-3 border-b border-neutral-300 dark:border-neutral-800 flex justify-between items-center">
-                    <span className="text-xs font-bold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">Serviços</span>
-                    <span className="text-xs font-black text-neutral-700 dark:text-neutral-300 bg-secondary/60 px-2 py-0.5 rounded border border-neutral-300 dark:border-neutral-800">
+                <div className="border border-border rounded-xl bg-background overflow-hidden shadow-sm">
+                  <div className="bg-secondary/30 px-4 py-3 border-b border-border flex justify-between items-center">
+                    <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground dark:text-foreground/80">Serviços</span>
+                    <span className="text-xs font-bold text-foreground/80 bg-secondary/60 px-2 py-0.5 rounded border border-border">
                       {isEditing ? editServices.length : order.services.length} itens
                     </span>
                   </div>
@@ -1367,9 +1367,9 @@ export function OSViewModal({
                           </div>
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-black text-neutral-600 dark:text-neutral-300 uppercase">Valor:</span>
+                              <span className="text-xs font-bold text-muted-foreground dark:text-foreground/80 uppercase">Valor:</span>
                               <div className="relative group">
-                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-primary/90 text-xs font-mono font-black">R$</span>
+                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-primary/90 text-xs font-mono font-bold">R$</span>
                                 <Input
                                   type="number"
                                   value={s.value}
@@ -1378,7 +1378,7 @@ export function OSViewModal({
                                   className="w-24 h-8 pl-7 pr-2 py-1 text-xs font-mono font-semibold bg-card"
                                 />
                               </div>
-                              <span className="text-xs font-black text-neutral-600 dark:text-neutral-300 uppercase ml-1">Qtd:</span>
+                              <span className="text-xs font-bold text-muted-foreground dark:text-foreground/80 uppercase ml-1">Qtd:</span>
                               <Input
                                 type="number"
                                 value={s.quantity}
@@ -1398,20 +1398,20 @@ export function OSViewModal({
                           </div>
                         </div>
                       ))}
-                      <div className="p-3 bg-secondary/20 border-t border-neutral-300 dark:border-neutral-800">
+                      <div className="p-3 bg-secondary/20 border-t border-border">
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
                           onClick={handleAddService}
-                          className="w-full h-8 rounded border-dashed text-xs font-black uppercase tracking-wider bg-card border-neutral-300 dark:border-neutral-800"
+                          className="w-full h-8 rounded border-dashed text-xs font-bold uppercase tracking-wider bg-card border-border"
                         >
                           <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar Serviço
                         </Button>
                       </div>
                     </div>
                   ) : (
-                    <div className="divide-y divide-neutral-200 dark:divide-neutral-800/80">
+                    <div className="divide-y divide-border dark:divide-border/80">
                       {(() => {
                         // Com 2+ motores, separa os serviços como no relatório: comuns, motor 1, motor 2...
                         const renderService = (s: ServiceItem) => (
@@ -1422,7 +1422,7 @@ export function OSViewModal({
                                 {s.id === 'eix-retificar' && s.measure ? `Retificar Eixo — ${s.measure}` : s.name}
                               </span>
                               {s.measure && s.id !== 'eix-retificar' && (
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold uppercase bg-primary/10 text-primary border border-neutral-300 dark:border-neutral-700">
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold uppercase bg-primary/10 text-primary border border-border">
                                   {s.measure}
                                 </span>
                               )}
@@ -1454,7 +1454,7 @@ export function OSViewModal({
                         ));
                       })()}
                       {order.services.length === 0 && (
-                        <div className="px-4 py-8 text-center text-xs text-neutral-500 dark:text-neutral-400 font-bold uppercase tracking-widest italic">
+                        <div className="px-4 py-8 text-center text-xs text-muted-foreground font-bold uppercase tracking-wider italic">
                           Nenhum serviço registrado
                         </div>
                       )}
@@ -1464,9 +1464,9 @@ export function OSViewModal({
 
                 {/* Card de Observações */}
                 {(((order.observations && order.observations.replace(/\[ENTRADAS_JSON:\[[\s\S]*?\]\]/i, "").trim().length > 0)) || isEditing) && (
-                  <div className="border border-neutral-300 dark:border-neutral-800 rounded-xl bg-background overflow-hidden shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
-                    <div className="bg-secondary/30 px-4 py-3 border-b border-neutral-300 dark:border-neutral-800 flex justify-between items-center">
-                      <span className="text-xs font-black uppercase tracking-widest text-neutral-600 dark:text-neutral-300">OBSERVAÇÕES</span>
+                  <div className="border border-border rounded-xl bg-background overflow-hidden shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="bg-secondary/30 px-4 py-3 border-b border-border flex justify-between items-center">
+                      <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80">OBSERVAÇÕES</span>
                     </div>
                     <div className="p-4 text-xs font-semibold">
                       {isEditing ? (
@@ -1474,7 +1474,7 @@ export function OSViewModal({
                           value={editObservations}
                           onChange={(e) => setEditObservations(e.target.value)}
                           placeholder="Observações sobre o serviço (opcional)"
-                          className="min-h-[100px] w-full p-3 border border-neutral-300 dark:border-neutral-800 bg-card rounded-lg focus:outline-none focus:border-secondary-foreground transition-all text-xs font-semibold uppercase placeholder:normal-case resize-y leading-relaxed"
+                          className="min-h-[100px] w-full p-3 border border-border bg-card rounded-lg focus:outline-none focus:border-secondary-foreground transition-all text-xs font-semibold uppercase placeholder:normal-case resize-y leading-relaxed"
                         />
                       ) : (
                         <p className="whitespace-pre-wrap font-bold text-foreground uppercase tracking-tight text-xs leading-relaxed">
@@ -1487,20 +1487,20 @@ export function OSViewModal({
               </div>
 
               {/* Right Column: Financial Card */}
-              <div className="w-full md:w-[320px] shrink-0 min-w-0 border border-neutral-300 dark:border-neutral-800 rounded-xl bg-secondary/20 p-4 shadow-sm flex flex-col">
+              <div className="w-full md:w-[320px] shrink-0 min-w-0 border border-border rounded-xl bg-secondary/20 p-4 shadow-sm flex flex-col">
                 <div className="space-y-3 flex-1">
                   {groupedPayment ? (
                     /* ═══ REFORMULADO: CARD DE PAGAMENTO AGRUPADO ═══ */
                     <div className="space-y-2 animate-in fade-in duration-200">
                       {/* Status no topo, fora/acima do card principal */}
-                      <div className="text-center font-black text-sm tracking-wide py-0.5">
+                      <div className="text-center font-bold text-sm tracking-wide py-0.5">
                         <span
                           className={
                             groupedPayment.status === 'pago'
-                              ? 'text-green-600 dark:text-green-400'
+                              ? 'text-success'
                               : groupedPayment.status === 'pagamento_parcial'
-                              ? 'text-amber-500 dark:text-amber-400'
-                              : 'text-[#FF5A5F]'
+                              ? 'text-warning'
+                              : 'text-danger'
                           }
                         >
                           {groupedPayment.status === 'pago'
@@ -1512,10 +1512,10 @@ export function OSViewModal({
                       </div>
 
                       {/* Card com borda arredondada */}
-                      <div className="bg-card border border-neutral-300 dark:border-neutral-800 rounded-2xl p-4 space-y-3 shadow-xs">
+                      <div className="bg-card border border-border rounded-xl p-4 space-y-3 shadow-xs">
                         {/* Cabeçalho do Card (Label + Botão Desfazer) */}
                         <div className="flex justify-between items-center">
-                          <span className="text-xs font-black uppercase tracking-wider text-muted-foreground/70">
+                          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70">
                             HISTÓRICO DE ENTRADAS ({groupedPayment.entradas?.length || 0})
                           </span>
                           <Button
@@ -1523,7 +1523,7 @@ export function OSViewModal({
                             size="sm"
                             onClick={() => setIsDissolveModalOpen(true)}
                             title="Desfazer este Pagamento Agrupado"
-                            className="h-6 px-2 text-xs font-black text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded uppercase flex items-center gap-1 cursor-pointer"
+                            className="h-6 px-2 text-xs font-bold text-danger hover:text-danger hover:bg-danger/10 rounded uppercase flex items-center gap-1 cursor-pointer"
                           >
                             <Unlink className="w-3 h-3 stroke-[2.5]" /> DESFAZER
                           </Button>
@@ -1535,16 +1535,16 @@ export function OSViewModal({
                             {(showAllEntradas ? sortedGroupEntradas : sortedGroupEntradas.slice(0, 2)).map((e, idx) => (
                               <div
                                 key={e.id || idx}
-                                className="bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/15 rounded-xl p-2.5 space-y-1"
+                                className="bg-info/5 dark:bg-info/10 border border-info/15 rounded-xl p-2.5 space-y-1"
                               >
                                 <div className="flex justify-between items-center gap-2">
                                   <div className="flex items-center gap-1.5 min-w-0">
-                                    <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wide truncate">
+                                    <span className="text-xs font-bold text-info uppercase tracking-wide truncate">
                                       {e.originalNum}. {e.formaPagamento.toUpperCase()}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-1 shrink-0">
-                                    <span className="text-xs font-black font-mono text-indigo-600 dark:text-indigo-400">
+                                    <span className="text-xs font-bold font-mono text-info">
                                       {e.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                     </span>
                                     <button
@@ -1556,7 +1556,7 @@ export function OSViewModal({
                                         totalValue: groupedPayment.valorTotal,
                                         paidElsewhere: Math.max(0, groupedPayment.valorPago - e.valor),
                                       })}
-                                      className="w-5 h-5 rounded flex items-center justify-center text-indigo-500/70 hover:text-indigo-600 hover:bg-indigo-500/10 transition-colors ml-1"
+                                      className="w-5 h-5 rounded flex items-center justify-center text-info/70 hover:text-info hover:bg-info/10 transition-colors ml-1"
                                     >
                                       <Pencil className="w-3 h-3" />
                                     </button>
@@ -1564,22 +1564,22 @@ export function OSViewModal({
                                       type="button"
                                       title="Remover lançamento"
                                       onClick={() => e.id && handleGroupedDeleteEntrada(e.id)}
-                                      className="w-5 h-5 rounded flex items-center justify-center text-red-500/70 hover:text-red-600 hover:bg-red-500/10 transition-colors"
+                                      className="w-5 h-5 rounded flex items-center justify-center text-danger/70 hover:text-danger hover:bg-danger/10 transition-colors"
                                     >
                                       <Trash2 className="w-3 h-3" />
                                     </button>
                                   </div>
                                 </div>
 
-                                <div className="flex justify-between items-center text-xs pt-1 border-t border-indigo-500/10">
-                                  <span className="text-muted-foreground font-black uppercase">DATA:</span>
+                                <div className="flex justify-between items-center text-xs pt-1 border-t border-info/10">
+                                  <span className="text-muted-foreground font-bold uppercase">DATA:</span>
                                   <span className="font-mono font-bold text-foreground">{formatDate(e.data)}</span>
                                 </div>
 
                                 {e.nomePagador && e.nomePagador.trim() !== '' && (
-                                  <div className="pt-1 border-t border-indigo-500/10 text-xs">
-                                    <span className="text-muted-foreground font-black uppercase block">PAGADOR:</span>
-                                    <span className="font-black text-foreground uppercase break-words leading-tight block mt-0.5">
+                                  <div className="pt-1 border-t border-info/10 text-xs">
+                                    <span className="text-muted-foreground font-bold uppercase block">PAGADOR:</span>
+                                    <span className="font-bold text-foreground uppercase break-words leading-tight block mt-0.5">
                                       {e.nomePagador.toUpperCase()}
                                     </span>
                                   </div>
@@ -1597,7 +1597,7 @@ export function OSViewModal({
                               <button
                                 type="button"
                                 onClick={() => setShowAllEntradas(prev => !prev)}
-                                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center justify-center w-full py-1 cursor-pointer transition-colors"
+                                className="text-xs font-bold text-info hover:underline flex items-center justify-center w-full py-1 cursor-pointer transition-colors"
                               >
                                 {showAllEntradas
                                   ? 'Ver menos'
@@ -1612,7 +1612,7 @@ export function OSViewModal({
                         )}
 
                         {/* Lista de O.S. do Grupo */}
-                        <div className="space-y-1.5 pt-2.5 border-t border-dashed border-neutral-200 dark:border-neutral-800 text-xs">
+                        <div className="space-y-1.5 pt-2.5 border-t border-dashed border-border text-xs">
                           {groupedPayment.osIds.map(osId => {
                             const groupOs = orders.find(o => o.id === osId);
                             const netVal = groupOs ? getOrderNetValue(groupOs) : 0;
@@ -1627,18 +1627,18 @@ export function OSViewModal({
                             );
                           })}
 
-                          <div className="flex justify-end items-center gap-1.5 pt-2 text-xs font-black text-foreground text-right whitespace-nowrap">
+                          <div className="flex justify-end items-center gap-1.5 pt-2 text-xs font-bold text-foreground text-right whitespace-nowrap">
                             <span>TOTAL DO GRUPO</span>
                             <span className="font-mono">{groupedPayment.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                           </div>
 
                           {groupedPayment.status !== 'pago' ? (
-                            <div className="flex justify-end items-center gap-1.5 text-xs font-black text-amber-500 dark:text-amber-400 text-right whitespace-nowrap">
+                            <div className="flex justify-end items-center gap-1.5 text-xs font-bold text-warning text-right whitespace-nowrap">
                               <span>RESTANTE (SALDO)</span>
                               <span className="font-mono">{Math.max(0, groupedPayment.valorTotal - groupedPayment.valorPago).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                             </div>
                           ) : (
-                            <div className="flex justify-end items-center text-xs font-black text-green-600 dark:text-green-400 text-right whitespace-nowrap">
+                            <div className="flex justify-end items-center text-xs font-bold text-success text-right whitespace-nowrap">
                               <span>PAGAMENTO QUITADO</span>
                             </div>
                           )}
@@ -1653,7 +1653,7 @@ export function OSViewModal({
                                 totalValue: groupedPayment.valorTotal,
                                 paidElsewhere: groupedPayment.valorPago,
                               })}
-                              className="w-full max-w-[220px] h-8 solid-btn font-black text-xs uppercase tracking-wider gap-1.5 shadow-sm rounded-lg cursor-pointer"
+                              className="w-full max-w-[220px] h-8 solid-btn font-bold text-xs uppercase tracking-wider gap-1.5 shadow-sm rounded-lg cursor-pointer"
                             >
                               <CreditCard className="w-3.5 h-3.5 stroke-[2.5]" />
                               NOVA ENTRADA NO GRUPO
@@ -1667,8 +1667,8 @@ export function OSViewModal({
                       {/* ═══ NÃO PAGO ═══ */}
                       {order.paymentStatus === 'Não Pago' && (
                         <div className="space-y-2 text-center py-3">
-                          <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 block">SITUAÇÃO</span>
-                          <span className="text-xs font-bold text-[#FF5A5F] bg-[#FF5A5F]/10 border border-[#FF5A5F]/20 px-3 py-1 rounded-full inline-block">
+                          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 block">SITUAÇÃO</span>
+                          <span className="text-xs font-bold text-danger bg-danger/10 border border-danger/20 px-3 py-1 rounded-full inline-block">
                             AGUARDANDO PAGAMENTO
                           </span>
                         </div>
@@ -1676,12 +1676,12 @@ export function OSViewModal({
 
                       {/* ═══ ENTRADA / PARCIAL ═══ */}
                       {order.paymentStatus === 'Entrada' && (
-                        <div className="bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 space-y-2.5 animate-in fade-in duration-200">
+                        <div className="bg-info/5 dark:bg-info/10 border border-info/20 rounded-xl p-3 space-y-2.5 animate-in fade-in duration-200">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs uppercase tracking-widest text-blue-600 dark:text-blue-400 font-black">
+                            <span className="text-xs uppercase tracking-wider text-info font-bold">
                               STATUS DO PAGAMENTO
                             </span>
-                            <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-xs font-black tracking-widest uppercase animate-pulse">
+                            <Badge variant="outline" className="bg-info/10 text-info border-info/20 text-xs font-bold tracking-wider uppercase animate-pulse">
                               PAGO PARCIAL
                             </Badge>
                           </div>
@@ -1695,13 +1695,13 @@ export function OSViewModal({
                                 .toUpperCase();
                               const entryAmount = parseFloat(entry.amount) || 0;
                               return (
-                                <div key={entry.id || index} className="bg-white dark:bg-zinc-950 border border-blue-500/10 dark:border-blue-500/5 rounded-lg p-2.5 space-y-1.5 shadow-xs">
-                                  <div className="flex justify-between items-center border-b border-blue-500/10 pb-1 mb-1">
-                                    <span className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                                <div key={entry.id || index} className="bg-card dark:bg-background border border-info/10 dark:border-info/5 rounded-lg p-2.5 space-y-1.5 shadow-xs">
+                                  <div className="flex justify-between items-center border-b border-info/10 pb-1 mb-1">
+                                    <span className="text-xs font-bold text-info uppercase tracking-wider">
                                       {index + 1}. {methodText}
                                     </span>
                                     <div className="flex items-center gap-1">
-                                      <span className="font-mono font-black text-blue-600 dark:text-blue-400 text-xs">
+                                      <span className="font-mono font-bold text-info text-xs">
                                         {entryAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                       </span>
                                       <button
@@ -1716,7 +1716,7 @@ export function OSViewModal({
                                           discount: order.discount || 0,
                                           showDiscount: true,
                                         })}
-                                        className="w-5 h-5 rounded flex items-center justify-center text-blue-500/70 hover:text-blue-600 hover:bg-blue-500/10 transition-colors ml-1"
+                                        className="w-5 h-5 rounded flex items-center justify-center text-info/70 hover:text-info hover:bg-info/10 transition-colors ml-1"
                                       >
                                         <Pencil className="w-3 h-3" />
                                       </button>
@@ -1724,7 +1724,7 @@ export function OSViewModal({
                                         type="button"
                                         title="Remover lançamento"
                                         onClick={() => handleIndividualDeleteEntrada(entry.id, index)}
-                                        className="w-5 h-5 rounded flex items-center justify-center text-red-500/70 hover:text-red-600 hover:bg-red-500/10 transition-colors"
+                                        className="w-5 h-5 rounded flex items-center justify-center text-danger/70 hover:text-danger hover:bg-danger/10 transition-colors"
                                       >
                                         <Trash2 className="w-3 h-3" />
                                       </button>
@@ -1732,14 +1732,14 @@ export function OSViewModal({
                                   </div>
                                   {entry.date && (
                                     <div className="flex justify-between items-center text-xs text-foreground">
-                                      <span className="text-muted-foreground uppercase font-black">DATA:</span>
+                                      <span className="text-muted-foreground uppercase font-bold">DATA:</span>
                                       <span className="font-mono font-bold">{formatDate(entry.date)}</span>
                                     </div>
                                   )}
                                   {entry.payer && entry.payer.trim() && (
-                                    <div className="flex flex-col gap-0.5 text-xs pt-1 border-t border-dashed border-blue-500/5 mt-1">
-                                      <span className="text-muted-foreground uppercase font-black">PAGADOR:</span>
-                                      <span className="font-black uppercase break-words leading-tight mt-0.5">
+                                    <div className="flex flex-col gap-0.5 text-xs pt-1 border-t border-dashed border-info/5 mt-1">
+                                      <span className="text-muted-foreground uppercase font-bold">PAGADOR:</span>
+                                      <span className="font-bold uppercase break-words leading-tight mt-0.5">
                                         {entry.payer.toUpperCase()}
                                       </span>
                                     </div>
@@ -1753,12 +1753,12 @@ export function OSViewModal({
 
                       {/* ═══ PAGO (INTEGRAL OU DUAS ETAPAS) ═══ */}
                       {order.paymentStatus === 'Pago' && (
-                        <div className="bg-green-500/5 dark:bg-green-500/10 border border-green-500/20 rounded-xl p-3 space-y-2.5 animate-in fade-in duration-200">
+                        <div className="bg-success/5 dark:bg-success/10 border border-success/20 rounded-xl p-3 space-y-2.5 animate-in fade-in duration-200">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs uppercase tracking-widest text-green-600 dark:text-green-400 font-black">
+                            <span className="text-xs uppercase tracking-wider text-success font-bold">
                               STATUS DO PAGAMENTO
                             </span>
-                            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 text-xs font-black tracking-widest uppercase">
+                            <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-xs font-bold tracking-wider uppercase">
                               TOTAL QUITADO
                             </Badge>
                           </div>
@@ -1772,13 +1772,13 @@ export function OSViewModal({
                                 .toUpperCase();
                               const entryAmount = parseFloat(entry.amount) || 0;
                               return (
-                                <div key={entry.id || index} className="bg-white dark:bg-zinc-950 border border-green-500/10 dark:border-green-500/5 rounded-lg p-2.5 space-y-1.5 shadow-xs">
-                                  <div className="flex justify-between items-center border-b border-green-500/10 pb-1 mb-1">
-                                    <span className="text-xs font-black text-green-600 dark:text-green-400 uppercase tracking-wider">
+                                <div key={entry.id || index} className="bg-card dark:bg-background border border-success/10 dark:border-success/5 rounded-lg p-2.5 space-y-1.5 shadow-xs">
+                                  <div className="flex justify-between items-center border-b border-success/10 pb-1 mb-1">
+                                    <span className="text-xs font-bold text-success uppercase tracking-wider">
                                       {index + 1}. {methodText}
                                     </span>
                                     <div className="flex items-center gap-1">
-                                      <span className="font-mono font-black text-green-600 dark:text-green-400 text-xs">
+                                      <span className="font-mono font-bold text-success text-xs">
                                         {entryAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                       </span>
                                       <button
@@ -1793,7 +1793,7 @@ export function OSViewModal({
                                           discount: order.discount || 0,
                                           showDiscount: true,
                                         })}
-                                        className="w-5 h-5 rounded flex items-center justify-center text-green-500/70 hover:text-green-600 hover:bg-green-500/10 transition-colors ml-1"
+                                        className="w-5 h-5 rounded flex items-center justify-center text-success/70 hover:text-success hover:bg-success/10 transition-colors ml-1"
                                       >
                                         <Pencil className="w-3 h-3" />
                                       </button>
@@ -1801,7 +1801,7 @@ export function OSViewModal({
                                         type="button"
                                         title="Remover lançamento"
                                         onClick={() => handleIndividualDeleteEntrada(entry.id, index)}
-                                        className="w-5 h-5 rounded flex items-center justify-center text-red-500/70 hover:text-red-600 hover:bg-red-500/10 transition-colors"
+                                        className="w-5 h-5 rounded flex items-center justify-center text-danger/70 hover:text-danger hover:bg-danger/10 transition-colors"
                                       >
                                         <Trash2 className="w-3 h-3" />
                                       </button>
@@ -1809,14 +1809,14 @@ export function OSViewModal({
                                   </div>
                                   {entry.date && (
                                     <div className="flex justify-between items-center text-xs text-foreground">
-                                      <span className="text-muted-foreground uppercase font-black">DATA:</span>
+                                      <span className="text-muted-foreground uppercase font-bold">DATA:</span>
                                       <span className="font-mono font-bold">{formatDate(entry.date)}</span>
                                     </div>
                                   )}
                                   {entry.payer && entry.payer.trim() && (
-                                    <div className="flex flex-col gap-0.5 text-xs pt-1 border-t border-dashed border-green-500/5 mt-1">
-                                      <span className="text-muted-foreground uppercase font-black">PAGADOR:</span>
-                                      <span className="font-black uppercase break-words leading-tight mt-0.5">
+                                    <div className="flex flex-col gap-0.5 text-xs pt-1 border-t border-dashed border-success/5 mt-1">
+                                      <span className="text-muted-foreground uppercase font-bold">PAGADOR:</span>
+                                      <span className="font-bold uppercase break-words leading-tight mt-0.5">
                                         {entry.payer.toUpperCase()}
                                       </span>
                                     </div>
@@ -1842,20 +1842,20 @@ export function OSViewModal({
                     {order.discount && Number(order.discount) > 0 ? (
                       <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground">
                         <span>Desconto</span>
-                        <span className="font-mono text-amber-500 dark:text-amber-400">
+                        <span className="font-mono text-warning">
                           {order.discount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                         </span>
                       </div>
                     ) : null}
-                    <hr className="border-neutral-300 dark:border-neutral-800 my-0.5" />
+                    <hr className="border-border my-0.5" />
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-black uppercase tracking-widest text-foreground">TOTAL FINAL</span>
-                      <span className="text-2xl font-black font-mono text-foreground tracking-tight">
+                      <span className="text-sm font-bold uppercase tracking-wider text-foreground">TOTAL FINAL</span>
+                      <span className="text-2xl font-bold font-mono text-foreground tracking-tight">
                         {isEditing ? editNetValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : order.netValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                       </span>
                     </div>
                     {order.paymentStatus === 'Entrada' && getEntries().length > 0 && (
-                      <div className="flex justify-between items-center text-xs font-black text-amber-500 pt-0.5">
+                      <div className="flex justify-between items-center text-xs font-bold text-warning pt-0.5">
                         <span className="uppercase tracking-wider">Restante (Saldo)</span>
                         <span className="font-mono">
                           {Math.max(0, (isEditing ? editNetValue : order.netValue) - getEntries().reduce((acc: number, curr: any) => acc + (parseFloat(curr.amount) || 0), 0)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
@@ -1904,7 +1904,7 @@ export function OSViewModal({
           </div>
 
           {/* ═══ FOOTER ═══ */}
-          <div className="shrink-0 p-5 border-t border-neutral-300 dark:border-neutral-800 bg-card print:hidden">
+          <div className="shrink-0 p-5 border-t border-border bg-card print:hidden">
             <div className="flex items-center justify-between">
               <Button
                 variant="ghost"
@@ -1926,7 +1926,7 @@ export function OSViewModal({
                     onClose();
                   }
                 }}
-                className="h-9 px-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 gap-2 text-sm font-semibold disabled:opacity-50"
+                className="h-9 px-3 rounded-lg text-danger hover:bg-danger/10 gap-2 text-sm font-semibold disabled:opacity-50"
               >
                 <Trash2 className="w-4 h-4 stroke-[2]" /> Excluir O.S.
               </Button>
@@ -1946,7 +1946,7 @@ export function OSViewModal({
                     size="sm"
                     disabled={isEditingStatus}
                     onClick={() => order && onEdit?.(order)}
-                    className="h-9 px-3 rounded-lg border-neutral-300 dark:border-neutral-800 bg-background hover:bg-secondary text-foreground gap-2 text-sm font-semibold disabled:opacity-50"
+                    className="h-9 px-3 rounded-lg border-border bg-background hover:bg-secondary text-foreground gap-2 text-sm font-semibold disabled:opacity-50"
                   >
                     <Edit className="w-4 h-4 stroke-[2]" /> Editar O.S.
                   </Button>
@@ -2046,24 +2046,24 @@ export function OSViewModal({
           <Dialog open={isStatusConfirmOpen} onOpenChange={setIsStatusConfirmOpen}>
             <DialogContent
               showCloseButton={false}
-              className="max-w-[340px] p-6 bg-card border border-neutral-300 dark:border-neutral-800 rounded-2xl shadow-2xl flex flex-col gap-4 outline-none"
+              className="max-w-[340px] p-6 bg-card border border-border rounded-xl shadow-2xl flex flex-col gap-4 outline-none"
               finalFocus={false}
             >
               <div className="space-y-1.5">
-                <h3 className="text-sm font-black text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" /> Status Incompleto
+                <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-warning shrink-0" /> Status Incompleto
                 </h3>
                 <p className="text-xs text-muted-foreground font-semibold leading-relaxed">
                   Esta O.S. está com o status <strong className="text-foreground">{getStatusOptionLabel(order.serviceStatus)}</strong>. Para concluir, o status precisa estar como <strong className="text-foreground">PRONTO</strong>.
                 </p>
               </div>
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
                 <Button
                   variant="outline"
                   size="sm"
                   disabled={isSubmittingPayment}
                   onClick={() => setIsStatusConfirmOpen(false)}
-                  className="h-8 px-3 rounded-md text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background border-neutral-300 dark:border-neutral-800 disabled:opacity-50"
+                  className="h-8 px-3 rounded-md text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background border-border disabled:opacity-50"
                 >
                   Cancelar
                 </Button>
@@ -2071,7 +2071,7 @@ export function OSViewModal({
                   size="sm"
                   disabled={isSubmittingPayment}
                   onClick={confirmStatusAndConcluir}
-                  className="h-8 px-3 rounded-md solid-btn font-black text-xs uppercase tracking-wider shadow-sm disabled:opacity-50"
+                  className="h-8 px-3 rounded-md solid-btn font-bold text-xs uppercase tracking-wider shadow-sm disabled:opacity-50"
                 >
                   {isSubmittingPayment ? 'Atualizando...' : 'Marcar como Pronto'}
                 </Button>
@@ -2084,34 +2084,34 @@ export function OSViewModal({
           <Dialog open={isConfirmingConcluir} onOpenChange={setIsConfirmingConcluir}>
             <DialogContent
               showCloseButton={false}
-              className="max-w-[320px] p-6 bg-card border border-neutral-300 dark:border-neutral-800 rounded-2xl shadow-2xl flex flex-col gap-4 outline-none"
+              className="max-w-[320px] p-6 bg-card border border-border rounded-xl shadow-2xl flex flex-col gap-4 outline-none"
               finalFocus={false}
             >
               <div className="space-y-1">
-                <h3 className="text-sm font-black text-foreground uppercase tracking-wider">Finalizar O.S.</h3>
+                <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Finalizar O.S.</h3>
                 <p className="text-xs text-muted-foreground font-semibold leading-relaxed">
                   Informe a data de finalização
                 </p>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-black text-neutral-600 dark:text-neutral-300 uppercase tracking-widest block">
+                <label className="text-xs font-bold text-muted-foreground dark:text-foreground/80 uppercase tracking-wider block">
                   DATA DE FINALIZAÇÃO
                 </label>
                 <Input
                   type="date"
                   value={concluirDate}
                   onChange={(e) => setConcluirDate(e.target.value)}
-                  className="h-9 py-1 px-2.5 rounded-lg text-xs font-bold bg-card border-neutral-300 dark:border-neutral-800 w-full text-center"
+                  className="h-9 py-1 px-2.5 rounded-lg text-xs font-bold bg-card border-border w-full text-center"
                   required
                 />
               </div>
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
                 <Button
                   variant="outline"
                   size="sm"
                   disabled={isSubmittingPayment}
                   onClick={() => setIsConfirmingConcluir(false)}
-                  className="h-8 px-3 rounded-md text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background border-neutral-300 dark:border-neutral-800 disabled:opacity-50"
+                  className="h-8 px-3 rounded-md text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground bg-background border-border disabled:opacity-50"
                 >
                   Cancelar
                 </Button>
@@ -2119,7 +2119,7 @@ export function OSViewModal({
                   size="sm"
                   disabled={!concluirDate || isSubmittingPayment}
                   onClick={confirmConcluir}
-                  className="h-8 px-3 rounded-md solid-btn font-black text-xs uppercase tracking-wider shadow-sm disabled:opacity-50"
+                  className="h-8 px-3 rounded-md solid-btn font-bold text-xs uppercase tracking-wider shadow-sm disabled:opacity-50"
                 >
                   {isSubmittingPayment ? 'Confirmando...' : 'Confirmar'}
                 </Button>
@@ -2131,9 +2131,9 @@ export function OSViewModal({
         {/* ═══ MODAL DE AGRUPAMENTO DE O.S. ═══ */}
         {isGroupModalOpen && order && (
           <Dialog open={isGroupModalOpen} onOpenChange={setIsGroupModalOpen}>
-            <DialogContent className="max-w-lg bg-card text-card-foreground p-6 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-2xl">
+            <DialogContent className="max-w-lg bg-card text-card-foreground p-6 rounded-xl border border-border shadow-2xl">
               <DialogHeader>
-                <DialogTitle className="text-base font-black uppercase tracking-wider flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
+                <DialogTitle className="text-base font-bold uppercase tracking-wider flex items-center gap-2 text-info">
                   <Layers className="w-5 h-5 stroke-[2.5]" /> AGRUPAR O.S. PARA PAGAMENTO CONJUNTO
                 </DialogTitle>
               </DialogHeader>
@@ -2163,8 +2163,8 @@ export function OSViewModal({
                         }}
                         className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
                           isChecked
-                            ? 'border-indigo-500 bg-indigo-500/10 dark:bg-indigo-500/20'
-                            : 'border-neutral-200 dark:border-neutral-800 bg-background hover:bg-secondary'
+                            ? 'border-info bg-info/10 dark:bg-info/20'
+                            : 'border-border bg-background hover:bg-secondary'
                         }`}
                       >
                         <div className="flex items-center gap-3">
@@ -2172,21 +2172,21 @@ export function OSViewModal({
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => {}}
-                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
+                            className="rounded border-border text-info focus:ring-info w-4 h-4 cursor-pointer"
                           />
                           <div>
-                            <span className="font-mono font-black text-xs block text-foreground">O.S. #{pOrder.id}</span>
+                            <span className="font-mono font-bold text-xs block text-foreground">O.S. #{pOrder.id}</span>
                             <span className="text-xs text-muted-foreground font-semibold">
                               {pOrder.motorModel} {pOrder.displacement}
                             </span>
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="font-mono font-black text-xs text-foreground block">
+                          <span className="font-mono font-bold text-xs text-foreground block">
                             {pNet.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                           </span>
                           {pOrder.discount && Number(pOrder.discount) > 0 ? (
-                            <span className="text-xs text-amber-500 font-semibold block">
+                            <span className="text-xs text-warning font-semibold block">
                               Desconto: {Number(pOrder.discount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                             </span>
                           ) : null}
@@ -2196,9 +2196,9 @@ export function OSViewModal({
                   })}
                 </div>
 
-                <div className="bg-secondary/80 p-3 rounded-lg flex justify-between items-center border border-neutral-200 dark:border-neutral-800">
-                  <span className="text-xs font-black uppercase text-muted-foreground">Valor Total do Grupo ({selectedOsForGrouping.length} O.S.):</span>
-                  <span className="text-lg font-black font-mono text-indigo-600 dark:text-indigo-400">
+                <div className="bg-secondary/80 p-3 rounded-lg flex justify-between items-center border border-border">
+                  <span className="text-xs font-bold uppercase text-muted-foreground">Valor Total do Grupo ({selectedOsForGrouping.length} O.S.):</span>
+                  <span className="text-lg font-bold font-mono text-info">
                     {pendingClientOrders
                       .filter(o => selectedOsForGrouping.includes(o.id))
                       .reduce((sum, o) => sum + getOrderNetValue(o), 0)
@@ -2207,7 +2207,7 @@ export function OSViewModal({
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
                 {selectedOsForGrouping.length < 2 && (
                   <span className="mr-auto text-sm text-muted-foreground">Selecione pelo menos 2 O.S. para agrupar.</span>
                 )}
@@ -2271,15 +2271,15 @@ export function OSViewModal({
         {/* ═══ MODAL DE CONFIRMAÇÃO DE EXCLUSÃO DE O.S. AGRUPADA ═══ */}
         {isDeleteGroupedConfirmOpen && order && groupedPayment && (
           <Dialog open={isDeleteGroupedConfirmOpen} onOpenChange={setIsDeleteGroupedConfirmOpen}>
-            <DialogContent className="max-w-md bg-card border border-neutral-300 dark:border-neutral-800 p-6 rounded-2xl shadow-2xl space-y-4">
+            <DialogContent className="max-w-md bg-card border border-border p-6 rounded-xl shadow-2xl space-y-4">
               <DialogHeader>
-                <DialogTitle className="text-base font-black text-red-600 dark:text-red-400 uppercase tracking-wider flex items-center gap-2">
+                <DialogTitle className="text-base font-bold text-danger uppercase tracking-wider flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5" /> Excluir O.S. #{order.id}
                 </DialogTitle>
               </DialogHeader>
 
               <div className="space-y-3 py-1">
-                <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-lg text-red-700 dark:text-red-300 text-xs font-semibold space-y-1">
+                <div className="bg-danger/10 border border-danger/20 p-3 rounded-lg text-danger text-xs font-semibold space-y-1">
                   <p className="font-bold uppercase tracking-wider">Atenção: O.S. Pertence a um Pagamento Agrupado!</p>
                   <p className="text-xs leading-relaxed">
                     Esta O.S. faz parte de um pagamento agrupado com outras {groupedPayment.osIds.length - 1} O.S. (#{groupedPayment.osIds.filter(id => id !== order.id).join(', #')}).
@@ -2308,7 +2308,7 @@ export function OSViewModal({
                         await deleteOrder(order.id, { dissolveGroupIfOneLeft: true });
                         onClose();
                       }}
-                      className="w-full text-xs font-black uppercase tracking-wider h-9"
+                      className="w-full text-xs font-bold uppercase tracking-wider h-9"
                     >
                       DESFAZER AGRUPAMENTO E EXCLUIR O.S.
                     </Button>
@@ -2320,7 +2320,7 @@ export function OSViewModal({
                         await deleteOrder(order.id, { dissolveGroupIfOneLeft: false });
                         onClose();
                       }}
-                      className="w-full text-xs font-black uppercase tracking-wider h-9 border-indigo-500/30 text-indigo-600 dark:text-indigo-400"
+                      className="w-full text-xs font-bold uppercase tracking-wider h-9 border-info/30 text-info"
                     >
                       MANTER GRUPO REAJUSTADO E EXCLUIR O.S.
                     </Button>
@@ -2334,7 +2334,7 @@ export function OSViewModal({
                       await deleteOrder(order.id);
                       onClose();
                     }}
-                    className="w-full text-xs font-black uppercase tracking-wider h-9"
+                    className="w-full text-xs font-bold uppercase tracking-wider h-9"
                   >
                     CONFIRMAR EXCLUSÃO DA O.S.
                   </Button>
@@ -2343,7 +2343,7 @@ export function OSViewModal({
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsDeleteGroupedConfirmOpen(false)}
-                  className="w-full text-xs font-black uppercase tracking-wider h-8 text-muted-foreground"
+                  className="w-full text-xs font-bold uppercase tracking-wider h-8 text-muted-foreground"
                 >
                   CANCELAR
                 </Button>
@@ -2355,28 +2355,28 @@ export function OSViewModal({
         {/* ═══ MODAL DE DESFAZER AGRUPAMENTO DE PAGAMENTO ═══ */}
         {isDissolveModalOpen && groupedPayment && (
           <Dialog open={isDissolveModalOpen} onOpenChange={setIsDissolveModalOpen}>
-            <DialogContent className="max-w-md bg-card border border-neutral-300 dark:border-neutral-800 p-6 rounded-2xl shadow-2xl space-y-4">
+            <DialogContent className="max-w-md bg-card border border-border p-6 rounded-xl shadow-2xl space-y-4">
               <DialogHeader>
-                <DialogTitle className="text-base font-black uppercase tracking-wider flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
+                <DialogTitle className="text-base font-bold uppercase tracking-wider flex items-center gap-2 text-info">
                   <Unlink className="w-5 h-5 stroke-[2.5]" /> Desfazer Agrupamento?
                 </DialogTitle>
               </DialogHeader>
 
               <div className="space-y-3 py-1">
-                <div className="bg-secondary p-3 rounded-lg space-y-1.5 text-xs border border-neutral-200 dark:border-neutral-800">
+                <div className="bg-secondary p-3 rounded-lg space-y-1.5 text-xs border border-border">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground uppercase font-black text-xs">O.S. Incluídas:</span>
+                    <span className="text-muted-foreground uppercase font-bold text-xs">O.S. Incluídas:</span>
                     <span className="font-bold font-mono text-foreground">{groupedPayment.osIds.length} O.S. (#{groupedPayment.osIds.join(', #')})</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground uppercase font-black text-xs">Valor Total do Grupo:</span>
-                    <span className="font-mono font-black text-foreground">
+                    <span className="text-muted-foreground uppercase font-bold text-xs">Valor Total do Grupo:</span>
+                    <span className="font-mono font-bold text-foreground">
                       {groupedPayment.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground uppercase font-black text-xs">Valor Já Pago:</span>
-                    <span className="font-mono font-black text-green-600 dark:text-green-400">
+                    <span className="text-muted-foreground uppercase font-bold text-xs">Valor Já Pago:</span>
+                    <span className="font-mono font-bold text-success">
                       {groupedPayment.valorPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </span>
                   </div>
@@ -2395,7 +2395,7 @@ export function OSViewModal({
                 )}
               </div>
 
-              <div className="flex flex-col gap-2 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+              <div className="flex flex-col gap-2 pt-2 border-t border-border">
                 {groupedPayment.valorPago > 0 ? (
                   <>
                     <Button
@@ -2404,7 +2404,7 @@ export function OSViewModal({
                         setIsDissolveModalOpen(false);
                         await dissolveGroupedPayment(groupedPayment.id, { actionOnPaid: 'distribute' });
                       }}
-                      className="w-full text-xs font-black uppercase tracking-wider h-9 solid-btn"
+                      className="w-full text-xs font-bold uppercase tracking-wider h-9 solid-btn"
                     >
                       DISTRIBUIR VALOR PAGO PROPORCIONALMENTE
                     </Button>
@@ -2415,7 +2415,7 @@ export function OSViewModal({
                         setIsDissolveModalOpen(false);
                         await dissolveGroupedPayment(groupedPayment.id, { actionOnPaid: 'discard' });
                       }}
-                      className="w-full text-xs font-black uppercase tracking-wider h-9 border-amber-500/30 text-amber-600 dark:text-amber-400"
+                      className="w-full text-xs font-bold uppercase tracking-wider h-9 border-warning/30 text-warning"
                     >
                       DESCARTAR HISTÓRICO E RESETAR O.S.
                     </Button>
@@ -2428,7 +2428,7 @@ export function OSViewModal({
                       setIsDissolveModalOpen(false);
                       await dissolveGroupedPayment(groupedPayment.id, { actionOnPaid: 'discard' });
                     }}
-                    className="w-full text-xs font-black uppercase tracking-wider h-9"
+                    className="w-full text-xs font-bold uppercase tracking-wider h-9"
                   >
                     DESFAZER AGRUPAMENTO
                   </Button>
@@ -2437,7 +2437,7 @@ export function OSViewModal({
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsDissolveModalOpen(false)}
-                  className="w-full text-xs font-black uppercase tracking-wider h-8 text-muted-foreground"
+                  className="w-full text-xs font-bold uppercase tracking-wider h-8 text-muted-foreground"
                 >
                   CANCELAR
                 </Button>

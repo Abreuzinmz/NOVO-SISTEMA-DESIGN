@@ -330,7 +330,7 @@ export const PaymentMethodsGrid: React.FC<PaymentMethodsGridProps> = ({
   is2x2 = false,
 }) => {
   const methods = [
-    { key: 'pix' as const, name: 'PIX', desc: 'Imediato', icon: <PixIcon size={20} className="text-[#00ac56]" /> },
+    { key: 'pix' as const, name: 'PIX', desc: 'Imediato', icon: <PixIcon size={20} className="text-success" /> },
     { key: 'dinheiro' as const, name: 'Dinheiro', desc: 'À vista', icon: <DinheiroIcon size={22} /> },
     { key: 'debito' as const, name: 'Débito', desc: 'À vista', icon: <DebitoIcon size={24} /> },
     { key: 'credito' as const, name: 'Crédito', desc: creditoSubtitle, icon: <CreditoIcon size={24} /> },
@@ -371,7 +371,7 @@ export const PaymentMethodsGrid: React.FC<PaymentMethodsGridProps> = ({
 // ═══════════════════════════════════════════════
 
 const methodIcons: Record<PaymentMethodType, React.ReactNode> = {
-  pix: <PixIcon size={14} className="text-[#00ac56]" />,
+  pix: <PixIcon size={14} className="text-success" />,
   dinheiro: <DinheiroIcon size={16} />,
   debito: <DebitoIcon size={16} />,
   credito: <CreditoIcon size={16} />,
@@ -504,19 +504,19 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm bg-card border border-neutral-300 dark:border-neutral-800 p-0 rounded-2xl shadow-2xl overflow-hidden">
-        <DialogHeader className="px-5 pt-5 pb-3 border-b border-neutral-300 dark:border-neutral-800">
-          <DialogTitle className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-[#00ac56]" />
+      <DialogContent className="max-w-sm bg-card border border-border p-0 rounded-xl shadow-2xl overflow-hidden">
+        <DialogHeader className="px-5 pt-5 pb-3 border-b border-border">
+          <DialogTitle className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-success" />
             {title || (mode === 'edit' ? 'Editar lançamento' : 'Lançar pagamento')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="px-5 py-4 space-y-3">
           {/* Valor Bruto — sempre visível no topo */}
-          <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-secondary/40 border border-neutral-200 dark:border-neutral-800">
+          <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-secondary/40 border border-border">
             <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Valor total</span>
-            <span className="text-base font-black font-mono text-foreground">{formatBRL(totalValue)}</span>
+            <span className="text-base font-bold font-mono text-foreground">{formatBRL(totalValue)}</span>
           </div>
           {paidElsewhere > 0 && (
             <div className="flex items-center justify-between px-3 text-sm">
@@ -526,15 +526,15 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
           )}
           <div className="flex items-center justify-between px-3 text-sm">
             <span className="text-muted-foreground">Falta pagar</span>
-            <span className="font-mono font-bold text-red-600 dark:text-red-400">{formatBRL(remainingBalance)}</span>
+            <span className="font-mono font-bold text-danger">{formatBRL(remainingBalance)}</span>
           </div>
 
           {showDiscount && (
-            <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-neutral-200 dark:border-neutral-800">
-              <label className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground shrink-0">
-                <Percent className="w-3.5 h-3.5 text-amber-500" /> Desconto
+            <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-border">
+              <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+                <Percent className="w-3.5 h-3.5 text-warning" /> Desconto
               </label>
-              <div className="flex items-center gap-1 h-8 px-2.5 rounded-lg border border-neutral-300 dark:border-neutral-800 bg-card">
+              <div className="flex items-center gap-1 h-8 px-2.5 rounded-lg border border-border bg-card">
                 <span className="text-xs font-bold text-muted-foreground">R$</span>
                 <input
                   type="text"
@@ -542,7 +542,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
                   value={discountInput}
                   onChange={e => setDiscountInput(e.target.value)}
                   placeholder="0,00"
-                  className="w-20 bg-transparent text-right font-mono text-sm font-black outline-none text-amber-500 dark:text-amber-400"
+                  className="w-20 bg-transparent text-right font-mono text-sm font-bold outline-none text-warning"
                 />
               </div>
             </div>
@@ -561,9 +561,9 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
               type="button"
               onClick={() => handleSelectMode('entrada')}
               className={cn(
-                'h-7 rounded-md text-xs font-black uppercase tracking-wider transition-colors',
+                'h-7 rounded-md text-xs font-bold uppercase tracking-wider transition-colors',
                 paymentMode === 'entrada'
-                  ? 'bg-amber-500 text-white shadow-sm'
+                  ? 'bg-warning text-warning-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -573,9 +573,9 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
               type="button"
               onClick={() => handleSelectMode('quitado')}
               className={cn(
-                'h-7 rounded-md text-xs font-black uppercase tracking-wider transition-colors',
+                'h-7 rounded-md text-xs font-bold uppercase tracking-wider transition-colors',
                 paymentMode === 'quitado'
-                  ? 'bg-green-500 text-white shadow-sm'
+                  ? 'bg-success text-success-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -583,12 +583,12 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
             </button>
           </div>
 
-          <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-neutral-200 dark:border-neutral-800">
-            <label className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground shrink-0">
-              <DollarSign className="w-3.5 h-3.5 text-[#00ac56]" /> Valor
+          <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-border">
+            <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+              <DollarSign className="w-3.5 h-3.5 text-success" /> Valor
             </label>
             <div className={cn(
-              'flex items-center gap-1 h-8 px-2.5 rounded-lg border border-neutral-300 dark:border-neutral-800',
+              'flex items-center gap-1 h-8 px-2.5 rounded-lg border border-border',
               paymentMode === 'quitado' ? 'bg-secondary/50' : 'bg-card'
             )}>
               <span className="text-xs font-bold text-muted-foreground">R$</span>
@@ -600,21 +600,21 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
                 placeholder="0,00"
-                className="w-20 bg-transparent text-right font-mono text-sm font-black outline-none text-foreground disabled:cursor-not-allowed disabled:opacity-70"
+                className="w-20 bg-transparent text-right font-mono text-sm font-bold outline-none text-foreground disabled:cursor-not-allowed disabled:opacity-70"
               />
             </div>
           </div>
 
           {paymentMode === 'entrada' && parsedAmount > 0 && (
-            <div className="flex items-center justify-end gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 -mt-1.5">
+            <div className="flex items-center justify-end gap-1.5 text-xs font-bold text-warning -mt-1.5">
               <span className="uppercase tracking-wider">Restante Após Entrada</span>
               <span className="font-mono">{formatBRL(afterEntryBalance)}</span>
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-neutral-200 dark:border-neutral-800">
-            <label className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground shrink-0">
-              <CalendarIcon className="w-3.5 h-3.5 text-[#00ac56]" /> Data
+          <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-border">
+            <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+              <CalendarIcon className="w-3.5 h-3.5 text-success" /> Data
             </label>
             <div className="flex items-center gap-1.5 shrink-0">
               <div className="w-[132px] shrink-0">
@@ -622,25 +622,25 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
                   value={date}
                   onChange={(dateStr) => setDate(dateStr)}
                   align="right"
-                  className="h-8 rounded-lg text-xs font-bold bg-card border-neutral-300 dark:border-neutral-800 px-2 pr-8"
+                  className="h-8 rounded-lg text-xs font-bold bg-card border-border px-2 pr-8"
                 />
               </div>
               <button
                 type="button"
                 onClick={() => setDate(getTodayDateString())}
-                className="h-8 px-1.5 rounded-lg border border-neutral-300 dark:border-neutral-800 text-xs font-black uppercase tracking-wide text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors shrink-0"
+                className="h-8 px-1.5 rounded-lg border border-border text-xs font-bold uppercase tracking-wide text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors shrink-0"
               >
                 Hoje
               </button>
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-neutral-200 dark:border-neutral-800">
-            <label className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground shrink-0">
-              <CreditCard className="w-3.5 h-3.5 text-[#00ac56]" /> Forma de pagamento
+          <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-border">
+            <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+              <CreditCard className="w-3.5 h-3.5 text-success" /> Forma de pagamento
             </label>
             <Select value={method} onValueChange={(val) => setMethod(val as PaymentMethodType | null)}>
-              <SelectTrigger className="h-8 w-[140px] rounded-lg text-xs font-bold bg-card border-neutral-300 dark:border-neutral-800 justify-between gap-1.5">
+              <SelectTrigger className="h-8 w-[140px] rounded-lg text-xs font-bold bg-card border-border justify-between gap-1.5">
                 <SelectValue placeholder="Selecione">
                   {(val: PaymentMethodType | null) => val ? (
                     <span className="flex items-center gap-1.5">
@@ -651,7 +651,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
                   )}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent className="z-[9999] bg-white dark:bg-[#0A0A0C] border border-neutral-300 dark:border-neutral-800 rounded-lg shadow-2xl">
+              <SelectContent className="z-[9999] bg-card dark:bg-background border border-border rounded-lg shadow-2xl">
                 {(['pix', 'dinheiro', 'debito', 'credito'] as PaymentMethodType[]).map(key => (
                   <SelectItem key={key} value={key}>
                     <span className="flex items-center gap-2">
@@ -664,15 +664,15 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
           </div>
 
           {method === 'credito' && (
-            <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-neutral-200 dark:border-neutral-800 animate-in fade-in duration-200">
-              <label className="text-xs font-black uppercase tracking-wider text-muted-foreground shrink-0">
+            <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-border animate-in fade-in duration-200">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
                 Parcelas
               </label>
               <Select value={installment} onValueChange={(val) => val && setInstallment(val)}>
-                <SelectTrigger className="h-8 w-[140px] rounded-lg text-xs font-bold bg-card border-neutral-300 dark:border-neutral-800 justify-between gap-1.5">
+                <SelectTrigger className="h-8 w-[140px] rounded-lg text-xs font-bold bg-card border-border justify-between gap-1.5">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="z-[9999] bg-white dark:bg-[#0A0A0C] border border-neutral-300 dark:border-neutral-800 rounded-lg shadow-2xl">
+                <SelectContent className="z-[9999] bg-card dark:bg-background border border-border rounded-lg shadow-2xl">
                   {['À vista', '2x', '3x', '4x', '5x', '6x', '7x', '8x', '9x', '10x', '11x', '12x'].map(opt => (
                     <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                   ))}
@@ -683,8 +683,8 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
 
           {method === 'pix' && (
             <div className="space-y-1.5 pt-1 animate-in fade-in duration-200">
-              <label className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground">
-                <User className="w-3.5 h-3.5 text-[#00ac56]" /> Pago por
+              <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <User className="w-3.5 h-3.5 text-success" /> Pago por
               </label>
               <div className="flex items-center gap-2">
                 <input
@@ -692,12 +692,12 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
                   value={payer}
                   onChange={e => setPayer(e.target.value.toUpperCase())}
                   placeholder="Nome de quem pagou"
-                  className="flex-1 h-8 px-2.5 rounded-lg border border-neutral-300 dark:border-neutral-800 bg-card text-xs font-semibold uppercase placeholder:normal-case outline-none focus:border-[#00ac56] transition-colors"
+                  className="flex-1 h-8 px-2.5 rounded-lg border border-border bg-card text-xs font-semibold uppercase placeholder:normal-case outline-none focus:border-success transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setPayer((clientName || 'CLIENTE').toUpperCase())}
-                  className="h-8 px-2.5 rounded-lg border border-neutral-300 dark:border-neutral-800 text-xs font-black uppercase tracking-wide text-muted-foreground hover:bg-secondary transition-colors shrink-0"
+                  className="h-8 px-2.5 rounded-lg border border-border text-xs font-bold uppercase tracking-wide text-muted-foreground hover:bg-secondary transition-colors shrink-0"
                 >
                   Usar Cliente
                 </button>
@@ -706,13 +706,13 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-2 p-4 border-t border-neutral-300 dark:border-neutral-800 bg-secondary/20">
+        <div className="flex items-center gap-2 p-4 border-t border-border bg-secondary/20">
           <Button
             type="button"
             variant="outline"
             disabled={busy}
             onClick={() => onOpenChange(false)}
-            className="flex-1 h-9 rounded-lg font-black text-xs uppercase tracking-wider"
+            className="flex-1 h-9 rounded-lg font-bold text-xs uppercase tracking-wider"
           >
             Cancelar
           </Button>
@@ -1083,7 +1083,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
             <span className="summary-col-title-rf">DESCONTO</span>
           </div>
           <div className="summary-box-outlined-rf font-mono flex items-center px-3">
-            <span className="text-xs font-bold text-[#64748b] dark:text-[#a1a1aa] mr-1">R$</span>
+            <span className="text-xs font-bold text-muted-foreground mr-1">R$</span>
             <input
               type="text"
               inputMode="decimal"
@@ -1091,7 +1091,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
               onChange={e => handleDescontoInputChange(e.target.value)}
               onBlur={handleDescontoBlur}
               placeholder="0,00"
-              className="w-full bg-transparent border-none outline-none font-mono text-sm font-bold text-left text-[#0f172a] dark:text-[#f4f4f5]"
+              className="w-full bg-transparent border-none outline-none font-mono text-sm font-bold text-left text-foreground"
             />
           </div>
         </div>
@@ -1174,7 +1174,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                             value={pagoClientName}
                             onChange={e => setPagoClientName(e.target.value.toUpperCase())}
                             placeholder="Nome de quem pagou"
-                            className="h-[42px] px-3.5 rounded-xl border border-[#e2e8f0] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-sm font-semibold uppercase placeholder:normal-case outline-none focus:border-[#00ac56] focus:ring-2 focus:ring-[#00ac56]/20 transition-all"
+                            className="h-[42px] px-3.5 rounded-xl border border-border bg-card text-sm font-semibold uppercase placeholder:normal-case outline-none focus:border-success focus:ring-2 focus:ring-success/20 transition-all"
                           />
                         </div>
                       )}
@@ -1189,13 +1189,13 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                               value={pagoDate}
                               onChange={(dateStr) => setPagoDate(dateStr)}
                               align="right"
-                              className="h-[42px] rounded-xl border-[#e2e8f0] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-sm font-bold"
+                              className="h-[42px] rounded-xl border-border bg-card text-sm font-bold"
                             />
                           </div>
                           <button
                             type="button"
                             onClick={() => setPagoDate(getTodayDateString())}
-                            className="h-[42px] px-3.5 rounded-xl border border-[#e2e8f0] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-xs font-black uppercase tracking-wide text-[#64748b] dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors shrink-0"
+                            className="h-[42px] px-3.5 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wide text-muted-foreground dark:text-foreground/80 hover:bg-muted/60 dark:hover:bg-muted transition-colors shrink-0"
                           >
                             Hoje
                           </button>
@@ -1229,51 +1229,51 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                 </div>
               ) : (
                 /* CONFIRMED VIEW */
-                <div className="@container animate-in fade-in duration-300 w-full max-w-md mx-auto border border-neutral-200 dark:border-neutral-800 rounded-2xl bg-card overflow-hidden">
-                  <div className="flex justify-end p-2 border-b border-neutral-200 dark:border-neutral-800">
+                <div className="@container animate-in fade-in duration-300 w-full max-w-md mx-auto border border-border rounded-xl bg-card overflow-hidden">
+                  <div className="flex justify-end p-2 border-b border-border">
                     <button
                       type="button"
                       onClick={() => setIsPagoConfirmed(false)}
-                      className="h-6 px-2 rounded-full border border-neutral-300 dark:border-neutral-800 bg-card text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex items-center gap-1"
+                      className="h-6 px-2 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex items-center gap-1"
                     >
                       <Pencil className="w-3 h-3" />
-                      <span className="text-xs font-black uppercase tracking-wide">Editar Pagamento</span>
+                      <span className="text-xs font-bold uppercase tracking-wide">Editar Pagamento</span>
                     </button>
                   </div>
 
                   <div className="flex flex-col @sm:flex-row">
                     {/* Left: success illustration */}
-                    <div className="flex flex-col items-center justify-center text-center gap-1.5 p-4 @sm:w-[150px] @sm:shrink-0 border-b @sm:border-b-0 @sm:border-r border-neutral-200 dark:border-neutral-800">
-                      <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                        <div className="w-9 h-9 rounded-full bg-[#00ac56] flex items-center justify-center">
+                    <div className="flex flex-col items-center justify-center text-center gap-1.5 p-4 @sm:w-[150px] @sm:shrink-0 border-b @sm:border-b-0 @sm:border-r border-border">
+                      <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
+                        <div className="w-9 h-9 rounded-full bg-success flex items-center justify-center">
                           <Check className="w-4 h-4 text-white stroke-[3]" />
                         </div>
                       </div>
-                      <h4 className="text-xs font-black text-foreground">Pagamento concluído!</h4>
+                      <h4 className="text-xs font-bold text-foreground">Pagamento concluído!</h4>
                     </div>
 
                     {/* Right: field list */}
-                    <div className="flex-1 px-4 @sm:pr-8 divide-y divide-neutral-200 dark:divide-neutral-800 min-w-0">
+                    <div className="flex-1 px-4 @sm:pr-8 divide-y divide-border min-w-0">
                       <div className="flex items-center gap-2.5 py-2.5">
                         <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center shrink-0">
                           <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
                         </div>
                         <span className="text-xs text-muted-foreground flex-1 min-w-0">Valor total pago</span>
-                        <span className="text-sm font-black font-mono text-foreground shrink-0">{formatBRL(totalValue)}</span>
+                        <span className="text-sm font-bold font-mono text-foreground shrink-0">{formatBRL(totalValue)}</span>
                       </div>
                       <div className="flex items-center gap-2.5 py-2.5">
                         <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center shrink-0">
                           <CalendarIcon className="w-3.5 h-3.5 text-muted-foreground" />
                         </div>
                         <span className="text-xs text-muted-foreground flex-1 min-w-0">Data do pagamento</span>
-                        <span className="text-xs font-black text-foreground shrink-0">{formatDateDisplay(pagoDate)}</span>
+                        <span className="text-xs font-bold text-foreground shrink-0">{formatDateDisplay(pagoDate)}</span>
                       </div>
                       <div className="flex items-center gap-2.5 py-2.5">
                         <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center shrink-0">
                           <CreditCard className="w-3.5 h-3.5 text-muted-foreground" />
                         </div>
                         <span className="text-xs text-muted-foreground flex-1 min-w-0">Forma de pagamento</span>
-                        <span className="text-xs font-black text-foreground shrink-0">
+                        <span className="text-xs font-bold text-foreground shrink-0">
                           {pagoMethod === 'pix' ? 'PIX' : pagoMethod === 'dinheiro' ? 'Dinheiro' : pagoMethod === 'debito' ? 'Débito' : `Crédito (${pagoInstallment})`}
                         </span>
                       </div>
@@ -1283,7 +1283,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                             <User className="w-3.5 h-3.5 text-muted-foreground" />
                           </div>
                           <span className="text-xs text-muted-foreground flex-1 min-w-0">Nome do pagador</span>
-                          <span className="text-xs font-black text-foreground truncate max-w-[45%]">{pagoClientName}</span>
+                          <span className="text-xs font-bold text-foreground truncate max-w-[45%]">{pagoClientName}</span>
                         </div>
                       )}
                     </div>
@@ -1312,7 +1312,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                       <div key={entry.id || index} className="lancamento-card-rf shadow-xs">
                         <div className="lancamento-header-rf">
                           <div className="lancamento-title-rf">
-                            <span className="text-black dark:text-white text-xs">●</span>
+                            <span className="text-foreground text-xs">●</span>
                             <span>LANÇAMENTO {numFormatted}</span>
                           </div>
                           <div className="flex items-center gap-1">
@@ -1338,21 +1338,21 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
 
                         <div className="lancamento-info-row-rf">
                           <span className="field-label-sm-rf">
-                            <span className="text-[#64748b] font-extrabold mr-0.5">$</span> VALOR DA ENTRADA
+                            <span className="text-muted-foreground font-extrabold mr-0.5">$</span> VALOR DA ENTRADA
                           </span>
                           <strong className="info-val-rf font-mono">{formatBRL(entry.amount)}</strong>
                         </div>
 
                         <div className="lancamento-info-row-rf">
                           <span className="field-label-sm-rf flex items-center gap-1">
-                            <CalendarIcon size={12} className="text-[#00ac56]" /> DATA
+                            <CalendarIcon size={12} className="text-success" /> DATA
                           </span>
                           <span className="info-text-rf">{formatDateDisplay(entry.date)}</span>
                         </div>
 
                         <div className="lancamento-info-row-rf">
                           <span className="field-label-sm-rf flex items-center gap-1">
-                            <CreditCard size={12} className="text-[#00ac56]" /> FORMA DE PAGTO
+                            <CreditCard size={12} className="text-success" /> FORMA DE PAGTO
                           </span>
                           <span className="info-text-rf">{entry.method}</span>
                         </div>
@@ -1360,7 +1360,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                         {isPix && entry.payer && (
                           <div className="lancamento-info-row-rf">
                             <span className="field-label-sm-rf flex items-center gap-1">
-                              <User size={12} className="text-[#00ac56]" /> PAGO POR
+                              <User size={12} className="text-success" /> PAGO POR
                             </span>
                             <span className="info-text-rf">{entry.payer}</span>
                           </div>
@@ -1409,10 +1409,10 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
               <div className="entrada-right-col-rf payment-section-box-rf">
                 {isEntradaFormLocked ? (
                   <div className="flex flex-col items-center justify-center text-center gap-2 py-10 px-4">
-                    <div className="w-11 h-11 rounded-full bg-[#00ac56]/10 flex items-center justify-center">
-                      <CheckCircle2 className="w-5 h-5 text-[#00ac56]" />
+                    <div className="w-11 h-11 rounded-full bg-success/10 flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 text-success" />
                     </div>
-                    <p className="text-xs font-black uppercase tracking-wide text-foreground">Pagamento já quitado</p>
+                    <p className="text-xs font-bold uppercase tracking-wide text-foreground">Pagamento já quitado</p>
                     <p className="text-xs text-muted-foreground leading-relaxed max-w-[220px]">
                       Para lançar um novo valor, edite ou remova um dos lançamentos ao lado.
                     </p>
@@ -1423,31 +1423,31 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                 <div className="grid grid-cols-[1fr_170px] gap-3 items-end">
                   <div className="input-field-wrapper-rf">
                     <label className="field-label-sm-rf">
-                      <span className="text-[#64748b] font-extrabold mr-0.5">$</span>{' '}
+                      <span className="text-muted-foreground font-extrabold mr-0.5">$</span>{' '}
                       {isFinalizeMode ? 'VALOR RESTANTE' : editingIndex !== null ? 'EDITAR ENTRADA' : 'VALOR DA ENTRADA'}
                     </label>
-                    <div className="flex items-center gap-1.5 h-[42px] px-3.5 rounded-xl border border-[#e2e8f0] dark:border-[#27272a] bg-white dark:bg-[#18181b] focus-within:border-[#00ac56] focus-within:ring-2 focus-within:ring-[#00ac56]/20 transition-all">
-                      <span className="text-xs font-bold text-[#64748b] shrink-0">R$</span>
+                    <div className="flex items-center gap-1.5 h-[42px] px-3.5 rounded-xl border border-border bg-card focus-within:border-success focus-within:ring-2 focus-within:ring-success/20 transition-all">
+                      <span className="text-xs font-bold text-muted-foreground shrink-0">R$</span>
                       <input
                         ref={entradaValInputRef}
                         type="text"
                         value={entradaVal}
                         onChange={e => setEntradaVal(e.target.value)}
                         placeholder="0,00"
-                        className="w-full bg-transparent border-none outline-none font-mono text-sm font-bold text-right text-[#0f172a] dark:text-[#f4f4f5]"
+                        className="w-full bg-transparent border-none outline-none font-mono text-sm font-bold text-right text-foreground"
                       />
                     </div>
                   </div>
 
                   <div className="input-field-wrapper-rf">
                     <label className="field-label-sm-rf flex items-center gap-1">
-                      <CalendarIcon size={12} className="text-[#00ac56]" /> DATA
+                      <CalendarIcon size={12} className="text-success" /> DATA
                     </label>
                     <DatePicker
                       value={entradaDate}
                       onChange={(dateStr) => setEntradaDate(dateStr)}
                       align="right"
-                      className="h-[42px] rounded-xl border-[#e2e8f0] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-xs font-bold"
+                      className="h-[42px] rounded-xl border-border bg-card text-xs font-bold"
                     />
                   </div>
                 </div>
@@ -1478,14 +1478,14 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                   <div className="space-y-2 animate-in fade-in duration-200">
                     <div className="input-field-wrapper-rf">
                       <label className="field-label-sm-rf flex items-center gap-1">
-                        <User size={12} className="text-[#00ac56]" /> PAGO POR
+                        <User size={12} className="text-success" /> PAGO POR
                       </label>
                       <input
                         type="text"
                         value={entradaClientName}
                         onChange={e => setEntradaClientName(e.target.value.toUpperCase())}
                         placeholder="Nome de quem pagou"
-                        className="h-[38px] px-3 rounded-xl border border-[#e2e8f0] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-xs font-semibold uppercase placeholder:normal-case outline-none focus:border-[#00ac56] focus:ring-2 focus:ring-[#00ac56]/20 transition-all"
+                        className="h-[38px] px-3 rounded-xl border border-border bg-card text-xs font-semibold uppercase placeholder:normal-case outline-none focus:border-success focus:ring-2 focus:ring-success/20 transition-all"
                       />
                     </div>
 

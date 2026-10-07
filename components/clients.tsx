@@ -176,7 +176,7 @@ const ClientRow = React.memo(({ index, style, filteredClients, balances, selecte
               {client.name}
             </span>
             {client.clientType === 'mechanic' ? (
-              <span className="h-[20px] text-xs font-bold bg-[#0EA5E9]/10 text-[#0EA5E9] dark:text-[#38BDF8] border border-[#0EA5E9]/20 dark:border-[#38BDF8]/20 rounded px-1.5 flex items-center justify-center flex-shrink-0">
+              <span className="h-[20px] text-xs font-bold bg-info/10 text-info border border-info/20 rounded px-1.5 flex items-center justify-center flex-shrink-0">
                 MECÂNICO
               </span>
             ) : (
@@ -204,7 +204,7 @@ const ClientRow = React.memo(({ index, style, filteredClients, balances, selecte
           {bal && bal.balance > 0 && (
             <span className="text-right leading-tight">
               <span className="block text-xs text-muted-foreground">deve</span>
-              <span className="block text-sm font-bold text-red-600 dark:text-red-400 tabular-nums">{formatBRL(bal.balance)}</span>
+              <span className="block text-sm font-bold text-danger tabular-nums">{formatBRL(bal.balance)}</span>
             </span>
           )}
           <ChevronRight className={cn(
@@ -456,7 +456,7 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
                         className={cn(
                           "flex-1 h-9 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all",
                           newClientType === 'mechanic'
-                            ? "bg-[#0EA5E9]/10 text-[#0EA5E9] dark:text-[#38BDF8] border-[#0EA5E9]/20 dark:border-[#38BDF8]/20 rounded px-1.5 flex items-center justify-center flex-shrink-0"
+                            ? "bg-info/10 text-info border-info/20 rounded px-1.5 flex items-center justify-center flex-shrink-0"
                             : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-secondary/40"
                         )}
                       >
@@ -806,7 +806,7 @@ const ClientDetailsContent = React.memo(({
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-lg font-extrabold text-foreground">{selectedClient.name}</h3>
                   {selectedClient.clientType === 'mechanic' ? (
-                    <span className="h-[22px] text-xs font-extrabold tracking-wider bg-[#0EA5E9]/10 text-[#0EA5E9] dark:text-[#38BDF8] border border-[#0EA5E9]/20 dark:border-[#38BDF8]/20 rounded-md px-2 flex items-center justify-center">MECÂNICO</span>
+                    <span className="h-[22px] text-xs font-extrabold tracking-wider bg-info/10 text-info border border-info/20 rounded-md px-2 flex items-center justify-center">MECÂNICO</span>
                   ) : (
                     <span className="h-[22px] text-xs font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border rounded-md px-2 flex items-center justify-center">CLIENTE</span>
                   )}
@@ -818,13 +818,13 @@ const ClientDetailsContent = React.memo(({
                     </span>
                   )}
                   {selectedClient.phone && <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground/90"><Phone className="w-3.5 h-3.5 text-muted-foreground stroke-[1.5]" /> {maskPhone(selectedClient.phone)}</span>}
-                  {selectedClient.whatsapp && <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground/90"><MessageCircle className="w-3.5 h-3.5 text-[#34C759] stroke-[1.5]" /> {maskPhone(selectedClient.whatsapp)}</span>}
+                  {selectedClient.whatsapp && <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground/90"><MessageCircle className="w-3.5 h-3.5 text-success stroke-[1.5]" /> {maskPhone(selectedClient.whatsapp)}</span>}
                   {selectedClient.city && <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground/90"><MapPin className="w-3.5 h-3.5 text-muted-foreground stroke-[1.5]" /> {selectedClient.city}</span>}
                   {selectedClient.clientType === 'regular' && selectedClient.defaultMechanicId && (
                     (() => {
                       const m = clients.find(c => c.id === selectedClient.defaultMechanicId);
                       return m ? (
-                        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground border border-[#0EA5E9]/20 rounded-md px-2.5 py-1 bg-[#0EA5E9]/5 text-[#0EA5E9] dark:text-[#38BDF8]">
+                        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground border border-info/20 rounded-md px-2.5 py-1 bg-info/5 text-info">
                           <User className="w-3.5 h-3.5 stroke-[1.5]" /> Mecânico Padrão: {m.name}
                         </span>
                       ) : null;
@@ -837,7 +837,7 @@ const ClientDetailsContent = React.memo(({
               <Button
                 variant="ghost"
                 onClick={() => setIsDeleteDialogOpen(true)}
-                className="h-9 px-3 rounded-lg text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10 gap-1.5"
+                className="h-9 px-3 rounded-lg text-sm text-danger hover:bg-danger/10 gap-1.5"
               >
                 <Trash2 className="w-4 h-4 stroke-[1.5]" /> Excluir
               </Button>
@@ -860,9 +860,9 @@ const ClientDetailsContent = React.memo(({
           </div>
         </div>
         <div className="p-5 grid grid-cols-2 xl:grid-cols-4 gap-3">
-          <div className={cn("p-3 rounded-lg border", openBalance > 0 ? "bg-red-500/5 border-red-500/30" : "bg-secondary/15 border-border/80")}>
+          <div className={cn("p-3 rounded-lg border", openBalance > 0 ? "bg-danger/5 border-danger/30" : "bg-secondary/15 border-border/80")}>
             <p className="text-xs font-semibold text-muted-foreground mb-0.5">Em aberto</p>
-            <p className={cn("text-lg font-extrabold flex items-center gap-1.5 tabular-nums", openBalance > 0 ? "text-red-600 dark:text-red-400" : "text-foreground")}>
+            <p className={cn("text-lg font-extrabold flex items-center gap-1.5 tabular-nums", openBalance > 0 ? "text-danger" : "text-foreground")}>
               <Wallet className="w-4 h-4 stroke-[1.5]" />
               {formatBRL(openBalance)}
             </p>
@@ -876,14 +876,14 @@ const ClientDetailsContent = React.memo(({
           </div>
           <div className="p-3 rounded-lg bg-secondary/15 border border-border/80">
             <p className="text-xs font-semibold text-muted-foreground mb-0.5">Total em serviços</p>
-            <p className="text-lg font-extrabold text-[#34C759] flex items-center gap-1.5">
+            <p className="text-lg font-extrabold text-success flex items-center gap-1.5">
               <TrendingUp className="w-4 h-4 stroke-[1.5]" />
               {totalInvestment.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
             </p>
           </div>
           <div className="p-3 rounded-lg bg-secondary/15 border border-border/80">
             <p className="text-xs font-semibold text-muted-foreground mb-0.5">O.S. abertas</p>
-            <p className="text-lg font-extrabold text-amber-600 dark:text-amber-400">
+            <p className="text-lg font-extrabold text-warning">
               {activeOrdersCount}
             </p>
           </div>
@@ -993,7 +993,7 @@ const ClientDetailsContent = React.memo(({
                           <div className="flex flex-col items-start gap-0.5">
                             <PaymentBadge situation={p.situation} grouped={!!group} />
                             {p.situation !== 'pago' && (
-                              <span className="text-xs font-semibold text-red-600 dark:text-red-400 whitespace-nowrap">falta {formatBRL(p.balance)}{group ? ' (grupo)' : ''}</span>
+                              <span className="text-xs font-semibold text-danger whitespace-nowrap">falta {formatBRL(p.balance)}{group ? ' (grupo)' : ''}</span>
                             )}
                           </div>
                         );
@@ -1015,7 +1015,7 @@ const ClientDetailsContent = React.memo(({
         <DialogContent className="sm:max-w-[450px] rounded-lg bg-popover border-border">
           <DialogHeader>
             <DialogTitle className="text-md font-extrabold flex items-center gap-2 text-foreground">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
+              <AlertTriangle className="w-5 h-5 text-danger" />
               Excluir Cliente
             </DialogTitle>
           </DialogHeader>
@@ -1024,8 +1024,8 @@ const ClientDetailsContent = React.memo(({
               Tem certeza que deseja excluir o cliente <span className="font-bold text-foreground">{selectedClient?.name}</span>?
             </p>
             {clientOrders.length > 0 && (
-              <div className="p-3 rounded-lg bg-[#FF5A5F]/5 border border-[#FF5A5F]/20 space-y-1">
-                <div className="flex items-center gap-1.5 text-[#FF5A5F] font-bold text-xs">
+              <div className="p-3 rounded-lg bg-danger/5 border border-danger/20 space-y-1">
+                <div className="flex items-center gap-1.5 text-danger font-bold text-xs">
                   <AlertTriangle className="w-3.5 h-3.5" />
                   Cliente possui {clientOrders.length} O.S. vinculada(s)
                 </div>
@@ -1046,7 +1046,7 @@ const ClientDetailsContent = React.memo(({
                 await deleteClient(selectedClient.id);
                 setIsDeleteDialogOpen(false);
               }}
-              className="bg-[#FF5A5F] hover:bg-[#FF5A5F]/90 text-white font-bold rounded-lg text-xs h-9 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-danger hover:bg-danger/90 text-danger-foreground font-bold rounded-lg text-xs h-9 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {clientOrders.length > 0 ? 'Impossível Excluir' : 'Excluir Cliente'}
             </Button>
@@ -1113,7 +1113,7 @@ const ClientDetailsContent = React.memo(({
                     className={cn(
                       "flex-1 h-9 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all",
                       editClientType === 'mechanic'
-                        ? "bg-[#0EA5E9]/10 text-[#0EA5E9] dark:text-[#38BDF8] border-[#0EA5E9]/30 dark:border-[#38BDF8]/30"
+                        ? "bg-info/10 text-info border-info/30"
                         : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-secondary/40"
                     )}
                   >
@@ -1196,7 +1196,7 @@ const ClientDetailsContent = React.memo(({
                   setIsEditModalOpen(false);
                   setIsDeleteDialogOpen(true);
                 }}
-                className="text-[#FF5A5F] hover:text-[#FF5A5F]/90 hover:bg-[#FF5A5F]/10 rounded-lg text-xs h-9 font-bold gap-1.5"
+                className="text-danger hover:text-danger/90 hover:bg-danger/10 rounded-lg text-xs h-9 font-bold gap-1.5"
               >
                 <Trash2 className="w-3.5 h-3.5 stroke-[1.5]" />
                 Excluir Cliente

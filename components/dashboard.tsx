@@ -110,17 +110,17 @@ const DashboardOrderRow = React.memo(({
       className={cn(
         "relative group rounded-lg border transition-colors duration-150 cursor-pointer",
         "grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_172px_124px_32px] xl:grid-cols-[88px_minmax(0,1.6fr)_minmax(0,1.3fr)_104px_176px_150px_40px] gap-x-3 items-center px-4 py-2.5 min-h-[56px]",
-        "dark:bg-[#16161a] dark:border-[#27272a]/40 dark:hover:bg-[#1c1c21]",
-        "bg-white border-[#e4e4e7]/70 hover:bg-[#f4f4f5]/70"
+        "dark:bg-card dark:border-border/40 dark:hover:bg-muted",
+        "bg-card border-border/70 hover:bg-muted/70"
       )}
     >
       {/* Nº O.S. */}
       <div className="min-w-0">
-        <div className="font-mono font-black text-base text-foreground tabular-nums">
+        <div className="font-mono font-bold text-base text-foreground tabular-nums">
           #{order.osNumber || order.id}
         </div>
         {arrival && (
-          <div className={cn("xl:hidden text-xs font-semibold", arrival.days >= 15 ? "text-red-600 dark:text-red-400" : arrival.days >= 7 ? "text-yellow-700 dark:text-yellow-400" : "text-muted-foreground")}>
+          <div className={cn("xl:hidden text-xs font-semibold", arrival.days >= 15 ? "text-danger" : arrival.days >= 7 ? "text-warning" : "text-muted-foreground")}>
             {arrival.label}
           </div>
         )}
@@ -159,7 +159,7 @@ const DashboardOrderRow = React.memo(({
       <div className="hidden xl:block text-sm leading-tight">
         {arrival ? (
           <>
-            <div className={cn("font-semibold", arrival.days >= 15 ? "text-red-600 dark:text-red-400" : arrival.days >= 7 ? "text-yellow-700 dark:text-yellow-400" : "text-foreground")}>
+            <div className={cn("font-semibold", arrival.days >= 15 ? "text-danger" : arrival.days >= 7 ? "text-warning" : "text-foreground")}>
               {arrival.label}
             </div>
             <div className="text-xs text-muted-foreground tabular-nums">
@@ -181,13 +181,13 @@ const DashboardOrderRow = React.memo(({
           >
             <ServiceStatusBadge status={order.serviceStatus} withMenu />
           </SelectTrigger>
-          <SelectContent className="z-[9999] bg-white dark:bg-[#0A0A0C] border border-border/50 dark:border-white/[0.08] rounded-lg shadow-2xl min-w-[180px] w-auto p-1.5">
+          <SelectContent className="z-[9999] bg-card dark:bg-background border border-border/50 dark:border-border rounded-lg shadow-2xl min-w-[180px] w-auto p-1.5">
             {(['Na Fila', 'Em Andamento', 'Aguardando Peça', 'Pronto', 'Levou'] as ServiceStatus[]).map((s) => (
-              <SelectItem key={s} value={s} className="rounded-md py-2 px-2 focus:bg-primary/5 dark:focus:bg-white/[0.06] cursor-pointer">
+              <SelectItem key={s} value={s} className="rounded-md py-2 px-2 focus:bg-primary/5 dark:focus:bg-foreground/[0.06] cursor-pointer">
                 <ServiceStatusBadge status={s} />
               </SelectItem>
             ))}
-            <SelectItem value="Finalizado / Entregue" className="rounded-md py-2 px-2 focus:bg-primary/5 dark:focus:bg-white/[0.06] cursor-pointer">
+            <SelectItem value="Finalizado / Entregue" className="rounded-md py-2 px-2 focus:bg-primary/5 dark:focus:bg-foreground/[0.06] cursor-pointer">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Finalizar O.S.
               </span>
@@ -208,7 +208,7 @@ const DashboardOrderRow = React.memo(({
       <div className="flex flex-col items-start gap-0.5">
         <PaymentBadge situation={payment.situation} grouped={!!groupedPayment} />
         <span
-          className={cn("text-xs tabular-nums whitespace-nowrap", payment.situation === 'pago' ? "text-muted-foreground" : "font-semibold text-red-600 dark:text-red-400")}
+          className={cn("text-xs tabular-nums whitespace-nowrap", payment.situation === 'pago' ? "text-muted-foreground" : "font-semibold text-danger")}
           title={groupedPayment ? 'Saldo do pagamento agrupado' : undefined}
         >
           {payment.situation === 'pago' ? formatBRL(payment.total) : `falta ${formatBRL(payment.balance)}`}
@@ -241,7 +241,7 @@ const DashboardOrderRow = React.memo(({
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem
-                className="text-red-600 dark:text-red-400 hover:bg-red-500/10 cursor-pointer rounded mx-1 text-sm"
+                className="text-danger hover:bg-danger/10 cursor-pointer rounded mx-1 text-sm"
                 onClick={() => onDelete(order.id)}
               >
                 <Trash2 className="w-4 h-4 mr-2 stroke-[1.5]" /> Excluir O.S.
@@ -359,14 +359,14 @@ export function Dashboard({
             onClick={() => handleOpenViewModal(order)}
             className="hover:bg-secondary/40 cursor-pointer transition-colors duration-150 group"
           >
-            <td className="py-2 px-3 font-mono font-black text-sm text-foreground tabular-nums">
+            <td className="py-2 px-3 font-mono font-bold text-sm text-foreground tabular-nums">
               #{order.osNumber || order.id}
             </td>
             <td className="py-2 px-3 text-foreground text-xs">
               <div className="flex flex-col space-y-0.5">
                 {client?.nickname ? (
                   <>
-                    <span className="font-black text-foreground text-xs uppercase tracking-wide">
+                    <span className="font-bold text-foreground text-xs uppercase tracking-wide">
                       {client.nickname.toUpperCase()}
                     </span>
                     <span className="text-xs text-muted-foreground font-semibold uppercase">
@@ -388,7 +388,7 @@ export function Dashboard({
                 {mechanic ? (
                   mechanic.nickname ? (
                     <>
-                      <span className="font-black text-foreground text-xs uppercase tracking-wide">
+                      <span className="font-bold text-foreground text-xs uppercase tracking-wide">
                         {mechanic.nickname.toUpperCase()}
                       </span>
                       <span className="text-xs text-muted-foreground font-semibold uppercase">
@@ -413,7 +413,7 @@ export function Dashboard({
                 return (
                   <div className="flex items-center gap-2 whitespace-nowrap">
                     <PaymentBadge situation={p.situation} grouped={!!group} />
-                    {p.situation !== 'pago' && <span className="text-xs font-semibold text-red-600 dark:text-red-400">falta {formatBRL(p.balance)}</span>}
+                    {p.situation !== 'pago' && <span className="text-xs font-semibold text-danger">falta {formatBRL(p.balance)}</span>}
                   </div>
                 );
               })()}
@@ -425,7 +425,7 @@ export function Dashboard({
       console.error('Error rendering Visão Ampla:', error);
       return (
         <tr>
-          <td colSpan={7} className="py-12 text-center text-red-500 font-medium text-xs">
+          <td colSpan={7} className="py-12 text-center text-danger font-medium text-xs">
             Erro ao carregar a listagem operacional.
           </td>
         </tr>
@@ -624,7 +624,7 @@ export function Dashboard({
           className={cn(
             "px-4 py-2 text-sm font-bold border-b-2 transition-all cursor-pointer",
             activeTab === 'gerenciamento'
-              ? "border-primary text-foreground font-black"
+              ? "border-primary text-foreground font-bold"
               : "border-transparent text-muted-foreground/60 hover:text-foreground font-bold"
           )}
         >
@@ -635,7 +635,7 @@ export function Dashboard({
           className={cn(
             "px-4 py-2 text-sm font-bold border-b-2 transition-all cursor-pointer",
             activeTab === 'visao-ampla'
-              ? "border-primary text-foreground font-black"
+              ? "border-primary text-foreground font-bold"
               : "border-transparent text-muted-foreground/60 hover:text-foreground font-bold"
           )}
         >
@@ -828,9 +828,9 @@ export function Dashboard({
 
       {statusChangeData && (
         <Dialog open={!!statusChangeData} onOpenChange={(open) => { if (!open) setStatusChangeData(null); }}>
-          <DialogContent className="w-[min(450px,calc(100vw-32px))] p-6 border border-border/50 dark:border-white/[0.08] bg-card rounded-2xl shadow-2xl z-[9999] flex flex-col gap-4" finalFocus={false}>
+          <DialogContent className="w-[min(450px,calc(100vw-32px))] p-6 border border-border/50 dark:border-border bg-card rounded-xl shadow-2xl z-[9999] flex flex-col gap-4" finalFocus={false}>
             <DialogHeader>
-              <DialogTitle className="text-sm font-black text-foreground uppercase tracking-wider">
+              <DialogTitle className="text-sm font-bold text-foreground uppercase tracking-wider">
                 Alterar Status da O.S. #{statusChangeData.orderId}
               </DialogTitle>
             </DialogHeader>
@@ -843,13 +843,13 @@ export function Dashboard({
 
               {statusChangeData.newStatus === 'Levou' && (
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider flex items-center gap-1">
+                  <label className="text-xs font-bold text-danger uppercase tracking-wider flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" /> Data em que o cliente levou
                   </label>
                   <DatePicker
                     value={statusChangeDeliveryDate}
                     onChange={(dateStr) => setStatusChangeDeliveryDate(dateStr)}
-                    className="w-full h-10 rounded-lg border-red-200 dark:border-red-900/40 bg-red-50/50 dark:bg-red-950/20 text-red-900 dark:text-red-200"
+                    className="w-full h-10 rounded-lg border-danger/30 dark:border-danger/40 bg-danger/50 dark:bg-danger/20 text-danger"
                   />
                 </div>
               )}

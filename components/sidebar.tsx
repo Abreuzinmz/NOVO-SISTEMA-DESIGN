@@ -127,7 +127,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
                 
                 {/* Tooltip */}
                 {!isExpanded && (
-                  <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-white text-xs font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
+                  <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-muted text-white text-xs font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
                     {item.label}
                   </div>
                 )}
@@ -145,7 +145,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
           <div className="relative group flex justify-center w-full">
             <ThemeToggle iconOnly={!isExpanded} className={isExpanded ? "w-full" : undefined} />
             {!isExpanded && (
-              <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-white text-xs font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
+              <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-muted text-white text-xs font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
                 Alternar Tema
               </div>
             )}
@@ -167,7 +167,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
               {isExpanded && <span>Configurações</span>}
             </button>
             {!isExpanded && (
-              <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-white text-xs font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
+              <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-muted text-white text-xs font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
                 Configurações
               </div>
             )}
@@ -179,16 +179,16 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
           {/* Local Mode Badge */}
           <div className="relative group flex justify-center w-full">
             {isExpanded ? (
-              <div className="w-full flex items-center justify-center gap-1.5 p-3 rounded-xl border bg-amber-500/10 border-amber-500/30">
-                <HardDrive className="w-4 h-4 text-amber-500 shrink-0" />
-                <span className="text-xs font-black text-amber-500 uppercase tracking-wider">Local (Testes)</span>
+              <div className="w-full flex items-center justify-center gap-1.5 p-3 rounded-xl border bg-warning/10 border-warning/30">
+                <HardDrive className="w-4 h-4 text-warning shrink-0" />
+                <span className="text-xs font-bold text-warning uppercase tracking-wider">Local (Testes)</span>
               </div>
             ) : (
               <>
-                <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/30">
-                  <HardDrive className="w-4 h-4 text-amber-500" />
+                <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-warning/10 border border-warning/30">
+                  <HardDrive className="w-4 h-4 text-warning" />
                 </div>
-                <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-amber-500 text-xs font-black py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
+                <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-muted text-warning text-xs font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
                   LOCAL (TESTES) · dados só neste computador
                 </div>
               </>
@@ -215,7 +215,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
               )}
             </button>
             {!isExpanded && (
-              <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-zinc-800 text-white text-xs font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
+              <div className="absolute left-14 top-1/2 -translate-y-1/2 ml-1 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 bg-neutral-900 dark:bg-muted text-white text-xs font-bold py-1 px-2.5 rounded-full whitespace-nowrap z-[9999] transition-all duration-150 shadow-md border border-white/5 flex items-center justify-center">
                 Expandir
               </div>
             )}
