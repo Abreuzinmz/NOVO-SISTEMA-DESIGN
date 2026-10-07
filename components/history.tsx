@@ -158,6 +158,7 @@ export function History() {
     allServiceTypes,
     clientOptions,
     allPartsLeft,
+    statusCounts,
   } = useOrderFilters({
     storageKey: 'history',
     orders: finishedOrders,
@@ -200,6 +201,7 @@ export function History() {
             showSearch={true}
             pageSize={pageSize}
             onPageSizeChange={setPageSize}
+            statusCounts={statusCounts}
           />
         </ErrorBoundary>
       </div>

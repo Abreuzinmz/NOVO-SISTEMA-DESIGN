@@ -444,6 +444,7 @@ export function Dashboard({
     allServiceTypes,
     clientOptions,
     allPartsLeft,
+    statusCounts,
   } = useOrderFilters({
     storageKey: 'dashboard',
     orders: activeOrders,
@@ -678,6 +679,7 @@ export function Dashboard({
               showStatusInBar={true}
               pageSize={pageSize}
               onPageSizeChange={setPageSize}
+              statusCounts={statusCounts}
             />
           )}
 

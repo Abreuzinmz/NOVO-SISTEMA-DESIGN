@@ -2,48 +2,34 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
 import { Calendar as CalendarPicker } from '@/components/ui/calendar';
 import {
   Search,
   X,
-  SlidersHorizontal,
   RotateCcw,
   Calendar,
   DollarSign,
   User,
-  ArrowUpDown,
+  Users,
   ArrowUp,
   ArrowDown,
   ChevronDown,
-  ChevronsUpDown,
   Check,
   Loader2,
   Hash,
   Filter,
   CreditCard,
   CircleDollarSign,
-  ListChecks,
   Package,
   Cog,
   Gauge,
   Wrench,
-  Users,
+  ArrowUpDown,
 } from 'lucide-react';
 
 export interface FilterValues {
@@ -111,68 +97,136 @@ export interface FilterBarProps {
   showClientType?: boolean;
   showPartsLeft?: boolean;
   showPayerName?: boolean;
-  /** Mantido por compatibilidade: o status da O.S. agora fica sempre nos campos principais */
+  /** Mantido por compatibilidade: o status da O.S. agora fica sempre nos chips */
   showStatusInBar?: boolean;
-  /** Quando informado, mostra "Exibir N por página" no cabeçalho dos filtros */
+  /** Quando informado, mostra "Exibir N" na barra */
   pageSize?: number;
   onPageSizeChange?: (size: number) => void;
+  /** Contagem de O.S. por status (com os demais filtros aplicados), exibida nos chips */
+  statusCounts?: { total: number; byStatus: Record<string, number> };
 }
 
-function FilterField({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
-  return (
-    <div className={cn('flex flex-col gap-1.5 min-w-0', className)}>
-      <span className='text-xs font-semibold uppercase tracking-wide text-muted-foreground px-0.5 truncate'>{label}</span>
-      {children}
-    </div>
-  );
-}
+// ═══ Status da O.S.: ordem e nomes usados nos chips ═══
+const STATUS_ORDER = ['Na Fila', 'Em Andamento', 'Aguardando Peça', 'Pronto', 'Levou'];
+const STATUS_LABEL: Record<string, string> = {
+  'Na Fila': 'Na fila',
+  'Em Andamento': 'Em andamento',
+  'Aguardando Peça': 'Aguardando peça',
+  'Pronto': 'Prontas',
+  'Levou': 'Levou',
+};
 
-// Padrão visual dos campos de filtro: altura 40px, ícone à esquerda, seta à direita
-const controlBase = 'h-10 w-full rounded-xl border bg-card pl-9 pr-8 text-sm font-semibold text-foreground outline-none transition-colors cursor-pointer appearance-none hover:border-foreground/25 focus:border-primary focus:ring-2 focus:ring-primary/20';
-const controlActive = 'border-primary/70 bg-primary/5';
-const comboBase = 'h-10 w-full justify-start gap-2 rounded-xl bg-card px-3 text-sm font-semibold text-foreground hover:bg-card hover:border-foreground/25';
+// ═══ Dropdown padrão do sistema (substitui o <select> nativo) ═══
+type DropdownOption = { value: string; label: string; hint?: string };
 
-function FilterSelect({ icon: Icon, value, onChange, allLabel, options, title }: {
-  icon: React.ElementType; value: string; onChange: (value: string) => void; allLabel: string;
-  options: { value: string; label: string }[]; title?: string;
+const triggerBase =
+  'h-9 w-full flex items-center gap-2 rounded-lg border bg-card px-3 text-sm font-medium text-foreground outline-none transition-colors cursor-pointer hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-primary/25 data-[popup-open]:border-primary data-[popup-open]:ring-2 data-[popup-open]:ring-primary/20';
+const triggerActive = 'border-primary/70 bg-primary/5';
+
+export function FilterDropdown({
+  icon: Icon,
+  value,
+  onChange,
+  allLabel,
+  options,
+  searchable,
+  searchPlaceholder = 'Buscar...',
+  align = 'start',
+  className,
+  title,
+}: {
+  icon?: React.ElementType;
+  value: string;
+  onChange: (value: string) => void;
+  /** Texto da opção "sem filtro" (ex.: Todos). Sem ele, não há opção vazia. */
+  allLabel?: string;
+  options: DropdownOption[];
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  align?: 'start' | 'center' | 'end';
+  className?: string;
+  title?: string;
 }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const current = options.find((o) => o.value === value);
+  const all: DropdownOption[] = allLabel !== undefined ? [{ value: '', label: allLabel }, ...options] : options;
+  const q = query.trim().toLowerCase();
+  const visible = q ? all.filter((o) => o.value === '' || (o.label + ' ' + (o.hint || '')).toLowerCase().includes(q)) : all;
+
   return (
-    <div className='relative'>
-      <Icon className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        title={title}
-        className={cn(controlBase, 'truncate', value ? controlActive : 'border-border')}
-      >
-        <option value=''>{allLabel}</option>
-        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
-      <ChevronDown className='pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-    </div>
+    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) setQuery(''); }}>
+      <PopoverTrigger
+        render={
+          <button type='button' title={title} className={cn(triggerBase, value && allLabel !== undefined ? triggerActive : 'border-border', className)}>
+            {Icon && <Icon className='w-4 h-4 text-muted-foreground shrink-0' />}
+            <span className='truncate'>{current ? current.label : (allLabel ?? '')}</span>
+            <ChevronDown className={cn('ml-auto w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-150', open && 'rotate-180')} />
+          </button>
+        }
+      />
+      <PopoverContent align={align} sideOffset={6} className='w-auto min-w-[max(var(--anchor-width),180px)] max-w-[340px] p-1.5 gap-1 rounded-xl border border-border shadow-lg'>
+        {searchable && (
+          <div className='relative px-0.5 pt-0.5'>
+            <Search className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground' />
+            <input
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={searchPlaceholder}
+              className='h-8 w-full rounded-lg border border-border bg-background pl-8 pr-2 text-sm outline-none focus:border-primary'
+            />
+          </div>
+        )}
+        <div className='max-h-64 overflow-y-auto' role='listbox'>
+          {visible.length === 0 && (
+            <div className='px-2.5 py-3 text-center text-xs text-muted-foreground'>Nada encontrado</div>
+          )}
+          {visible.map((o) => {
+            const selected = o.value === value;
+            return (
+              <button
+                key={o.value || '__all'}
+                type='button'
+                role='option'
+                aria-selected={selected}
+                onClick={() => { onChange(o.value); setOpen(false); setQuery(''); }}
+                className={cn(
+                  'w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-left transition-colors cursor-pointer',
+                  selected ? 'bg-primary/10 font-semibold text-foreground' : 'text-foreground/90 hover:bg-muted'
+                )}
+              >
+                <span className='flex-1 min-w-0'>
+                  <span className='block truncate'>{o.label}</span>
+                  {o.hint && <span className='block truncate text-xs text-muted-foreground font-normal'>{o.hint}</span>}
+                </span>
+                {selected && <Check className='w-4 h-4 text-primary shrink-0' />}
+              </button>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
-function AdvancedSection({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
+function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className='rounded-xl border border-border bg-card p-4 space-y-3'>
-      <div className='flex items-center gap-2'>
-        <Icon className='w-4 h-4 text-muted-foreground' />
-        <span className='text-sm font-semibold text-foreground'>{title}</span>
-      </div>
+    <div className={cn('flex flex-col gap-1 min-w-0', className)}>
+      <span className='text-xs font-medium text-muted-foreground truncate'>{label}</span>
       {children}
     </div>
   );
 }
 
-function FilterTag({ label, onRemove }: { label: string; onRemove: () => void }) {
+function Section({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full text-xs font-semibold bg-primary/10 text-foreground border border-primary/25 transition-all hover:bg-primary/15 group">
-      {label}
-      <button onClick={onRemove} title="Remover filtro" className="w-4 h-4 rounded-full inline-flex items-center justify-center hover:bg-destructive/20 hover:text-destructive transition-colors">
-        <X className="w-3 h-3" />
-      </button>
-    </span>
+    <div className='space-y-2.5 min-w-0'>
+      <div className='flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+        <Icon className='w-3.5 h-3.5' /> {title}
+      </div>
+      <div className='grid grid-cols-2 gap-2.5'>{children}</div>
+    </div>
   );
 }
 
@@ -190,20 +244,22 @@ function formatDateValue(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-function DateField({ value, onChange, placeholder, className }: { value: string; onChange: (value: string) => void; placeholder: string; className?: string }) {
+function DateField({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void; placeholder: string }) {
   const [open, setOpen] = useState(false);
   const selected = parseDateValue(value);
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
-          <Button variant='outline' className={cn('w-full justify-start gap-2 font-semibold h-10 rounded-xl px-3 text-sm border border-border bg-card', className)}>
+          <button type='button' className={cn(triggerBase, selected ? triggerActive : 'border-border')}>
             <Calendar className='h-4 w-4 text-muted-foreground shrink-0' />
-            <span className={cn('truncate', !selected && 'font-normal text-[var(--placeholder,var(--muted-foreground))]')}>{selected ? selected.toLocaleDateString('pt-BR') : placeholder}</span>
-          </Button>
+            <span className={cn('truncate', !selected && 'font-normal text-[var(--placeholder,var(--muted-foreground))]')}>
+              {selected ? selected.toLocaleDateString('pt-BR') : placeholder}
+            </span>
+          </button>
         }
       />
-      <PopoverContent className='z-50 w-auto p-0 shadow-lg border border-border rounded-lg overflow-hidden bg-popover' align='start'>
+      <PopoverContent className='z-50 w-auto p-0 shadow-lg border border-border rounded-xl overflow-hidden bg-popover' align='start'>
         <CalendarPicker
           mode='single'
           selected={selected}
@@ -217,68 +273,46 @@ function DateField({ value, onChange, placeholder, className }: { value: string;
   );
 }
 
-function SortButton({ label, field, currentField, direction, onSort }: {
-  label: string; field: SortField; currentField: SortField; direction: SortDirection; onSort: (field: SortField, dir: SortDirection) => void;
+function TextField({ icon: Icon, value, onChange, placeholder, type = 'text', className }: {
+  icon: React.ElementType; value: string; onChange: (v: string) => void; placeholder: string; type?: string; className?: string;
 }) {
-  const isActive = currentField === field;
   return (
-    <button
-      onClick={() => { onSort(field, isActive && direction === 'desc' ? 'asc' : 'desc'); }}
-      className={cn(
-        'flex items-center gap-1.5 px-3 h-9 rounded-xl text-sm font-semibold border transition-all duration-200',
-        isActive ? 'solid-btn border-transparent shadow-sm' : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary/60'
-      )}
-    >
-      {label}
-      {isActive && (
-        direction === 'desc' 
-          ? <ArrowDown className="w-3 h-3 stroke-[2]" /> 
-          : <ArrowUp className="w-3 h-3 stroke-[2]" />
-      )}
-    </button>
-  );
-}
-
-function ActiveFilters({ filters, clients, onRemoveFilter, onClear, count }: {
-  filters: FilterValues; clients: ClientOption[]; onRemoveFilter: (key: keyof FilterValues) => void; onClear: () => void; count: number;
-}) {
-  const tags: { key: keyof FilterValues; label: string }[] = [];
-  if (filters.search) tags.push({ key: 'search', label: 'Busca: ' + filters.search });
-  if (filters.osId) tags.push({ key: 'osId', label: 'Nº O.S.: ' + filters.osId });
-  if (filters.clientId) {
-    const clientName = clients.find(c => c.id === filters.clientId)?.name || 'Cliente selecionado';
-    tags.push({ key: 'clientId', label: 'Cliente: ' + clientName });
-  }
-  if (filters.motorModel) tags.push({ key: 'motorModel', label: 'Motor: ' + filters.motorModel });
-  if (filters.displacement) tags.push({ key: 'displacement', label: 'Cilindrada: ' + filters.displacement });
-  if (filters.paymentMethod) tags.push({ key: 'paymentMethod', label: 'Forma de pagamento: ' + filters.paymentMethod });
-  if (filters.paymentStatus) tags.push({ key: 'paymentStatus', label: 'Pagamento: ' + filters.paymentStatus });
-  if (filters.serviceType) tags.push({ key: 'serviceType', label: 'Serviço: ' + filters.serviceType });
-  if (filters.serviceStatus) tags.push({ key: 'serviceStatus', label: 'Status: ' + filters.serviceStatus });
-  if (filters.dateFrom) tags.push({ key: 'dateFrom', label: 'De: ' + filters.dateFrom });
-  if (filters.dateTo) tags.push({ key: 'dateTo', label: 'Até: ' + filters.dateTo });
-  if (filters.minValue) tags.push({ key: 'minValue', label: 'Min: R$ ' + filters.minValue });
-  if (filters.maxValue) tags.push({ key: 'maxValue', label: 'Max: R$ ' + filters.maxValue });
-  if (filters.clientType) tags.push({ key: 'clientType', label: filters.clientType === 'mechanic' ? 'Tipo: MECÂNICO' : 'Tipo: CLIENTE' });
-  if (filters.partsLeft) tags.push({ key: 'partsLeft', label: 'Material: ' + filters.partsLeft });
-  if (filters.payerName) tags.push({ key: 'payerName', label: 'Pagador: ' + filters.payerName });
-
-  if (tags.length === 0) return null;
-  return (
-    <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border">
-      <div className="flex items-center gap-1.5 mr-1">
-        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-        <span className="text-xs text-muted-foreground font-semibold">Filtros ativos:</span>
-      </div>
-      {tags.map((t) => <FilterTag key={t.key} label={t.label} onRemove={() => onRemoveFilter(t.key)} />)}
-      {tags.length > 1 && (
-        <button onClick={onClear} className="text-xs text-muted-foreground hover:text-destructive transition-colors font-semibold ml-1">
-          Limpar tudo
-        </button>
-      )}
+    <div className='relative'>
+      <Icon className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+      <input
+        type={type}
+        step={type === 'number' ? '0.01' : undefined}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={cn(
+          'h-9 w-full rounded-lg border bg-card pl-9 pr-3 text-sm font-medium text-foreground outline-none transition-colors hover:border-foreground/25 focus:border-primary focus:ring-2 focus:ring-primary/20',
+          value ? triggerActive : 'border-border',
+          className
+        )}
+      />
     </div>
   );
 }
+
+function FilterTag({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <span className='inline-flex items-center gap-1 pl-2.5 pr-1 h-7 rounded-lg text-xs font-medium bg-muted text-foreground border border-border'>
+      {label}
+      <button onClick={onRemove} title='Remover filtro' className='w-5 h-5 rounded-md inline-flex items-center justify-center text-muted-foreground hover:bg-destructive/15 hover:text-destructive transition-colors'>
+        <X className='w-3 h-3' />
+      </button>
+    </span>
+  );
+}
+
+const SORT_OPTIONS: { label: string; field: SortField }[] = [
+  { label: 'Nº O.S.', field: 'id' },
+  { label: 'Data', field: 'date' },
+  { label: 'Cliente', field: 'client' },
+  { label: 'Valor', field: 'value' },
+  { label: 'Status', field: 'status' },
+];
 
 export function FilterBar({
   filters,
@@ -290,8 +324,6 @@ export function FilterBar({
   clients,
   motors,
   displacements,
-  paymentMethods,
-  paymentStatuses,
   serviceStatuses,
   serviceTypes = [],
   partsLeft = [],
@@ -313,12 +345,11 @@ export function FilterBar({
   showPayerName = true,
   pageSize,
   onPageSizeChange,
+  statusCounts,
 }: FilterBarProps) {
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [clientOpen, setClientOpen] = useState(false);
-  const [motorOpen, setMotorOpen] = useState(false);
-  const [serviceTypeOpen, setServiceTypeOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
 
+  // Campos de texto aplicam o filtro 300ms depois de parar de digitar
   const [localSearch, setLocalSearch] = useState(filters.search);
   const [localOsId, setLocalOsId] = useState(filters.osId || '');
   const [localMinValue, setLocalMinValue] = useState(filters.minValue);
@@ -332,494 +363,311 @@ export function FilterBar({
   useEffect(() => { setLocalPayerName(filters.payerName || ''); }, [filters.payerName]);
 
   useEffect(() => {
+    const pending: [string, keyof FilterValues][] = [
+      [localSearch, 'search'],
+      [localOsId, 'osId'],
+      [localMinValue, 'minValue'],
+      [localMaxValue, 'maxValue'],
+      [localPayerName, 'payerName'],
+    ];
     const timer = setTimeout(() => {
-      if (localSearch !== filters.search) {
-        onFilterChange({ ...filters, search: localSearch });
+      const changed = pending.filter(([v, k]) => v !== (filters[k] || ''));
+      if (changed.length > 0) {
+        const next = { ...filters };
+        changed.forEach(([v, k]) => { next[k] = v; });
+        onFilterChange(next);
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [localSearch, filters, onFilterChange]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (localOsId !== filters.osId) {
-        onFilterChange({ ...filters, osId: localOsId });
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [localOsId, filters, onFilterChange]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (localMinValue !== filters.minValue) {
-        onFilterChange({ ...filters, minValue: localMinValue });
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [localMinValue, filters, onFilterChange]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (localMaxValue !== filters.maxValue) {
-        onFilterChange({ ...filters, maxValue: localMaxValue });
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [localMaxValue, filters, onFilterChange]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (localPayerName !== (filters.payerName || '')) {
-        onFilterChange({ ...filters, payerName: localPayerName });
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [localPayerName, filters, onFilterChange]);
-
-  const hasActiveFilters = useMemo(() => Object.values(filters).some((v) => v !== ''), [filters]);
-  const activeFilterCount = useMemo(() => Object.values(filters).filter((v) => v !== '').length, [filters]);
-  const selectedClientName = useMemo(() => clients.find((c) => c.id === filters.clientId)?.name || '', [clients, filters.clientId]);
+  }, [localSearch, localOsId, localMinValue, localMaxValue, localPayerName, filters, onFilterChange]);
 
   const updateFilter = (key: keyof FilterValues, value: string | null) => {
     onFilterChange({ ...filters, [key]: value ?? '' });
   };
-  const removeFilter = (key: keyof FilterValues) => { updateFilter(key, ''); };
 
-  const sortOptions: { label: string; field: SortField }[] = [
-    { label: 'Nº O.S.', field: 'id' },
-    { label: 'Data', field: 'date' },
-    { label: 'Cliente', field: 'client' },
-    { label: 'Valor', field: 'value' },
-    { label: 'Status', field: 'status' },
-  ];
+  // Filtros do painel (tudo menos busca e status, que ficam visíveis na barra)
+  const panelKeys: (keyof FilterValues)[] = ['paymentMethod', 'paymentStatus', 'payerName', 'motorModel', 'displacement', 'serviceType', 'partsLeft', 'clientId', 'clientType', 'osId', 'dateFrom', 'dateTo', 'minValue', 'maxValue'];
+  const panelCount = panelKeys.filter((k) => filters[k] !== '').length;
+  const hasActiveFilters = useMemo(() => Object.values(filters).some((v) => v !== ''), [filters]);
 
-  const advancedFilterCount = useMemo(
-    () => (['osId', 'clientId', 'clientType', 'dateFrom', 'dateTo', 'minValue', 'maxValue'] as (keyof FilterValues)[])
-      .filter((k) => filters[k] !== '').length,
-    [filters]
-  );
+  // Chips de status: na ordem do fluxo da oficina + qualquer status extra que exista
+  const statusChips = useMemo(() => {
+    const list = [...STATUS_ORDER];
+    serviceStatuses.forEach((s) => { if (s && !list.includes(s)) list.push(s); });
+    if (filters.serviceStatus && !list.includes(filters.serviceStatus)) list.push(filters.serviceStatus);
+    return list;
+  }, [serviceStatuses, statusCounts, filters.serviceStatus]);
 
-  const paymentMethodOptions = ['PIX', 'Dinheiro', 'Débito', 'Crédito à Vista', 'Crédito 2x', 'Crédito 3x'].map((m) => ({ value: m, label: m }));
-  const paymentStatusOptions = [
-    { value: 'Não Pago', label: 'Não pago' },
-    { value: 'Entrada', label: 'Entrada' },
-    { value: 'Pago', label: 'Pago' },
-  ];
+  const clientName = clients.find((c) => c.id === filters.clientId)?.name || 'Cliente selecionado';
+  const brDate = (v: string) => v.split('-').reverse().join('/');
+  const tags: { key: keyof FilterValues; label: string }[] = [];
+  if (filters.paymentMethod) tags.push({ key: 'paymentMethod', label: 'Forma: ' + filters.paymentMethod });
+  if (filters.paymentStatus) tags.push({ key: 'paymentStatus', label: 'Pagamento: ' + (filters.paymentStatus === 'Não Pago' ? 'Não pago' : filters.paymentStatus) });
+  if (filters.payerName) tags.push({ key: 'payerName', label: 'Pagador: ' + filters.payerName });
+  if (filters.motorModel) tags.push({ key: 'motorModel', label: 'Motor: ' + filters.motorModel });
+  if (filters.displacement) tags.push({ key: 'displacement', label: 'Cilindrada: ' + filters.displacement });
+  if (filters.serviceType) tags.push({ key: 'serviceType', label: 'Serviço: ' + filters.serviceType });
+  if (filters.partsLeft) tags.push({ key: 'partsLeft', label: 'Material: ' + filters.partsLeft });
+  if (filters.clientId) tags.push({ key: 'clientId', label: 'Cliente: ' + clientName });
+  if (filters.clientType) tags.push({ key: 'clientType', label: filters.clientType === 'mechanic' ? 'Tipo: mecânico' : 'Tipo: cliente' });
+  if (filters.osId) tags.push({ key: 'osId', label: 'Nº O.S.: ' + filters.osId });
+  if (filters.dateFrom) tags.push({ key: 'dateFrom', label: 'De ' + brDate(filters.dateFrom) });
+  if (filters.dateTo) tags.push({ key: 'dateTo', label: 'Até ' + brDate(filters.dateTo) });
+  if (filters.minValue) tags.push({ key: 'minValue', label: 'Mín. R$ ' + filters.minValue });
+  if (filters.maxValue) tags.push({ key: 'maxValue', label: 'Máx. R$ ' + filters.maxValue });
+
+  const chipClass = (active: boolean) =>
+    cn(
+      'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors cursor-pointer',
+      active ? 'bg-foreground text-background' : 'bg-muted text-foreground hover:bg-accent'
+    );
+  const countClass = (active: boolean) => cn('text-xs tabular-nums', active ? 'text-background/70' : 'text-muted-foreground');
 
   return (
-    <div className={cn('w-full rounded-2xl border border-border bg-card shadow-sm overflow-hidden', className)}>
-      {/* ═══ Cabeçalho: título, contagem e ações ═══ */}
-      <div className='flex items-center justify-between gap-4 flex-wrap px-5 py-4 bg-muted/40 border-b border-border'>
-        <div className='flex items-center gap-3 min-w-0 flex-1 basis-[280px]'>
-          <div className='w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0'>
-            <Filter className='w-5 h-5 stroke-[1.75]' />
-          </div>
-          <div className='min-w-0'>
-            <div className='flex items-center gap-2'>
-              <h3 className='text-base font-bold text-foreground'>Filtros</h3>
-              <span className='px-2 py-0.5 rounded-full bg-card border border-border text-xs text-muted-foreground whitespace-nowrap'>
-                {resultCount === totalCount
-                  ? <><span className='font-bold text-foreground tabular-nums'>{totalCount}</span> O.S.</>
-                  : <><span className='font-bold text-foreground tabular-nums'>{resultCount}</span> de <span className='tabular-nums'>{totalCount}</span> O.S.</>}
-              </span>
-              {loading && <Loader2 className='w-3.5 h-3.5 animate-spin text-muted-foreground' />}
-            </div>
-            <p className='text-sm text-muted-foreground truncate'>Refine sua busca e encontre as ordens de serviço rapidamente.</p>
+    <div className={cn('w-full space-y-3', className)}>
+      {/* ═══ Linha 1: status da O.S. em chips ═══ */}
+      {showServiceStatus && (
+        <div className='flex items-center gap-1.5 flex-wrap'>
+          <div className='contents' role='tablist' aria-label='Status da O.S.'>
+            <button type='button' role='tab' aria-selected={!filters.serviceStatus} onClick={() => updateFilter('serviceStatus', '')} className={chipClass(!filters.serviceStatus)}>
+              Todas
+              {statusCounts && <span className={countClass(!filters.serviceStatus)}>{statusCounts.total}</span>}
+            </button>
+            {statusChips.map((s) => {
+              const active = filters.serviceStatus === s;
+              return (
+                <button key={s} type='button' role='tab' aria-selected={active} onClick={() => updateFilter('serviceStatus', active ? '' : s)} className={chipClass(active)}>
+                  {STATUS_LABEL[s] || s}
+                  {statusCounts && <span className={countClass(active)}>{statusCounts.byStatus[s] || 0}</span>}
+                </button>
+              );
+            })}
           </div>
         </div>
+      )}
 
-        <div className='flex items-center gap-2 flex-wrap shrink-0'>
-          <Button
-            variant='outline'
-            onClick={onClear}
-            disabled={!hasActiveFilters}
-            className='h-10 px-4 gap-2 rounded-xl border-border bg-card text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-50'
-          >
-            <RotateCcw className='w-4 h-4' /> Limpar filtros
-          </Button>
-          <Button
-            onClick={() => setShowAdvancedFilters(true)}
-            className='solid-btn h-10 px-4 gap-2 rounded-xl text-sm font-bold'
-          >
-            <SlidersHorizontal className='w-4 h-4' />
-            Filtros avançados
-            {advancedFilterCount > 0 && (
-              <span className='min-w-[20px] h-5 rounded-full bg-primary-foreground text-primary text-xs font-bold flex items-center justify-center px-1.5'>
-                {advancedFilterCount}
-              </span>
-            )}
-            <ChevronDown className='w-4 h-4 opacity-80' />
-          </Button>
-          {onPageSizeChange && pageSize !== undefined && (
-            <>
-              <div className='hidden sm:block w-px h-8 bg-border mx-2' />
-              <label className='flex items-center gap-2 text-sm text-muted-foreground whitespace-nowrap'>
-                Exibir
-                <span className='relative'>
-                  <select
-                    value={pageSize}
-                    onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                    className='h-10 pl-3 pr-8 rounded-xl border border-border bg-card text-sm font-semibold text-foreground outline-none appearance-none cursor-pointer focus:border-primary focus:ring-2 focus:ring-primary/20'
-                  >
-                    {[10, 20, 50, 100].map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  <ChevronDown className='pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-                </span>
-                por página
-              </label>
-            </>
+      {/* ═══ Linha 2: Filtros / Limpar à esquerda; busca, ordenação e quantidade à direita ═══ */}
+      <div className='flex items-center gap-2 flex-wrap'>
+        <button
+          type='button'
+          onClick={() => setPanelOpen((v) => !v)}
+          aria-expanded={panelOpen}
+          className={cn(
+            'inline-flex items-center gap-2 h-8 px-3 rounded-lg border text-sm font-medium transition-colors cursor-pointer',
+            panelOpen || panelCount > 0 ? 'border-primary/60 bg-primary/5 text-foreground' : 'border-border bg-card text-foreground hover:bg-muted'
           )}
-        </div>
-      </div>
+        >
+          <Filter className='w-4 h-4' />
+          Filtros
+          {panelCount > 0 && (
+            <span className='min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center px-1'>{panelCount}</span>
+          )}
+          <ChevronDown className={cn('w-3.5 h-3.5 text-muted-foreground transition-transform', panelOpen && 'rotate-180')} />
+        </button>
 
-      {/* ═══ Campos ═══ */}
-      <div className='px-5 py-4 space-y-3'>
-        <div className='grid gap-3 grid-cols-2 md:grid-cols-4 min-[1600px]:grid-cols-8'>
+        {hasActiveFilters && (
+          <button
+            type='button'
+            onClick={() => { onClear(); setLocalSearch(''); }}
+            className='inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer'
+          >
+            <RotateCcw className='w-3.5 h-3.5' /> Limpar
+          </button>
+        )}
+
+        <div className='ml-auto flex items-center gap-2 flex-wrap'>
           {showSearch && (
-            <FilterField label='Buscar' className='col-span-2'>
-              <div className='relative'>
-                <Search className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-                <Input
-                  placeholder='Nº da O.S., cliente, telefone ou motor'
-                  value={localSearch}
-                  onChange={(e) => setLocalSearch(e.target.value)}
-                  className={cn(controlBase, 'pr-3 cursor-text', localSearch ? controlActive : 'border-border')}
-                />
-              </div>
-            </FilterField>
+            <div className='relative w-64 max-w-full'>
+              <Search className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+              <input
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+                placeholder='Buscar O.S., cliente, telefone...'
+                className={cn('h-8 w-full rounded-lg border bg-card pl-9 pr-8 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20', localSearch ? triggerActive : 'border-border')}
+              />
+              {localSearch && (
+                <button type='button' onClick={() => setLocalSearch('')} className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground'>
+                  <X className='w-3.5 h-3.5' />
+                </button>
+              )}
+            </div>
           )}
 
-          {showPaymentMethod && (
-            <FilterField label='Forma pagto'>
-              <FilterSelect icon={CreditCard} value={filters.paymentMethod} onChange={(v) => updateFilter('paymentMethod', v)} allLabel='Todas' options={paymentMethodOptions} title='Forma de pagamento' />
-            </FilterField>
+          <div className='flex items-center'>
+            <FilterDropdown
+              icon={ArrowUpDown}
+              value={sort.field}
+              onChange={(v) => onSortChange({ field: (v || 'id') as SortField, direction: sort.direction })}
+              options={SORT_OPTIONS.map((o) => ({ value: o.field, label: o.label }))}
+              align='end'
+              title='Ordenar por'
+              className='h-8 w-auto rounded-r-none'
+            />
+            <button
+              type='button'
+              title={sort.direction === 'desc' ? 'Decrescente (clique para inverter)' : 'Crescente (clique para inverter)'}
+              onClick={() => onSortChange({ field: sort.field, direction: sort.direction === 'desc' ? 'asc' : 'desc' })}
+              className='h-8 w-8 flex items-center justify-center rounded-r-lg border border-l-0 border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer'
+            >
+              {sort.direction === 'desc' ? <ArrowDown className='w-4 h-4' /> : <ArrowUp className='w-4 h-4' />}
+            </button>
+          </div>
+
+          {onPageSizeChange && pageSize !== undefined && (
+            <FilterDropdown
+              value={String(pageSize)}
+              onChange={(v) => onPageSizeChange(Number(v))}
+              options={[10, 20, 50, 100].map((n) => ({ value: String(n), label: `Exibir ${n}` }))}
+              align='end'
+              title='O.S. por página'
+              className='h-8 w-auto'
+            />
           )}
 
-          {showPaymentStatus && (
-            <FilterField label='Status pagto'>
-              <FilterSelect icon={CircleDollarSign} value={filters.paymentStatus} onChange={(v) => updateFilter('paymentStatus', v)} allLabel='Todos' options={paymentStatusOptions} title='Situação do pagamento' />
-            </FilterField>
-          )}
-
-          {showServiceStatus && (
-            <FilterField label='Status ordem'>
-              <FilterSelect icon={ListChecks} value={filters.serviceStatus} onChange={(v) => updateFilter('serviceStatus', v)} allLabel='Todos' options={serviceStatuses.map((s) => ({ value: s, label: s }))} title='Status da O.S.' />
-            </FilterField>
-          )}
-
-          {showPayerName && (
-            <FilterField label='Pagador'>
-              <div className='relative'>
-                <User className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-                <Input
-                  placeholder='Pagador...'
-                  value={localPayerName}
-                  onChange={(e) => setLocalPayerName(e.target.value)}
-                  className={cn(controlBase, 'pr-3 cursor-text', localPayerName ? controlActive : 'border-border')}
-                />
-              </div>
-            </FilterField>
-          )}
-
-          {showPartsLeft && (
-            <FilterField label='Material deixado'>
-              <FilterSelect icon={Package} value={filters.partsLeft} onChange={(v) => updateFilter('partsLeft', v)} allLabel='Todos' options={partsLeft.map((p) => ({ value: p, label: p }))} title='Material deixado' />
-            </FilterField>
-          )}
-
-          {showMotor && (
-            <FilterField label='Motor'>
-              <Popover open={motorOpen} onOpenChange={setMotorOpen}>
-                <PopoverTrigger
-                  render={
-                    <Button variant='outline' role='combobox' className={cn(comboBase, filters.motorModel ? controlActive : 'border-border')}>
-                      <Cog className='w-4 h-4 text-muted-foreground shrink-0' />
-                      <span className='truncate'>{filters.motorModel || 'Todos'}</span>
-                      <ChevronDown className='ml-auto w-4 h-4 text-muted-foreground shrink-0' />
-                    </Button>
-                  }
-                />
-                <PopoverContent className='z-[10000] w-[260px] p-0 shadow-lg border border-border rounded-xl overflow-hidden bg-popover' align='start'>
-                  <Command className='bg-transparent'>
-                    <CommandInput placeholder='Buscar motor...' className='h-9 text-sm' />
-                    <CommandList className='max-h-[240px]'>
-                      <CommandEmpty className='py-3 text-center text-xs text-muted-foreground'>Nenhum motor encontrado</CommandEmpty>
-                      <CommandGroup heading='Motores cadastrados' className='px-2 pb-2'>
-                        <CommandItem
-                          value='todos-os-motores'
-                          onSelect={() => { updateFilter('motorModel', ''); setMotorOpen(false); }}
-                          className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
-                        >
-                          <span className='text-sm font-medium'>Todos</span>
-                          {!filters.motorModel && <Check className='h-4 w-4 text-primary' />}
-                        </CommandItem>
-                        {motors.map((m) => (
-                          <CommandItem
-                            key={m}
-                            value={m}
-                            onSelect={() => { updateFilter('motorModel', filters.motorModel === m ? '' : m); setMotorOpen(false); }}
-                            className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
-                          >
-                            <span className='text-sm font-medium uppercase truncate'>{m}</span>
-                            {filters.motorModel === m && <Check className='h-4 w-4 text-primary shrink-0' />}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </FilterField>
-          )}
-
-          {showDisplacement && (
-            <FilterField label='Cilindrada'>
-              <FilterSelect icon={Gauge} value={filters.displacement} onChange={(v) => updateFilter('displacement', v)} allLabel='Todas' options={displacements.map((d) => ({ value: d, label: d }))} title='Cilindrada' />
-            </FilterField>
-          )}
-
-          {showServiceType && (
-            <FilterField label='Tipo serviço'>
-              <Popover open={serviceTypeOpen} onOpenChange={setServiceTypeOpen}>
-                <PopoverTrigger
-                  render={
-                    <Button variant='outline' role='combobox' className={cn(comboBase, filters.serviceType ? controlActive : 'border-border')}>
-                      <Wrench className='w-4 h-4 text-muted-foreground shrink-0' />
-                      <span className='truncate'>{filters.serviceType || 'Todos'}</span>
-                      <ChevronDown className='ml-auto w-4 h-4 text-muted-foreground shrink-0' />
-                    </Button>
-                  }
-                />
-                <PopoverContent className='z-[10000] w-[280px] p-0 shadow-lg border border-border rounded-xl overflow-hidden bg-popover' align='end'>
-                  <Command className='bg-transparent'>
-                    <CommandInput placeholder='Buscar serviço...' className='h-9 text-sm' />
-                    <CommandList className='max-h-[240px]'>
-                      <CommandEmpty className='py-3 text-center text-xs text-muted-foreground'>Nenhum serviço encontrado</CommandEmpty>
-                      <CommandGroup heading='Serviços cadastrados' className='px-2 pb-2'>
-                        <CommandItem
-                          value='todos-os-servicos'
-                          onSelect={() => { updateFilter('serviceType', ''); setServiceTypeOpen(false); }}
-                          className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
-                        >
-                          <span className='text-sm font-medium'>Todos</span>
-                          {!filters.serviceType && <Check className='h-4 w-4 text-primary' />}
-                        </CommandItem>
-                        {serviceTypes.map((t) => (
-                          <CommandItem
-                            key={t}
-                            value={t}
-                            onSelect={() => { updateFilter('serviceType', filters.serviceType === t ? '' : t); setServiceTypeOpen(false); }}
-                            className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
-                          >
-                            <span className='text-sm font-medium uppercase truncate'>{t}</span>
-                            {filters.serviceType === t && <Check className='h-4 w-4 text-primary shrink-0' />}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </FilterField>
+          {/* Sem os chips de status (que já mostram as quantidades), exibe a contagem aqui */}
+          {(loading || !showServiceStatus || !statusCounts) && (
+            <span className='text-sm text-muted-foreground whitespace-nowrap pl-1'>
+              {loading && <Loader2 className='inline w-3.5 h-3.5 mr-1 animate-spin' />}
+              {resultCount === totalCount
+                ? <><span className='font-semibold text-foreground tabular-nums'>{totalCount}</span> O.S.</>
+                : <><span className='font-semibold text-foreground tabular-nums'>{resultCount}</span> de <span className='tabular-nums'>{totalCount}</span> O.S.</>}
+            </span>
           )}
         </div>
-
-        <ActiveFilters filters={filters} clients={clients} onRemoveFilter={removeFilter} onClear={onClear} count={resultCount} />
       </div>
 
-      {/* ═══ Filtros avançados (painel lateral) ═══ */}
-      {showAdvancedFilters && (
-        <div className='fixed inset-0 z-[9999] flex justify-end overflow-hidden'>
-          <div
-            className='fixed inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-200'
-            onClick={() => setShowAdvancedFilters(false)}
-          />
-
-          <div className='relative z-10 w-full max-w-md sm:max-w-lg h-full bg-card border-l border-border shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-200'>
-            <div className='px-5 py-4 border-b border-border flex items-center justify-between bg-muted/40 shrink-0'>
-              <div className='flex items-center gap-3'>
-                <div className='w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center'>
-                  <SlidersHorizontal className='w-4 h-4' />
-                </div>
-                <div>
-                  <h3 className='text-base font-bold text-foreground'>Filtros avançados</h3>
-                  <p className='text-xs text-muted-foreground'>Ordenação, cliente, período e valor.</p>
-                </div>
-              </div>
-              <Button
-                variant='ghost'
-                onClick={() => setShowAdvancedFilters(false)}
-                className='w-9 h-9 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground p-0 flex items-center justify-center'
-              >
-                <X className='w-4 h-4' />
-              </Button>
-            </div>
-
-            <div className='flex-1 overflow-y-auto p-5 space-y-4 min-h-0'>
-              {/* Ordenação */}
-              <AdvancedSection icon={ArrowUpDown} title='Ordenar resultados por'>
-                <div className='flex flex-wrap items-center gap-1.5'>
-                  {sortOptions.map((opt) => (
-                    <SortButton
-                      key={opt.field}
-                      label={opt.label}
-                      field={opt.field}
-                      currentField={sort.field}
-                      direction={sort.direction}
-                      onSort={(f, d) => onSortChange({ field: f, direction: d })}
+      {/* ═══ Painel de filtros (compacto, por grupos) ═══ */}
+      {panelOpen && (
+        <div className='rounded-xl border border-border bg-card p-4 shadow-sm animate-in fade-in-0 slide-in-from-top-1 duration-150'>
+          <div className='grid gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-3'>
+            {(showPaymentMethod || showPaymentStatus || showPayerName) && (
+              <Section icon={CircleDollarSign} title='Pagamento'>
+                {showPaymentStatus && (
+                  <Field label='Situação'>
+                    <FilterDropdown
+                      icon={CircleDollarSign}
+                      value={filters.paymentStatus}
+                      onChange={(v) => updateFilter('paymentStatus', v)}
+                      allLabel='Todas'
+                      options={[{ value: 'Não Pago', label: 'Não pago' }, { value: 'Entrada', label: 'Entrada' }, { value: 'Pago', label: 'Pago' }]}
                     />
-                  ))}
-                </div>
-              </AdvancedSection>
-
-              {/* Nº da O.S. */}
-              {showSearch && (
-                <AdvancedSection icon={Hash} title='Nº da O.S.'>
-                  <div className='relative'>
-                    <Hash className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-                    <Input
-                      placeholder='Ex: 8454'
-                      value={localOsId}
-                      onChange={(e) => setLocalOsId(e.target.value)}
-                      className={cn(controlBase, 'pr-3 cursor-text font-mono', localOsId ? controlActive : 'border-border')}
+                  </Field>
+                )}
+                {showPaymentMethod && (
+                  <Field label='Forma'>
+                    <FilterDropdown
+                      icon={CreditCard}
+                      value={filters.paymentMethod}
+                      onChange={(v) => updateFilter('paymentMethod', v)}
+                      allLabel='Todas'
+                      options={['PIX', 'Dinheiro', 'Débito', 'Crédito à Vista', 'Crédito 2x', 'Crédito 3x'].map((m) => ({ value: m, label: m }))}
                     />
-                  </div>
-                </AdvancedSection>
-              )}
+                  </Field>
+                )}
+                {showPayerName && (
+                  <Field label='Pagador' className='col-span-2'>
+                    <TextField icon={User} value={localPayerName} onChange={setLocalPayerName} placeholder='Nome de quem pagou' />
+                  </Field>
+                )}
+              </Section>
+            )}
 
-              {/* Cliente */}
-              {(showClient || showClientType) && (
-                <AdvancedSection icon={User} title='Cliente'>
-                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                    {showClient && (
-                      <FilterField label='Cliente'>
-                        <Popover open={clientOpen} onOpenChange={setClientOpen}>
-                          <PopoverTrigger
-                            render={
-                              <Button variant='outline' role='combobox' className={cn(comboBase, filters.clientId ? controlActive : 'border-border')}>
-                                <User className='w-4 h-4 text-muted-foreground shrink-0' />
-                                <span className='truncate'>{selectedClientName || 'Todos os clientes'}</span>
-                                <ChevronDown className='ml-auto w-4 h-4 text-muted-foreground shrink-0' />
-                              </Button>
-                            }
-                          />
-                          <PopoverContent className='z-[10000] w-[300px] p-0 shadow-lg border border-border rounded-xl overflow-hidden bg-popover' align='start'>
-                            <Command className='bg-transparent'>
-                              <CommandInput placeholder='Buscar por nome ou documento...' className='h-9 text-sm' />
-                              <CommandList className='max-h-[220px]'>
-                                <CommandEmpty className='py-3 text-center text-xs text-muted-foreground'>Nenhum cliente encontrado</CommandEmpty>
-                                <CommandGroup heading='Clientes cadastrados' className='px-2 pb-2'>
-                                  <CommandItem
-                                    value='todos-os-clientes'
-                                    onSelect={() => { updateFilter('clientId', ''); setClientOpen(false); }}
-                                    className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
-                                  >
-                                    <span className='text-sm font-medium'>Todos os clientes</span>
-                                    {!filters.clientId && <Check className='h-4 w-4 text-primary' />}
-                                  </CommandItem>
-                                  {clients.map((c) => (
-                                    <CommandItem
-                                      key={c.id}
-                                      value={c.name + ' ' + c.phone + ' ' + c.document}
-                                      onSelect={() => { updateFilter('clientId', filters.clientId === c.id ? '' : c.id); setClientOpen(false); }}
-                                      className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
-                                    >
-                                      <div className='flex flex-col min-w-0'>
-                                        <span className='text-sm font-medium uppercase truncate'>{c.name}</span>
-                                        <span className='text-xs text-muted-foreground tabular-nums'>{c.phone}</span>
-                                      </div>
-                                      {filters.clientId === c.id && <Check className='h-4 w-4 text-primary shrink-0' />}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                      </FilterField>
-                    )}
-                    {showClientType && (
-                      <FilterField label='Tipo de cliente'>
-                        <FilterSelect
-                          icon={Users}
-                          value={filters.clientType}
-                          onChange={(v) => updateFilter('clientType', v)}
-                          allLabel='Todos'
-                          options={[{ value: 'regular', label: 'Cliente' }, { value: 'mechanic', label: 'Mecânico' }]}
-                          title='Tipo de cliente'
-                        />
-                      </FilterField>
-                    )}
-                  </div>
-                </AdvancedSection>
-              )}
+            {(showMotor || showDisplacement || showServiceType || showPartsLeft) && (
+              <Section icon={Cog} title='Motor e serviço'>
+                {showMotor && (
+                  <Field label='Motor'>
+                    <FilterDropdown icon={Cog} value={filters.motorModel} onChange={(v) => updateFilter('motorModel', v)} allLabel='Todos' options={motors.map((m) => ({ value: m, label: m }))} searchable searchPlaceholder='Buscar motor...' />
+                  </Field>
+                )}
+                {showDisplacement && (
+                  <Field label='Cilindrada'>
+                    <FilterDropdown icon={Gauge} value={filters.displacement} onChange={(v) => updateFilter('displacement', v)} allLabel='Todas' options={displacements.map((d) => ({ value: d, label: d }))} />
+                  </Field>
+                )}
+                {showServiceType && (
+                  <Field label='Serviço'>
+                    <FilterDropdown icon={Wrench} value={filters.serviceType} onChange={(v) => updateFilter('serviceType', v)} allLabel='Todos' options={serviceTypes.map((t) => ({ value: t, label: t }))} searchable searchPlaceholder='Buscar serviço...' />
+                  </Field>
+                )}
+                {showPartsLeft && (
+                  <Field label='Material deixado'>
+                    <FilterDropdown icon={Package} value={filters.partsLeft} onChange={(v) => updateFilter('partsLeft', v)} allLabel='Todos' options={partsLeft.map((p) => ({ value: p, label: p }))} />
+                  </Field>
+                )}
+              </Section>
+            )}
 
-              {/* Período */}
-              {showDates && (
-                <AdvancedSection icon={Calendar} title='Período'>
-                  <div className='grid grid-cols-2 gap-3'>
-                    <FilterField label='De'>
-                      <DateField value={filters.dateFrom} onChange={(v) => updateFilter('dateFrom', v)} placeholder='dd/mm/aaaa' className={filters.dateFrom ? controlActive : undefined} />
-                    </FilterField>
-                    <FilterField label='Até'>
-                      <DateField value={filters.dateTo} onChange={(v) => updateFilter('dateTo', v)} placeholder='dd/mm/aaaa' className={filters.dateTo ? controlActive : undefined} />
-                    </FilterField>
-                  </div>
-                </AdvancedSection>
-              )}
-
-              {/* Valor */}
-              {showValues && (
-                <AdvancedSection icon={DollarSign} title='Valor'>
-                  <div className='grid grid-cols-2 gap-3'>
-                    <FilterField label='Mínimo'>
-                      <div className='relative'>
-                        <DollarSign className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-                        <Input
-                          type='number'
-                          step='0.01'
-                          placeholder='R$ mínimo'
-                          value={localMinValue}
-                          onChange={(e) => setLocalMinValue(e.target.value)}
-                          className={cn(controlBase, 'pr-3 cursor-text tabular-nums', localMinValue ? controlActive : 'border-border')}
-                        />
-                      </div>
-                    </FilterField>
-                    <FilterField label='Máximo'>
-                      <div className='relative'>
-                        <DollarSign className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-                        <Input
-                          type='number'
-                          step='0.01'
-                          placeholder='R$ máximo'
-                          value={localMaxValue}
-                          onChange={(e) => setLocalMaxValue(e.target.value)}
-                          className={cn(controlBase, 'pr-3 cursor-text tabular-nums', localMaxValue ? controlActive : 'border-border')}
-                        />
-                      </div>
-                    </FilterField>
-                  </div>
-                </AdvancedSection>
-              )}
-            </div>
-
-            <div className='px-5 py-4 border-t border-border bg-muted/40 flex items-center justify-between gap-3 shrink-0'>
-              <Button
-                variant='outline'
-                onClick={onClear}
-                disabled={!hasActiveFilters}
-                className='h-10 px-4 gap-2 rounded-xl border-border bg-card text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-50'
-              >
-                <RotateCcw className='w-4 h-4' /> Limpar filtros
-              </Button>
-              <Button
-                onClick={() => setShowAdvancedFilters(false)}
-                className='solid-btn h-10 px-6 rounded-xl text-sm font-bold'
-              >
-                Ver resultados ({resultCount})
-              </Button>
-            </div>
+            {(showClient || showClientType || showDates || showValues || showSearch) && (
+              <Section icon={User} title='Cliente, período e valor'>
+                {showClient && (
+                  <Field label='Cliente'>
+                    <FilterDropdown
+                      icon={User}
+                      value={filters.clientId}
+                      onChange={(v) => updateFilter('clientId', v)}
+                      allLabel='Todos'
+                      options={clients.map((c) => ({ value: c.id, label: c.name, hint: c.phone }))}
+                      searchable
+                      searchPlaceholder='Nome, telefone ou documento...'
+                    />
+                  </Field>
+                )}
+                {showClientType && (
+                  <Field label='Tipo'>
+                    <FilterDropdown icon={Users} value={filters.clientType} onChange={(v) => updateFilter('clientType', v)} allLabel='Todos' options={[{ value: 'regular', label: 'Cliente' }, { value: 'mechanic', label: 'Mecânico' }]} />
+                  </Field>
+                )}
+                {showDates && (
+                  <>
+                    <Field label='De'>
+                      <DateField value={filters.dateFrom} onChange={(v) => updateFilter('dateFrom', v)} placeholder='dd/mm/aaaa' />
+                    </Field>
+                    <Field label='Até'>
+                      <DateField value={filters.dateTo} onChange={(v) => updateFilter('dateTo', v)} placeholder='dd/mm/aaaa' />
+                    </Field>
+                  </>
+                )}
+                {showValues && (
+                  <>
+                    <Field label='Valor mínimo'>
+                      <TextField icon={DollarSign} type='number' value={localMinValue} onChange={setLocalMinValue} placeholder='0,00' className='tabular-nums' />
+                    </Field>
+                    <Field label='Valor máximo'>
+                      <TextField icon={DollarSign} type='number' value={localMaxValue} onChange={setLocalMaxValue} placeholder='0,00' className='tabular-nums' />
+                    </Field>
+                  </>
+                )}
+                {showSearch && (
+                  <Field label='Nº da O.S.'>
+                    <TextField icon={Hash} value={localOsId} onChange={setLocalOsId} placeholder='Ex.: 8454' className='tabular-nums' />
+                  </Field>
+                )}
+              </Section>
+            )}
           </div>
+
+          <div className='flex items-center justify-between gap-3 mt-4 pt-3 border-t border-border'>
+            <button
+              type='button'
+              onClick={() => onFilterChange({ ...filters, ...Object.fromEntries(panelKeys.map((k) => [k, ''])) })}
+              disabled={panelCount === 0}
+              className='inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer'
+            >
+              <RotateCcw className='w-3.5 h-3.5' /> Limpar estes filtros
+            </button>
+            <button type='button' onClick={() => setPanelOpen(false)} className='solid-btn h-8 px-4 rounded-lg text-sm font-semibold cursor-pointer'>
+              Ver {resultCount} O.S.
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Filtros aplicados (com o painel fechado) ═══ */}
+      {!panelOpen && tags.length > 0 && (
+        <div className='flex flex-wrap items-center gap-1.5'>
+          {tags.map((t) => (
+            <FilterTag key={t.key} label={t.label} onRemove={() => updateFilter(t.key, '')} />
+          ))}
         </div>
       )}
     </div>

@@ -170,7 +170,8 @@ export function useOrderFilters({ storageKey, orders, clients, defaultSort }: Us
     }));
   }, [clients]);
 
-  const filteredOrders = useMemo(() => {
+  // Aplica todos os critérios (menos a ordenação). Usado na lista e nas contagens por status.
+  const applyFilters = useCallback((effectiveFilters: FilterValues) => {
     let result = [...orders];
 
     if (effectiveFilters.osId) {
@@ -343,6 +344,11 @@ export function useOrderFilters({ storageKey, orders, clients, defaultSort }: Us
       );
     }
 
+    return result;
+  }, [orders, clientMap, storageKey]);
+
+  const filteredOrders = useMemo(() => {
+    const result = applyFilters(effectiveFilters);
     result.sort((a, b) => {
       let cmp = 0;
       switch (sort.field) {
@@ -403,7 +409,15 @@ export function useOrderFilters({ storageKey, orders, clients, defaultSort }: Us
     });
 
     return result;
-  }, [orders, effectiveFilters, sort, clientMap, storageKey]);
+  }, [applyFilters, effectiveFilters, sort, clientMap, storageKey]);
+
+  // Quantas O.S. ficam em cada status com os demais filtros aplicados (chips de status)
+  const statusCounts = useMemo(() => {
+    const base = applyFilters({ ...effectiveFilters, serviceStatus: '' });
+    const byStatus: Record<string, number> = {};
+    base.forEach((o) => { byStatus[o.serviceStatus] = (byStatus[o.serviceStatus] || 0) + 1; });
+    return { total: base.length, byStatus };
+  }, [applyFilters, effectiveFilters]);
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil(filteredOrders.length / pageSize)), [filteredOrders.length, pageSize]);
 
@@ -447,5 +461,6 @@ export function useOrderFilters({ storageKey, orders, clients, defaultSort }: Us
     allServiceTypes,
     clientOptions,
     allPartsLeft,
+    statusCounts,
   };
 }
