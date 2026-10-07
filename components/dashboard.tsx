@@ -109,7 +109,7 @@ const DashboardOrderRow = React.memo(({
       onClick={() => onView(order)}
       className={cn(
         "relative group rounded-lg border transition-colors duration-150 cursor-pointer",
-        "grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_172px_124px_32px] xl:grid-cols-[88px_minmax(0,1.6fr)_minmax(0,1.3fr)_104px_176px_150px_40px] gap-x-3 items-center px-4 py-2.5 min-h-[56px]",
+        "grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_176px_104px_32px] xl:grid-cols-[88px_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.1fr)_104px_200px_112px_40px] gap-x-3 items-center px-4 py-2.5 min-h-[56px]",
         "dark:bg-card dark:border-border/40 dark:hover:bg-muted",
         "bg-card border-border/70 hover:bg-muted/70"
       )}
@@ -126,7 +126,7 @@ const DashboardOrderRow = React.memo(({
         )}
       </div>
 
-      {/* Cliente (+ mecânico como linha de apoio) */}
+      {/* Cliente */}
       <div className="min-w-0" title={client?.nickname ? `${client.nickname} (${client.name || ''})` : client?.name}>
         <div className="font-bold text-foreground text-sm uppercase leading-tight line-clamp-2 break-words">
           {client?.nickname || client?.name || 'Cliente removido'}
@@ -135,8 +135,13 @@ const DashboardOrderRow = React.memo(({
           {[client?.nickname ? client.name : '', client?.phone].filter(Boolean).join(' · ')}
         </div>
         {mechanicLabel && (
-          <div className="text-xs text-foreground/75 truncate">Mecânico: {mechanicLabel}</div>
+          <div className="xl:hidden text-xs text-foreground/75 truncate">Mecânico: {mechanicLabel}</div>
         )}
+      </div>
+
+      {/* Mecânico responsável (em telas menores vai para baixo do cliente) */}
+      <div className="hidden xl:block min-w-0 text-sm font-medium uppercase truncate" title={mechanicLabel || 'Sem mecânico'}>
+        {mechanicLabel ? <span className="text-foreground">{mechanicLabel}</span> : <span className="text-muted-foreground">—</span>}
       </div>
 
       {/* Motor */}
@@ -170,7 +175,7 @@ const DashboardOrderRow = React.memo(({
       </div>
 
       {/* Status (clicável: troca rápida) */}
-      <div className="flex flex-col items-start gap-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+      <div className="flex flex-col items-center text-center gap-1 min-w-0" onClick={(e) => e.stopPropagation()}>
         <Select
           value={order.finished ? 'Finalizado / Entregue' : order.serviceStatus}
           onValueChange={(val) => onStatusChange(order.id, val)}
@@ -204,15 +209,9 @@ const DashboardOrderRow = React.memo(({
         )}
       </div>
 
-      {/* Pagamento + saldo */}
+      {/* Pagamento */}
       <div className="flex flex-col items-start gap-0.5">
         <PaymentBadge situation={payment.situation} grouped={!!groupedPayment} />
-        <span
-          className={cn("text-xs tabular-nums whitespace-nowrap", payment.situation === 'pago' ? "text-muted-foreground" : "font-semibold text-danger")}
-          title={groupedPayment ? 'Saldo do pagamento agrupado' : undefined}
-        >
-          {payment.situation === 'pago' ? formatBRL(payment.total) : `falta ${formatBRL(payment.balance)}`}
-        </span>
       </div>
 
       {/* Ações raras */}
@@ -684,12 +683,13 @@ export function Dashboard({
           {/* ═══ TABLE ═══ */}
           <div className="w-full space-y-3">
             {/* Table Header (Grid matching row cols) */}
-            <div className="hidden md:grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_172px_124px_32px] xl:grid-cols-[88px_minmax(0,1.6fr)_minmax(0,1.3fr)_104px_176px_150px_40px] gap-x-3 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="hidden md:grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_176px_104px_32px] xl:grid-cols-[88px_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.1fr)_104px_200px_112px_40px] gap-x-3 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <div>Nº O.S.</div>
               <div>Cliente</div>
+              <div className="hidden xl:block">Mecânico</div>
               <div>Motor</div>
               <div className="hidden xl:block">Chegada</div>
-              <div>Status</div>
+              <div className="text-center">Status</div>
               <div>Pagamento</div>
               <div></div>
             </div>
