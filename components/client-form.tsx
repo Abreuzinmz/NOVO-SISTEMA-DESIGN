@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { User, Wrench, X } from 'lucide-react';
+import { User, Wrench, X, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -80,7 +80,7 @@ export function ClientTypeToggle({ value, onChange }: { value: 'regular' | 'mech
 }
 
 /** Cabeçalho: ícone, título, subtítulo e botão de fechar */
-export function ClientDialogHeader({ title, subtitle, onClose }: { title: string; subtitle: string; onClose: () => void }) {
+export function ClientDialogHeader({ title, subtitle, onClose, icon: Icon = User }: { title: string; subtitle: string; onClose: () => void; icon?: React.ElementType }) {
   return (
     <>
       <button
@@ -93,7 +93,7 @@ export function ClientDialogHeader({ title, subtitle, onClose }: { title: string
       </button>
       <DialogHeader className="flex-row items-center gap-3 px-6 pt-4 pb-3 space-y-0 text-left">
         <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center shrink-0">
-          <User className="w-5 h-5 stroke-[1.75] text-foreground" />
+          <Icon className="w-5 h-5 stroke-[1.75] text-foreground" />
         </div>
         <div className="min-w-0">
           <DialogTitle className="text-xl font-bold tracking-tight text-foreground">{title}</DialogTitle>
@@ -104,12 +104,17 @@ export function ClientDialogHeader({ title, subtitle, onClose }: { title: string
   );
 }
 
-/** Rodapé: Cancelar + Salvar. Sem onSave, o botão salvar envia o <form>. */
-export function ClientDialogFooter({ onCancel, onSave, saveDisabled, saveLabel = 'Salvar Cliente' }: {
-  onCancel: () => void; onSave?: () => void; saveDisabled?: boolean; saveLabel?: string;
+/** Rodapé: [Excluir] ... Cancelar + Salvar. Sem onSave, o botão salvar envia o <form>. */
+export function ClientDialogFooter({ onCancel, onSave, saveDisabled, saveLabel = 'Salvar Cliente', onDelete, deleteLabel = 'Excluir Cliente' }: {
+  onCancel: () => void; onSave?: () => void; saveDisabled?: boolean; saveLabel?: string; onDelete?: () => void; deleteLabel?: string;
 }) {
   return (
-    <DialogFooter className="mx-0 mb-0 px-6 py-3 border-t border-border bg-popover flex-row justify-end gap-2 rounded-none">
+    <DialogFooter className="mx-0 mb-0 px-6 py-3 border-t border-border bg-popover flex-row justify-end items-center gap-2 rounded-none">
+      {onDelete && (
+        <Button type="button" variant="ghost" onClick={onDelete} className="mr-auto h-10 px-3 rounded-lg text-danger hover:text-danger hover:bg-danger/10 text-sm font-semibold gap-1.5">
+          <Trash2 className="w-4 h-4" /> {deleteLabel}
+        </Button>
+      )}
       <Button type="button" variant="outline" onClick={onCancel} className="h-10 px-5 rounded-lg border-border text-muted-foreground hover:bg-muted text-sm font-semibold">
         Cancelar
       </Button>

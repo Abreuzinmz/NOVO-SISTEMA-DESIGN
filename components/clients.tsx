@@ -988,157 +988,77 @@ const ClientDetailsContent = React.memo(({
       </Dialog>
 
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-lg bg-popover border-border">
-          <DialogHeader>
-            <DialogTitle className="text-md font-extrabold flex items-center gap-2 text-foreground">
-              <Pencil className="w-5 h-5 text-foreground stroke-[1.5]" />
-              Editar Cliente
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleEditClient} className="space-y-4 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-name" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Nome completo</Label>
-                <Input id="edit-name" placeholder="Nome completo" value={editName} onChange={e => setEditName(e.target.value.toUpperCase())} className="premium-input uppercase placeholder:normal-case text-xs h-9 rounded-lg" />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-nickname" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Apelido / Nome Fantasia (Opcional)</Label>
-                <Input id="edit-nickname" placeholder="Apelido ou nome fantasia" value={editNickname} onChange={e => setEditNickname(e.target.value.toUpperCase())} className="premium-input uppercase placeholder:normal-case text-xs h-9 rounded-lg" />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-document" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">CPF/CNPJ (Opcional)</Label>
-                <MaskedInput id="edit-document" placeholder="000.000.000-00" value={editDocument} mask={maskCPFCNPJ} unmask={cleanNumeric} onValueChange={setEditDocument} className="premium-input text-xs h-9 rounded-lg" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-phone" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Telefone (Opcional)</Label>
-                <MaskedInput id="edit-phone" placeholder="(00) 00000-0000" value={editPhone} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditPhone} className="premium-input text-xs h-9 rounded-lg" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-phone2" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Telefone 2 (Opcional)</Label>
-                <MaskedInput id="edit-phone2" placeholder="(11) 99999-9999" value={editPhone2} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditPhone2} className="premium-input text-xs h-9 rounded-lg" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-whatsapp" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">WhatsApp (Opcional)</Label>
-                <MaskedInput id="edit-whatsapp" placeholder="(00) 00000-0000" value={editWhatsapp} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditWhatsapp} className="premium-input text-xs h-9 rounded-lg" />
-              </div>
-              <div className="space-y-2 col-span-1 md:col-span-2">
-                <Label htmlFor="edit-city" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Cidade (Opcional)</Label>
-                <Input id="edit-city" placeholder="Ex: Curitiba - PR" value={editCity} onChange={e => setEditCity(e.target.value)} className="premium-input text-xs h-9 rounded-lg" />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Tipo de Cliente</Label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditClientType('regular')}
-                    className={cn(
-                      "flex-1 h-9 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all",
-                      editClientType === 'regular'
-                        ? "bg-secondary text-foreground border-border"
-                        : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-secondary/40"
-                    )}
-                  >
-                    CLIENTE
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditClientType('mechanic')}
-                    className={cn(
-                      "flex-1 h-9 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all",
-                      editClientType === 'mechanic'
-                        ? "bg-info/10 text-info border-info/30"
-                        : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-secondary/40"
-                    )}
-                  >
-                    MECÂNICO
-                  </button>
+        <DialogContent showCloseButton={false} className={clientDialogClass}>
+          <ClientDialogHeader icon={Pencil} title="Editar Cliente" subtitle="Atualize os dados do cliente." onClose={() => setIsEditModalOpen(false)} />
+          <form onSubmit={handleEditClient} className="flex flex-col min-h-0 flex-1">
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 space-y-3">
+              <FormSection icon={User} title="Dados principais" hint="Informações básicas do cliente.">
+                <div className="space-y-1.5">
+                  <FieldLabel htmlFor="edit-name" required>Nome completo</FieldLabel>
+                  <IconField icon={User}>
+                    <Input id="edit-name" placeholder="Digite o nome completo do cliente" value={editName} onChange={e => setEditName(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
+                  </IconField>
                 </div>
-              </div>
-              {editClientType === 'regular' && (
-                <div ref={editMechContainerRef} className="space-y-2 md:col-span-2 relative">
-                  <Label htmlFor="edit-default-mechanic" className="text-muted-foreground text-xs font-bold uppercase tracking-wider">Mecânico Padrão (Opcional)</Label>
-                  <div className="relative">
-                    <Input
-                      id="edit-default-mechanic"
-                      placeholder="Pesquisar por nome ou apelido..."
-                      value={editMechSearch}
-                      onChange={(e) => {
-                        setEditMechSearch(e.target.value);
-                        setIsEditMechDropdownOpen(true);
-                        if (!e.target.value) {
-                          setEditDefaultMechanicId('');
-                        }
-                      }}
-                      onFocus={() => setIsEditMechDropdownOpen(true)}
-                      onBlur={() => {
-                        setTimeout(() => {
-                          setIsEditMechDropdownOpen(false);
-                          if (editDefaultMechanicId) {
-                            const foundMech = clients.find(c => c.id === editDefaultMechanicId);
-                            if (foundMech) {
-                              setEditMechSearch(foundMech.nickname ? `${foundMech.nickname.toUpperCase()} (${foundMech.name})` : foundMech.name);
-                            }
-                          }
-                        }, 150);
-                      }}
-                      className="premium-input text-xs h-9 rounded-lg w-full"
-                    />
-                    {isEditMechDropdownOpen && (
-                      <div className="absolute z-[1200] w-full mt-1 max-h-[160px] overflow-y-auto bg-card border border-border rounded-lg shadow-lg">
-                        {filteredEditMech.length === 0 ? (
-                          <div className="p-2 text-xs text-muted-foreground/60 italic text-center">Nenhum mecânico encontrado</div>
-                        ) : (
-                          filteredEditMech.map((mech) => {
-                            const selectedName = mech.nickname ? `${mech.nickname.toUpperCase()} (${mech.name})` : mech.name;
-                            const handleSelect = () => {
-                              setEditDefaultMechanicId(mech.id);
-                              setEditMechSearch(selectedName);
-                              setIsEditMechDropdownOpen(false);
-                            };
-                            return (
-                              <button
-                                key={mech.id}
-                                type="button"
-                                onMouseDown={(e) => {
-                                  e.preventDefault();
-                                  handleSelect();
-                                }}
-                                onPointerDown={(e) => {
-                                  e.preventDefault();
-                                  handleSelect();
-                                }}
-                                onClick={handleSelect}
-                                className="w-full text-left px-3 py-2 text-xs hover:bg-secondary text-foreground font-semibold"
-                              >
-                                {mech.name} {mech.nickname ? `(${mech.nickname})` : ''}
-                              </button>
-                            );
-                          })
-                        )}
-                      </div>
-                    )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="edit-nickname" optional>Apelido / Nome fantasia</FieldLabel>
+                    <IconField icon={Tag}>
+                      <Input id="edit-nickname" placeholder="Apelido ou nome fantasia" value={editNickname} onChange={e => setEditNickname(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
+                    </IconField>
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="edit-document" optional>CPF/CNPJ</FieldLabel>
+                    <IconField icon={FileText}>
+                      <MaskedInput id="edit-document" placeholder="000.000.000-00" value={editDocument} mask={maskCPFCNPJ} unmask={cleanNumeric} onValueChange={setEditDocument} className={iconInputClass} />
+                    </IconField>
                   </div>
                 </div>
-              )}
+              </FormSection>
+
+              <FormSection icon={Phone} title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="edit-phone" optional>Telefone</FieldLabel>
+                    <IconField icon={Phone}>
+                      <MaskedInput id="edit-phone" placeholder="(00) 00000-0000" value={editPhone} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditPhone} className={iconInputClass} />
+                    </IconField>
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="edit-phone2" optional>Telefone 2</FieldLabel>
+                    <IconField icon={Phone}>
+                      <MaskedInput id="edit-phone2" placeholder="(11) 99999-9999" value={editPhone2} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditPhone2} className={iconInputClass} />
+                    </IconField>
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="edit-whatsapp" optional>WhatsApp</FieldLabel>
+                    <IconField icon={MessageCircle}>
+                      <MaskedInput id="edit-whatsapp" placeholder="(00) 00000-0000" value={editWhatsapp} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditWhatsapp} className={iconInputClass} />
+                    </IconField>
+                  </div>
+                </div>
+              </FormSection>
+
+              <FormSection icon={MapPin} title="Localização" hint="Cidade do cliente.">
+                <div className="space-y-1.5">
+                  <FieldLabel htmlFor="edit-city" optional>Cidade</FieldLabel>
+                  <IconField icon={MapPin}>
+                    <Input id="edit-city" placeholder="Ex: Curitiba - PR" value={editCity} onChange={e => setEditCity(e.target.value)} className={iconInputClass} />
+                  </IconField>
+                </div>
+              </FormSection>
+
+              <FormSection icon={Users} title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
+                <ClientTypeToggle value={editClientType} onChange={setEditClientType} />
+              </FormSection>
             </div>
-            <DialogFooter className="pt-4 flex items-center justify-between">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  setIsEditModalOpen(false);
-                  setIsDeleteDialogOpen(true);
-                }}
-                className="text-danger hover:text-danger/90 hover:bg-danger/10 rounded-lg text-xs h-9 font-bold gap-1.5"
-              >
-                <Trash2 className="w-3.5 h-3.5 stroke-[1.5]" />
-                Excluir Cliente
-              </Button>
-              <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)} className="border-border text-muted-foreground hover:bg-secondary/40 rounded-lg text-xs h-9">Cancelar</Button>
-                <Button type="submit" className="solid-btn font-bold rounded-lg text-xs h-9">Salvar Alterações</Button>
-              </div>
-            </DialogFooter>
+            <ClientDialogFooter
+              onCancel={() => setIsEditModalOpen(false)}
+              saveLabel="Salvar Alterações"
+              onDelete={() => {
+                setIsEditModalOpen(false);
+                setIsDeleteDialogOpen(true);
+              }}
+            />
           </form>
         </DialogContent>
       </Dialog>

@@ -464,6 +464,7 @@ function OSFormImpl({
   const [editClientName, setEditClientName] = useState('');
   const [editClientPhone, setEditClientPhone] = useState('');
   const [editClientPhone2, setEditClientPhone2] = useState('');
+  const [editClientWhatsapp, setEditClientWhatsapp] = useState('');
   const [editClientDoc, setEditClientDoc] = useState('');
   const [editClientType, setEditClientType] = useState<'regular' | 'mechanic'>('regular');
   const [editClientAddress, setEditClientAddress] = useState('');
@@ -1708,6 +1709,7 @@ function OSFormImpl({
     setEditClientName(found.name || '');
     setEditClientPhone(normalizeNumber(found.phone || ''));
     setEditClientPhone2(normalizeNumber(found.phone2 || ''));
+    setEditClientWhatsapp(normalizeNumber(found.whatsapp || ''));
     setEditClientDoc(normalizeNumber(found.document || ''));
     setEditClientType(found.clientType || 'regular');
     setEditClientAddress(found.city || '');
@@ -1764,6 +1766,10 @@ function OSFormImpl({
       toast.error('Telefone inválido. Digite no mínimo 10 números (com DDD).');
       return;
     }
+    if (editClientWhatsapp && editClientWhatsapp.length < 10) {
+      toast.error('WhatsApp inválido. Digite no mínimo 10 números (com DDD).');
+      return;
+    }
     if (editClientPhone) {
       const normPhone = normalizeNumber(editClientPhone);
       if (clients.some(c => c.id !== found.id && c.phone && normalizeNumber(c.phone) === normPhone)) {
@@ -1781,6 +1787,7 @@ function OSFormImpl({
 
     const newPhone = editClientPhone ? maskPhone(editClientPhone) : '';
     const newPhone2 = editClientPhone2 ? maskPhone(editClientPhone2) : '';
+    const newWhatsapp = editClientWhatsapp ? maskPhone(editClientWhatsapp) : '';
     const newDoc = editClientDoc ? maskCPFCNPJ(editClientDoc) : '';
 
     try {
@@ -1788,6 +1795,7 @@ function OSFormImpl({
         name: editClientName.trim().toUpperCase(),
         phone: newPhone,
         phone2: newPhone2,
+        whatsapp: newWhatsapp,
         document: newDoc,
         city: editClientAddress.trim().toUpperCase(),
         clientType: editClientType,
@@ -1803,6 +1811,7 @@ function OSFormImpl({
         name: editClientName.trim().toUpperCase(),
         phone: newPhone,
         phone2: newPhone2,
+        whatsapp: newWhatsapp,
         document: newDoc,
         city: editClientAddress.trim().toUpperCase(),
         clientType: editClientType,
@@ -4562,128 +4571,83 @@ function OSFormImpl({
         </Dialog>
       )}
 
-      {/* Modal: Editar Cliente / Mecânico */}
+      {/* Modal: Editar Cliente / Mecânico (mesmo formulário da tela Clientes) */}
       {!readOnly && (
         <Dialog open={isEditClientModalOpen} onOpenChange={setIsEditClientModalOpen}>
-          <DialogContent showCloseButton={false} className="relative z-[1100] bg-card border-border rounded-xl p-6 max-w-md" overlayClassName="z-[1099]">
-            <DialogClose render={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-                <span className="sr-only">Close</span>
-              </Button>
-            } />
-            <DialogHeader>
-              <DialogTitle className="text-lg font-bold uppercase tracking-wider text-foreground/90">
-                {editClientType === 'mechanic' ? 'Editar Mecânico' : 'Editar Cliente'}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-2">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Nome Completo</Label>
-                <Input
-                  value={editClientName}
-                  onChange={e => setEditClientName(e.target.value.toUpperCase())}
-                  placeholder="Ex.: João da Silva"
-                  className="h-9 rounded-lg premium-input text-xs uppercase placeholder:normal-case"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Apelido (Opcional)</Label>
-                <Input
-                  value={editClientNickname}
-                  onChange={e => setEditClientNickname(e.target.value.toUpperCase())}
-                  placeholder="Ex.: Silva Motores"
-                  className="h-9 rounded-lg premium-input text-xs uppercase placeholder:normal-case"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Tipo</Label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditClientType('regular')}
-                    className={cn(
-                      "flex-1 h-9 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all cursor-pointer",
-                      editClientType === 'regular'
-                        ? "bg-muted text-foreground border-border"
-                        : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-muted/30"
-                    )}
-                  >
-                    Cliente
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditClientType('mechanic')}
-                    className={cn(
-                      "flex-1 h-9 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all cursor-pointer",
-                      editClientType === 'mechanic'
-                        ? "bg-info/10 text-info border border-info/30"
-                        : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-muted/30"
-                    )}
-                  >
-                    Mecânico
-                  </button>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+          <DialogContent showCloseButton={false} className={cn(clientDialogClass, 'z-[1100]')} overlayClassName="z-[1099]">
+            <ClientDialogHeader
+              icon={Pencil}
+              title={editClientType === 'mechanic' ? 'Editar Mecânico' : 'Editar Cliente'}
+              subtitle="Atualize os dados sem sair da O.S."
+              onClose={() => setIsEditClientModalOpen(false)}
+            />
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 space-y-3">
+              <FormSection icon={User} title="Dados principais" hint="Informações básicas do cliente.">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Telefone <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
-                  <Input
-                    value={maskPhone(editClientPhone)}
-                    onChange={e => setEditClientPhone(normalizeNumber(e.target.value).slice(0, 11))}
-                    placeholder="(11) 99999-9999"
-                    className="h-9 rounded-lg premium-input text-xs"
-                  />
+                  <FieldLabel htmlFor="os-edit-client-name" required>Nome completo</FieldLabel>
+                  <IconField icon={User}>
+                    <Input id="os-edit-client-name" placeholder="Digite o nome completo do cliente" value={editClientName} onChange={e => setEditClientName(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
+                  </IconField>
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="os-edit-client-nickname" optional>Apelido / Nome fantasia</FieldLabel>
+                    <IconField icon={Tag}>
+                      <Input id="os-edit-client-nickname" placeholder="Apelido ou nome fantasia" value={editClientNickname} onChange={e => setEditClientNickname(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
+                    </IconField>
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="os-edit-client-document" optional>CPF/CNPJ</FieldLabel>
+                    <IconField icon={FileText}>
+                      <MaskedInput id="os-edit-client-document" value={editClientDoc} mask={maskCPFCNPJ} unmask={(v) => normalizeNumber(v).slice(0, 14)} onValueChange={setEditClientDoc} placeholder="000.000.000-00" className={iconInputClass} />
+                    </IconField>
+                  </div>
+                </div>
+              </FormSection>
+
+              <FormSection icon={Phone} title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="os-edit-client-phone" optional>Telefone</FieldLabel>
+                    <IconField icon={Phone}>
+                      <MaskedInput id="os-edit-client-phone" value={editClientPhone} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setEditClientPhone} placeholder="(00) 00000-0000" className={iconInputClass} />
+                    </IconField>
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="os-edit-client-phone2" optional>Telefone 2</FieldLabel>
+                    <IconField icon={Phone}>
+                      <MaskedInput id="os-edit-client-phone2" value={editClientPhone2} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setEditClientPhone2} placeholder="(11) 99999-9999" className={iconInputClass} />
+                    </IconField>
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="os-edit-client-whatsapp" optional>WhatsApp</FieldLabel>
+                    <IconField icon={MessageCircle}>
+                      <MaskedInput id="os-edit-client-whatsapp" value={editClientWhatsapp} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setEditClientWhatsapp} placeholder="(00) 00000-0000" className={iconInputClass} />
+                    </IconField>
+                  </div>
+                </div>
+              </FormSection>
+
+              <FormSection icon={MapPin} title="Localização" hint="Cidade do cliente.">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Telefone 2 <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
-                  <Input
-                    value={maskPhone(editClientPhone2)}
-                    onChange={e => setEditClientPhone2(normalizeNumber(e.target.value).slice(0, 11))}
-                    placeholder="(11) 99999-9999"
-                    className="h-9 rounded-lg premium-input text-xs"
-                  />
+                  <FieldLabel htmlFor="os-edit-client-city" optional>Cidade</FieldLabel>
+                  <IconField icon={MapPin}>
+                    <Input id="os-edit-client-city" placeholder="Ex: Curitiba - PR" value={editClientAddress} onChange={e => setEditClientAddress(e.target.value)} className={iconInputClass} />
+                  </IconField>
                 </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">CPF/CNPJ <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
-                <Input
-                  value={maskCPFCNPJ(editClientDoc)}
-                  onChange={e => setEditClientDoc(normalizeNumber(e.target.value).slice(0, 14))}
-                  placeholder="000.000.000-00"
-                  className="h-9 rounded-lg premium-input text-xs"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Endereço <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
-                <Input
-                  value={editClientAddress}
-                  onChange={e => setEditClientAddress(e.target.value.toUpperCase())}
-                  placeholder="Ex.: Rua das Flores, 123 - Centro"
-                  className="h-9 rounded-lg premium-input text-xs uppercase placeholder:normal-case"
-                />
-              </div>
+              </FormSection>
+
+              <FormSection icon={Users} title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
+                <ClientTypeToggle value={editClientType} onChange={setEditClientType} />
+              </FormSection>
             </div>
-            <DialogFooter className="flex flex-row items-center justify-between gap-3 pt-2">
-              <button
-                type="button"
-                onClick={handleDeleteClientModal}
-                className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-danger hover:text-danger dark:text-danger dark:hover:text-danger py-1 cursor-pointer transition-colors shrink-0"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                Excluir
-              </button>
-              <Button
-                onClick={handleSaveClientEditModal}
-                className="h-10 px-6 rounded-lg solid-btn font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
-              >
-                Salvar Alterações
-              </Button>
-            </DialogFooter>
+            <ClientDialogFooter
+              onCancel={() => setIsEditClientModalOpen(false)}
+              onSave={handleSaveClientEditModal}
+              saveLabel="Salvar Alterações"
+              onDelete={handleDeleteClientModal}
+              deleteLabel={editClientType === 'mechanic' ? 'Excluir Mecânico' : 'Excluir Cliente'}
+            />
           </DialogContent>
         </Dialog>
       )}
