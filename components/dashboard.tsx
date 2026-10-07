@@ -60,14 +60,14 @@ import {
 
 // Faixa colorida à esquerda de cada O.S., na cor do status
 const STATUS_ACCENT: Record<string, string> = {
-  'Na Fila': 'border-l-muted-foreground/40',
-  'Em Andamento': 'border-l-info',
-  'Aguardando Peça': 'border-l-warning',
-  'Pronto': 'border-l-success',
-  'Levou': 'border-l-levou',
+  'Na Fila': 'border-l-gray-400',
+  'Em Andamento': 'border-l-blue-500',
+  'Aguardando Peça': 'border-l-amber-500',
+  'Pronto': 'border-l-green-500',
+  'Levou': 'border-l-violet-500',
 };
 
-const motorChip = 'inline-flex items-center h-5 px-1.5 rounded-md bg-muted border border-border text-[11px] font-semibold text-muted-foreground tabular-nums uppercase';
+const motorChip = 'inline-flex items-center h-5 px-1.5 rounded-md bg-gray-100 border border-gray-200 text-[11px] font-semibold text-gray-500 tabular-nums uppercase dark:bg-white/5 dark:border-white/10 dark:text-gray-300';
 
 interface DashboardOrderRowProps {
   order: Order;
@@ -127,7 +127,7 @@ const DashboardOrderRow = React.memo(({
     >
       {/* Nº O.S. */}
       <div className="min-w-0">
-        <div className="font-mono font-extrabold text-xl text-info tabular-nums leading-none">
+        <div className="font-mono font-extrabold text-xl text-[#2563EB] dark:text-[#60A5FA] tabular-nums leading-none">
           #{order.osNumber || order.id}
         </div>
         {arrival && (
