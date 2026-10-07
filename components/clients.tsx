@@ -51,6 +51,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
+import { FormSection, FieldLabel, IconField, ClientTypeToggle, ClientDialogHeader, ClientDialogFooter, iconInputClass, clientDialogClass } from '@/components/client-form';
 import { OSViewModal } from '@/components/os-view-modal';
 
 // ═══ FORMATTING HELPERS ═══
@@ -127,48 +128,6 @@ function buildClientBalances(
     map.set(o.clientId, entry);
   }
   return map;
-}
-
-// ═══ FORMULÁRIO DE CLIENTE: seções, rótulos e campos com ícone ═══
-
-const iconInputClass = 'premium-input h-11 pl-10 pr-3 text-sm rounded-xl';
-
-function FormSection({ icon: Icon, title, hint, description, children }: {
-  icon: React.ElementType; title: string; hint?: string; description?: string; children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-xl border border-border bg-muted/30 px-5 py-4 space-y-3">
-      <div>
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="flex items-center gap-2.5 text-base font-bold text-foreground">
-            <Icon className="w-5 h-5 stroke-[1.75]" /> {title}
-          </h3>
-          {hint && <span className="text-xs text-muted-foreground text-right">{hint}</span>}
-        </div>
-        {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function FieldLabel({ htmlFor, children, required, optional }: { htmlFor?: string; children: React.ReactNode; required?: boolean; optional?: boolean }) {
-  return (
-    <label htmlFor={htmlFor} className="flex items-center gap-2 text-sm font-medium text-foreground">
-      {children}
-      {required && <span className="text-danger">*</span>}
-      {optional && <span className="px-2 py-0.5 rounded-full bg-muted text-xs font-normal text-muted-foreground">Opcional</span>}
-    </label>
-  );
-}
-
-function IconField({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
-  return (
-    <div className="relative">
-      <Icon className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
-      {children}
-    </div>
-  );
 }
 
 // ═══ CLIENT ROW (LIST ITEM) COMPONENT ═══
@@ -445,26 +404,10 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
                 Adicionar Cliente
               </Button>
             } />
-            <DialogContent showCloseButton={false} className="relative sm:max-w-[720px] max-h-[94vh] p-0 gap-0 rounded-2xl bg-popover border-border overflow-hidden flex flex-col">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                title="Fechar"
-                className="absolute top-5 right-5 w-9 h-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer z-10"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              <DialogHeader className="flex-row items-center gap-4 px-7 pt-5 pb-4 space-y-0 text-left">
-                <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center shrink-0">
-                  <User className="w-6 h-6 stroke-[1.75] text-foreground" />
-                </div>
-                <div className="min-w-0">
-                  <DialogTitle className="text-2xl font-bold tracking-tight text-foreground">Novo Cliente</DialogTitle>
-                  <DialogDescription className="text-sm text-muted-foreground mt-0.5">Cadastre um novo cliente no sistema.</DialogDescription>
-                </div>
-              </DialogHeader>
+            <DialogContent showCloseButton={false} className={clientDialogClass}>
+              <ClientDialogHeader title="Novo Cliente" subtitle="Cadastre um novo cliente no sistema." onClose={() => setIsModalOpen(false)} />
               <form onSubmit={handleAddClient} className="flex flex-col min-h-0 flex-1">
-                <div className="flex-1 min-h-0 overflow-y-auto px-7 pb-4 space-y-3">
+                <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 space-y-3">
                   <FormSection icon={User} title="Dados principais" hint="Informações básicas do cliente.">
                     <div className="space-y-1.5">
                       <FieldLabel htmlFor="name" required>Nome completo</FieldLabel>
@@ -472,7 +415,7 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
                         <Input id="name" placeholder="Digite o nome completo do cliente" value={newName} onChange={e => setNewName(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} autoFocus />
                       </IconField>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-1.5">
                         <FieldLabel htmlFor="nickname" optional>Apelido / Nome fantasia</FieldLabel>
                         <IconField icon={Tag}>
@@ -489,7 +432,7 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
                   </FormSection>
 
                   <FormSection icon={Phone} title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="space-y-1.5">
                         <FieldLabel htmlFor="phone" optional>Telefone</FieldLabel>
                         <IconField icon={Phone}>
@@ -521,106 +464,10 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
                   </FormSection>
 
                   <FormSection icon={Users} title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
-                    <div className="grid grid-cols-2 rounded-xl border border-border bg-card p-1 gap-1" role="radiogroup" aria-label="Tipo de cliente">
-                      {([
-                        { value: 'regular', label: 'Cliente', icon: User },
-                        { value: 'mechanic', label: 'Mecânico', icon: Wrench },
-                      ] as const).map(opt => {
-                        const active = newClientType === opt.value;
-                        const Icon = opt.icon;
-                        return (
-                          <button
-                            key={opt.value}
-                            type="button"
-                            role="radio"
-                            aria-checked={active}
-                            onClick={() => setNewClientType(opt.value)}
-                            className={cn(
-                              'h-12 rounded-lg flex items-center justify-center gap-2.5 text-base font-semibold transition-colors cursor-pointer',
-                              active ? 'bg-muted text-foreground shadow-sm ring-1 ring-border' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-                            )}
-                          >
-                            <Icon className={cn('w-5 h-5', active && opt.value === 'regular' && 'fill-current')} />
-                            {opt.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {newClientType === 'regular' && (
-                      <div ref={newMechContainerRef} className="space-y-1.5 relative">
-                        <FieldLabel htmlFor="default-mechanic" optional>Mecânico padrão</FieldLabel>
-                        <div className="relative">
-                          <IconField icon={Wrench}>
-                            <Input
-                              id="default-mechanic"
-                              placeholder="Pesquisar por nome ou apelido..."
-                              value={newMechSearch}
-                              onChange={(e) => {
-                                setNewMechSearch(e.target.value);
-                                setIsNewMechDropdownOpen(true);
-                                if (!e.target.value) {
-                                  setNewDefaultMechanicId('');
-                                }
-                              }}
-                              onFocus={() => setIsNewMechDropdownOpen(true)}
-                              onBlur={() => {
-                                setTimeout(() => {
-                                  setIsNewMechDropdownOpen(false);
-                                  if (newDefaultMechanicId) {
-                                    const foundMech = clients.find(c => c.id === newDefaultMechanicId);
-                                    if (foundMech) {
-                                      setNewMechSearch(foundMech.nickname ? `${foundMech.nickname.toUpperCase()} (${foundMech.name})` : foundMech.name);
-                                    }
-                                  }
-                                }, 150);
-                              }}
-                              className={iconInputClass}
-                            />
-                          </IconField>
-                          {isNewMechDropdownOpen && (
-                            <div className="absolute z-[1200] w-full mt-1 max-h-[160px] overflow-y-auto bg-card border border-border rounded-xl shadow-lg p-1">
-                              {filteredNewMech.length === 0 ? (
-                                <div className="p-2 text-sm text-muted-foreground text-center">Nenhum mecânico encontrado</div>
-                              ) : (
-                                filteredNewMech.map((mech) => {
-                                  const selectedName = mech.nickname ? `${mech.nickname.toUpperCase()} (${mech.name})` : mech.name;
-                                  const handleSelect = () => {
-                                    setNewDefaultMechanicId(mech.id);
-                                    setNewMechSearch(selectedName);
-                                    setIsNewMechDropdownOpen(false);
-                                  };
-                                  return (
-                                    <button
-                                      key={mech.id}
-                                      type="button"
-                                      onMouseDown={(e) => {
-                                        e.preventDefault();
-                                        handleSelect();
-                                      }}
-                                      onPointerDown={(e) => {
-                                        e.preventDefault();
-                                        handleSelect();
-                                      }}
-                                      onClick={handleSelect}
-                                      className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-muted text-foreground font-medium"
-                                    >
-                                      {mech.name} {mech.nickname ? `(${mech.nickname})` : ''}
-                                    </button>
-                                  );
-                                })
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                    <ClientTypeToggle value={newClientType} onChange={setNewClientType} />
                   </FormSection>
                 </div>
-                <DialogFooter className="mx-0 mb-0 px-7 py-4 border-t border-border bg-popover flex-row justify-end gap-3 rounded-none">
-                  <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="h-11 px-6 rounded-xl border-border text-muted-foreground hover:bg-muted text-base font-semibold">Cancelar</Button>
-                  <Button type="submit" className="solid-btn h-11 px-6 rounded-xl text-base font-bold">Salvar Cliente</Button>
-                </DialogFooter>
+                <ClientDialogFooter onCancel={() => setIsModalOpen(false)} />
               </form>
             </DialogContent>
           </Dialog>

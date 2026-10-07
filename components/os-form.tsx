@@ -45,7 +45,9 @@ import {
   AlertTriangle,
   Phone,
   MapPin,
-  FileText
+  FileText,
+  Tag,
+  MessageCircle
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -74,6 +76,7 @@ import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { cn, formatMotorDisplay, getLocalDateString } from '@/lib/utils';
 import { fetchMotors, fetchModels, addMotor as addMotorToDb, addModel as addModelToDb, deleteMotor as deleteMotorFromDb, deleteModel as deleteModelFromDb, updateModel as updateModelInDb } from '@/lib/motors';
 import { PrintPreviewModal } from './print-preview-modal';
+import { FormSection, FieldLabel, IconField, ClientTypeToggle, ClientDialogHeader, ClientDialogFooter, iconInputClass, clientDialogClass } from '@/components/client-form';
 import { OSPrintReport } from './os-print-report';
 
 const normalizeText = (value: any = ''): string => {
@@ -445,6 +448,7 @@ function OSFormImpl({
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [isClientSelectorOpen, setIsClientSelectorOpen] = useState(false);
   const [newClientName, setNewClientName] = useState('');
+  const [newClientWhatsapp, setNewClientWhatsapp] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
   const [newClientPhone2, setNewClientPhone2] = useState('');
   const [newClientDoc, setNewClientDoc] = useState('');
@@ -1920,6 +1924,10 @@ function OSFormImpl({
       toast.error('CPF ou CNPJ inválido.');
       return;
     }
+    if (newClientWhatsapp && newClientWhatsapp.length < 10) {
+      toast.error('WhatsApp inválido. Digite no mínimo 10 números (com DDD).');
+      return;
+    }
 
     // Validate duplicates locally & fetch fresh list to check remote duplicates
     const existingClient = await checkDuplicateInDatabase({
@@ -1939,6 +1947,7 @@ function OSFormImpl({
       setNewClientNickname('');
       setNewClientPhone('');
       setNewClientPhone2('');
+      setNewClientWhatsapp('');
       setNewClientDoc('');
       setNewClientAddress('');
       setNewClientType('regular');
@@ -1950,6 +1959,7 @@ function OSFormImpl({
       phone: newClientPhone ? maskPhone(newClientPhone) : '',
       phone2: newClientPhone2 ? maskPhone(newClientPhone2) : '',
       document: newClientDoc ? maskCPFCNPJ(newClientDoc) : '',
+      whatsapp: newClientWhatsapp ? maskPhone(newClientWhatsapp) : '',
       city: newClientAddress.toUpperCase(),
       clientType: newClientType,
       nickname: newClientNickname.trim().toUpperCase()
@@ -1963,6 +1973,7 @@ function OSFormImpl({
     setNewClientNickname('');
     setNewClientPhone('');
     setNewClientPhone2('');
+    setNewClientWhatsapp('');
     setNewClientDoc('');
     setNewClientType('regular');
     setNewClientAddress('');
@@ -4453,155 +4464,100 @@ function OSFormImpl({
         </DialogContent>
       </Dialog>
 
-      {/* Modal: Cadastrar Cliente */}
+      {/* Modal: Cadastrar Cliente (mesmo formulário da tela Clientes) */}
       {!readOnly && (
         <Dialog open={isClientModalOpen} onOpenChange={setIsClientModalOpen}>
-          <DialogContent showCloseButton={false} className="relative z-[1100] bg-card border-border rounded-xl p-6 max-w-md" overlayClassName="z-[1099]">
-            <DialogClose render={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-                <span className="sr-only">Close</span>
-              </Button>
-            } />
-            <DialogHeader>
-              <DialogTitle className="text-lg font-bold uppercase tracking-wider text-foreground/90">Cadastrar Cliente</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-2">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Nome Completo</Label>
-                <Input value={newClientName} onChange={e => setNewClientName(e.target.value)} placeholder="Ex.: João da Silva" className="h-9 rounded-lg premium-input text-xs uppercase placeholder:normal-case" />
-                {isNewClientDuplicate && (
-                  <div className="p-3 rounded-lg bg-warning/10 border border-warning/20 text-xs font-semibold text-warning mt-1 flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                    <span>⚠️ Cliente já cadastrado</span>
-                    <span className="text-xs font-normal text-muted-foreground">Não é permitido cadastrar outro cliente com o mesmo nome, telefone ou CPF/CNPJ. Selecione o cliente existente na lista de busca.</span>
-                    <div className="flex flex-col gap-1 mt-0.5">
-                      {newClientConflicts.map(({ client, fields }) => {
-                        const fieldLabel = fields.length === 1
-                          ? (fields[0] === 'name' ? 'Nome já usado por' : fields[0] === 'phone' ? 'Telefone já usado por' : 'CPF/CNPJ já usado por')
-                          : 'Já cadastrado (' + fields.map(f => f === 'name' ? 'nome' : f === 'phone' ? 'telefone' : 'CPF/CNPJ').join(', ') + ') por';
-                        return (
-                          <div key={client.id} className="flex flex-wrap items-center gap-1 text-xs font-normal">
-                            <span className="font-bold text-warning">{fieldLabel}:</span>
-                            <button
-                              type="button"
-                              onClick={() => openEditClientModalFor(client)}
-                              className="font-extrabold text-warning underline decoration-dotted underline-offset-2 hover:text-warning cursor-pointer"
-                            >
-                              {client.name}
-                            </button>
-                            {(client.phone || client.document) && (
-                              <span className="text-muted-foreground">— {[client.phone, client.document].filter(Boolean).join(' · ')}</span>
-                            )}
+          <DialogContent showCloseButton={false} className={cn(clientDialogClass, 'z-[1100]')} overlayClassName="z-[1099]">
+            <ClientDialogHeader title="Novo Cliente" subtitle="Cadastre um novo cliente sem sair da O.S." onClose={() => setIsClientModalOpen(false)} />
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 space-y-3">
+              <FormSection icon={User} title="Dados principais" hint="Informações básicas do cliente.">
+                <div className="space-y-1.5">
+                  <FieldLabel htmlFor="os-new-client-name" required>Nome completo</FieldLabel>
+                  <IconField icon={User}>
+                    <Input id="os-new-client-name" value={newClientName} onChange={e => setNewClientName(e.target.value)} placeholder="Digite o nome completo do cliente" className={cn(iconInputClass, 'uppercase placeholder:normal-case')} autoFocus />
+                  </IconField>
+                      {isNewClientDuplicate && (
+                        <div className="p-3 rounded-lg bg-warning/10 border border-warning/20 text-xs font-semibold text-warning mt-1 flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                          <span>⚠️ Cliente já cadastrado</span>
+                          <span className="text-xs font-normal text-muted-foreground">Não é permitido cadastrar outro cliente com o mesmo nome, telefone ou CPF/CNPJ. Selecione o cliente existente na lista de busca.</span>
+                          <div className="flex flex-col gap-1 mt-0.5">
+                            {newClientConflicts.map(({ client, fields }) => {
+                              const fieldLabel = fields.length === 1
+                                ? (fields[0] === 'name' ? 'Nome já usado por' : fields[0] === 'phone' ? 'Telefone já usado por' : 'CPF/CNPJ já usado por')
+                                : 'Já cadastrado (' + fields.map(f => f === 'name' ? 'nome' : f === 'phone' ? 'telefone' : 'CPF/CNPJ').join(', ') + ') por';
+                              return (
+                                <div key={client.id} className="flex flex-wrap items-center gap-1 text-xs font-normal">
+                                  <span className="font-bold text-warning">{fieldLabel}:</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => openEditClientModalFor(client)}
+                                    className="font-extrabold text-warning underline decoration-dotted underline-offset-2 hover:text-warning cursor-pointer"
+                                  >
+                                    {client.name}
+                                  </button>
+                                  {(client.phone || client.document) && (
+                                    <span className="text-muted-foreground">— {[client.phone, client.document].filter(Boolean).join(' · ')}</span>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="os-new-client-nickname" optional>Apelido / Nome fantasia</FieldLabel>
+                    <IconField icon={Tag}>
+                      <Input id="os-new-client-nickname" value={newClientNickname} onChange={e => setNewClientNickname(e.target.value)} placeholder="Apelido ou nome fantasia" className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
+                    </IconField>
                   </div>
-                )}
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Apelido / Nome Fantasia <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
-                <Input value={newClientNickname} onChange={e => setNewClientNickname(e.target.value)} placeholder="Apelido ou nome fantasia" className="h-9 rounded-lg premium-input text-xs uppercase placeholder:normal-case" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">CPF/CNPJ <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
-                <MaskedInput value={newClientDoc} mask={maskCPFCNPJ} unmask={(v) => normalizeNumber(v).slice(0, 14)} onValueChange={setNewClientDoc} placeholder="000.000.000-00" className="h-9 rounded-lg premium-input text-xs" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Telefone <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
-                  <MaskedInput value={newClientPhone} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setNewClientPhone} placeholder="(11) 99999-9999" className="h-9 rounded-lg premium-input text-xs" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Telefone 2 <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
-                  <MaskedInput value={newClientPhone2} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setNewClientPhone2} placeholder="(11) 99999-9999" className="h-9 rounded-lg premium-input text-xs" />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Endereço <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
-                <Input value={newClientAddress} onChange={e => setNewClientAddress(e.target.value)} placeholder="Ex.: Rua das Flores, 123 - Centro" className="h-9 rounded-lg premium-input text-xs uppercase placeholder:normal-case" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Tipo de Cliente</Label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setNewClientType('regular')}
-                    className={cn(
-                      "flex-1 h-9 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all cursor-pointer",
-                      newClientType === 'regular'
-                        ? "bg-muted text-foreground border-border"
-                        : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-muted/30"
-                    )}
-                  >
-                    Cliente
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNewClientType('mechanic')}
-                    className={cn(
-                      "flex-1 h-9 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all cursor-pointer",
-                      newClientType === 'mechanic'
-                        ? "bg-info/10 text-info border border-info/30"
-                        : "bg-transparent text-muted-foreground/60 border-border/40 hover:bg-muted/30"
-                    )}
-                  >
-                    Mecânico
-                  </button>
-                </div>
-              </div>
-              {newClientType === 'regular' && (
-                <div ref={newClientMechContainerRef} className="space-y-1.5 relative">
-                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Mecânico Padrão <span className="text-xs text-muted-foreground/40 normal-case tracking-normal">(Opcional)</span></Label>
-                  <div className="relative">
-                    <Input
-                      placeholder="Pesquisar por nome ou apelido..."
-                      value={newClientMechSearch}
-                      onChange={(e) => {
-                        setNewClientMechSearch(e.target.value);
-                        setIsNewClientMechDropdownOpen(true);
-                        if (!e.target.value) {
-                          setNewClientDefaultMechanicId('');
-                        }
-                      }}
-                      onFocus={() => setIsNewClientMechDropdownOpen(true)}
-                      className="h-9 rounded-lg premium-input text-xs w-full"
-                    />
-                    {isNewClientMechDropdownOpen && (
-                      <div className="absolute z-[1200] w-full mt-1 max-h-[160px] overflow-y-auto bg-card border border-border rounded-lg shadow-lg">
-                        {filteredNewClientMech.length === 0 ? (
-                          <div className="p-2 text-xs text-muted-foreground/60 italic text-center">Nenhum mecânico encontrado</div>
-                        ) : (
-                          filteredNewClientMech.map((mech) => (
-                            <button
-                              key={mech.id}
-                              type="button"
-                              onClick={() => {
-                                setNewClientDefaultMechanicId(mech.id);
-                                setNewClientMechSearch(mech.name);
-                                setIsNewClientMechDropdownOpen(false);
-                              }}
-                              className="w-full text-left px-3 py-2 text-xs hover:bg-muted text-foreground font-semibold"
-                            >
-                              {mech.name} {mech.nickname ? `(${mech.nickname})` : ''}
-                            </button>
-                          ))
-                        )}
-                      </div>
-                    )}
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="os-new-client-doc" optional>CPF/CNPJ</FieldLabel>
+                    <IconField icon={FileText}>
+                      <MaskedInput id="os-new-client-doc" value={newClientDoc} mask={maskCPFCNPJ} unmask={(v) => normalizeNumber(v).slice(0, 14)} onValueChange={setNewClientDoc} placeholder="000.000.000-00" className={iconInputClass} />
+                    </IconField>
                   </div>
                 </div>
-              )}
+              </FormSection>
+
+              <FormSection icon={Phone} title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="os-new-client-phone" optional>Telefone</FieldLabel>
+                    <IconField icon={Phone}>
+                      <MaskedInput id="os-new-client-phone" value={newClientPhone} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setNewClientPhone} placeholder="(00) 00000-0000" className={iconInputClass} />
+                    </IconField>
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="os-new-client-phone2" optional>Telefone 2</FieldLabel>
+                    <IconField icon={Phone}>
+                      <MaskedInput id="os-new-client-phone2" value={newClientPhone2} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setNewClientPhone2} placeholder="(11) 99999-9999" className={iconInputClass} />
+                    </IconField>
+                  </div>
+                  <div className="space-y-1.5">
+                    <FieldLabel htmlFor="os-new-client-whatsapp" optional>WhatsApp</FieldLabel>
+                    <IconField icon={MessageCircle}>
+                      <MaskedInput id="os-new-client-whatsapp" value={newClientWhatsapp} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setNewClientWhatsapp} placeholder="(00) 00000-0000" className={iconInputClass} />
+                    </IconField>
+                  </div>
+                </div>
+              </FormSection>
+
+              <FormSection icon={MapPin} title="Localização" hint="Cidade do cliente.">
+                <div className="space-y-1.5">
+                  <FieldLabel htmlFor="os-new-client-city" optional>Cidade</FieldLabel>
+                  <IconField icon={MapPin}>
+                    <Input id="os-new-client-city" value={newClientAddress} onChange={e => setNewClientAddress(e.target.value)} placeholder="Ex: Curitiba - PR" className={iconInputClass} />
+                  </IconField>
+                </div>
+              </FormSection>
+
+              <FormSection icon={Users} title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
+                <ClientTypeToggle value={newClientType} onChange={setNewClientType} />
+              </FormSection>
             </div>
-            <DialogFooter>
-              <Button onClick={handleAddClient} disabled={isNewClientDuplicate} className="w-full h-10 rounded-lg bg-primary text-primary-foreground font-bold text-xs uppercase tracking-wider shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-                Salvar Cliente
-              </Button>
-            </DialogFooter>
+            <ClientDialogFooter onCancel={() => setIsClientModalOpen(false)} onSave={handleAddClient} saveDisabled={isNewClientDuplicate} />
           </DialogContent>
         </Dialog>
       )}
