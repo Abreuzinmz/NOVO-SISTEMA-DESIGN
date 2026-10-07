@@ -374,9 +374,8 @@ interface StoreContextType {
   setFontSize: (size: number) => void;
   refreshClients: () => Promise<void>;
   motorPrices: MotorPrice[];
-  /** options.silent: não mostra aviso de sucesso (edição direta na tabela). Retorna se salvou. */
-  saveMotorPrice: (motorId: string, serviceId: string, subName: string, price: number, observation?: string, options?: { silent?: boolean }) => Promise<boolean>;
-  deleteMotorPrice: (id: string, options?: { silent?: boolean }) => Promise<boolean>;
+  saveMotorPrice: (motorId: string, serviceId: string, subName: string, price: number, observation?: string) => Promise<void>;
+  deleteMotorPrice: (id: string) => Promise<void>;
   copyMotorPrices: (fromMotorId: string, toMotorId: string) => Promise<void>;
   resolveMotorName: (id: string) => string;
   resolveServiceId: (id: string) => string;
@@ -887,11 +886,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const saveMotorPrice = async (motorId: string, serviceId: string, subName: string, price: number, observation?: string, options?: { silent?: boolean }) => {
+  const saveMotorPrice = async (motorId: string, serviceId: string, subName: string, price: number, observation?: string) => {
     if (!motorId || !serviceId) {
       console.warn('[saveMotorPrice] Tentativa de salvar preço com motorId ou serviceId vazios:', { motorId, serviceId });
       toast.error('Dados de preço inválidos.');
-      return false;
+      return;
     }
     const db = requireLocalDb();
     const mId = motorId.toUpperCase();
@@ -908,27 +907,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     try {
       await upsertMotorPrice(db, newPriceItem);
-      if (!options?.silent) toast.success('Preço salvo.');
-      return true;
+      toast.success('Preço salvo.');
     } catch (err) {
       console.error('Error saving motor price in SQLite:', err);
       toast.error('Erro ao salvar preço.');
-      return false;
     }
   };
 
-  const deleteMotorPrice = async (id: string, options?: { silent?: boolean }) => {
+  const deleteMotorPrice = async (id: string) => {
     const db = requireLocalDb();
     setMotorPrices(prev => prev.filter(p => p.id !== id));
 
     try {
       await db.dbRun("DELETE FROM motor_services_prices WHERE id = ?", [id]);
-      if (!options?.silent) toast.success('Preço removido.');
-      return true;
+      toast.success('Preço removido.');
     } catch (err) {
       console.error('Error deleting motor price in SQLite:', err);
       toast.error('Erro ao remover preço.');
-      return false;
     }
   };
 
