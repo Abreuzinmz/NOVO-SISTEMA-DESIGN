@@ -74,7 +74,8 @@ import { ServiceCatalog } from '@/components/service-catalog';
 import { toast } from 'sonner';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { cn, formatMotorDisplay, getLocalDateString } from '@/lib/utils';
-import { fetchMotors, fetchModels, addMotor as addMotorToDb, addModel as addModelToDb, deleteMotor as deleteMotorFromDb, deleteModel as deleteModelFromDb, updateModel as updateModelInDb } from '@/lib/motors';
+import { fetchMotors, fetchModels, addMotor as addMotorToDb, addModel as addModelToDb, deleteMotor as deleteMotorFromDb, deleteModel as deleteModelFromDb, updateModel as updateModelInDb, fetchMotorCatalog, saveCatalogMotor, type CatalogMotor } from '@/lib/motors';
+import { MotorSpecsCard } from '@/components/motor-specs-card';
 import { PrintPreviewModal } from './print-preview-modal';
 import { FormSection, FieldLabel, IconField, ClientTypeToggle, ClientDialogHeader, ClientDialogFooter, iconInputClass, clientDialogClass } from '@/components/client-form';
 import { OSPrintReport } from './os-print-report';
@@ -132,6 +133,13 @@ export interface MotorSpec {
   model: string;
   cylinders: string;
   displacement: string;
+  /** Extras (seção Especificações do Motor): gravados em motor_specs */
+  valves?: string;
+  engineModel?: string;
+  cars?: string;
+  aspiration?: string;
+  brand?: string;
+  showExtra?: boolean;
 }
 
 function OSFormImpl({
@@ -230,9 +238,23 @@ function OSFormImpl({
       const cylinders = cylindersMatch ? cylindersMatch[1] : '';
       const model = m.replace(/\s*\(.*\)/, '').trim().toUpperCase();
       const displacement = disps[idx] || '';
-      return { model, cylinders, displacement };
+      const extra = order.motorSpecs?.[idx] || {};
+      return { model, cylinders, displacement, ...extra };
     });
   }, [order]);
+
+  // Especificações extras de cada motor, na mesma ordem de motor_model
+  const buildMotorSpecs = () => {
+    const specs = motorsList.map(m => ({
+      valves: m.valves || undefined,
+      engineModel: m.engineModel || undefined,
+      cars: m.cars || undefined,
+      aspiration: m.aspiration || undefined,
+      brand: m.brand || undefined,
+      showExtra: m.showExtra || undefined,
+    }));
+    return specs.some(s => Object.values(s).some(Boolean)) ? specs : [];
+  };
 
   const [motorsList, setMotorsList] = useState<MotorSpec[]>(initialMotorsList);
 
@@ -431,11 +453,12 @@ function OSFormImpl({
 
     loadClientsData(mounted);
 
-    Promise.all([fetchMotors(), fetchModels()])
-      .then(([dbMotors, dbModels]) => {
+    Promise.all([fetchMotors(), fetchModels(), fetchMotorCatalog()])
+      .then(([dbMotors, dbModels, dbCatalog]) => {
         if (!mounted) return;
         setAvailableMotors(dbMotors.map(m => m.toUpperCase()));
         setAvailableModels(dbModels.map(m => m.toUpperCase()));
+        setMotorCatalog(dbCatalog);
       })
       .catch(() => { })
       .finally(() => {
@@ -443,6 +466,31 @@ function OSFormImpl({
       });
     return () => { mounted = false; };
   }, [loadClientsData]);
+
+  // Catálogo de motores (marca, modelos do motor, veículos) usado na busca
+  const [motorCatalog, setMotorCatalog] = useState<CatalogMotor[]>([]);
+  const reloadMotorCatalog = useCallback(() => {
+    fetchMotorCatalog().then(setMotorCatalog).catch(() => { });
+  }, []);
+
+  const handleSaveCatalogMotor = useCallback(async (
+    motor: { name: string; brand: string; engineModels: string[]; cars: string[] },
+    originalName?: string
+  ) => {
+    try {
+      await saveCatalogMotor(motor, originalName);
+      if (originalName && originalName.toUpperCase() !== motor.name) {
+        // motores desta O.S. com o nome antigo passam a usar o novo
+        setMotorsList(prev => prev.map(m => m.model.toUpperCase() === originalName.toUpperCase() ? { ...m, model: motor.name, brand: motor.brand } : m));
+      }
+      reloadMotorCatalog();
+      toast.success(originalName ? `Motor "${motor.name}" atualizado.` : `Motor "${motor.name}" cadastrado.`);
+      return true;
+    } catch (err: any) {
+      toast.error(err?.message || 'Erro ao salvar o motor.');
+      return false;
+    }
+  }, [reloadMotorCatalog]);
 
   // Client Modal State
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
@@ -2118,6 +2166,7 @@ function OSFormImpl({
       clientId,
       motorModel: motorModels.join(', '),
       displacement: displacements.join(', '),
+      motorSpecs: buildMotorSpecs(),
       serviceStatus,
       paymentStatus,
       paymentMethod: normalizePix(paymentMethod || lastEntry?.method || firstEntry?.method || '') || undefined,
@@ -2358,6 +2407,7 @@ function OSFormImpl({
       mechanicId: mechanicId || undefined,
       motorModel: motorModels.join(', '),
       displacement: displacements.join(', '),
+      motorSpecs: buildMotorSpecs(),
       serviceStatus,
       paymentStatus,
       paymentMethod: normalizePix(paymentMethod || lastEntry?.method || firstEntry?.method || '') || undefined,
@@ -3640,509 +3690,29 @@ function OSFormImpl({
             </div>
           </div>
 
-          {/* CARD 3: ESPECIFICAÇÕES DO MOTOR */}
-          <div className="bg-card border border-border/60 dark:border-border rounded-xl p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-border/50 dark:border-border">
-              <div className="flex items-center gap-2.5 text-xs uppercase tracking-[0.2em] text-foreground/90 font-bold">
-                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center border border-border shrink-0">
-                  <Settings className="w-4 h-4 text-foreground/70" />
-                </div>
-                ESPECIFICAÇÕES DO MOTOR
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pt-1">
-              {/* Coluna Esquerda (campos de entrada) */}
-              <div className="md:col-span-4 space-y-4">
-                {/* Field 1: SELEÇÃO DO MOTOR */}
-                <div className="space-y-1.5 relative">
-                  <Label className="text-xs font-bold text-muted-foreground/50 uppercase tracking-[0.15em] ml-1">SELEÇÃO DO MOTOR</Label>
-                  <div className="relative">
-                    <Input
-                      ref={motorTriggerRef}
-                      type="text"
-                      disabled={readOnly}
-                      placeholder="Digite o motor..."
-                      value={motorSearchQuery}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setMotorSearchQuery(val);
-                        setIsMotorDropdownOpen(true);
-                        calculateMotorDropdownPosition();
-                      }}
-                      onFocus={(e) => {
-                        if (readOnly) return;
-                        e.target.select();
-                        setIsMotorDropdownOpen(true);
-                        calculateMotorDropdownPosition();
-                      }}
-                      onClick={() => {
-                        if (readOnly) return;
-                        if (!isMotorDropdownOpen) {
-                          setIsMotorDropdownOpen(true);
-                          calculateMotorDropdownPosition();
-                        }
-                      }}
-                      onKeyDown={handleMotorKeyDown}
-                      className={cn(
-                        "w-full h-11 rounded-lg ref-light-input pl-3 pr-10 font-bold text-xs border border-input bg-background text-foreground transition-all focus:ring-2 focus:ring-primary/30 focus:border-primary/50",
-                        isMotorDropdownOpen && "ref-light-input-open",
-                        readOnly && "opacity-60 cursor-not-allowed"
-                      )}
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                      {motorSearchQuery && !readOnly && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setMotorSearchQuery('');
-                            setIsMotorDropdownOpen(true);
-                          }}
-                          className="text-muted-foreground/40 hover:text-foreground transition-colors p-1"
-                        >
-                          <Plus className="w-3.5 h-3.5 rotate-45" />
-                        </button>
-                      )}
-                      <ChevronsUpDown
-                        className={cn("h-4 w-4 shrink-0 opacity-50 cursor-pointer", isMotorDropdownOpen && "opacity-100 text-primary")}
-                        onClick={(e) => {
-                          if (readOnly) return;
-                          e.stopPropagation();
-                          setIsMotorDropdownOpen(prev => {
-                            const next = !prev;
-                            if (next) setTimeout(calculateMotorDropdownPosition, 0);
-                            return next;
-                          });
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Portal dropdown for Motor Selection */}
-                  {isMotorDropdownOpen && typeof window !== 'undefined' && createPortal(
-                    <div
-                      ref={motorDropdownRef}
-                      style={{
-                        position: 'fixed',
-                        ...(motorDropdownPos.top != null ? { top: motorDropdownPos.top } : {}),
-                        ...(motorDropdownPos.bottom != null ? { bottom: motorDropdownPos.bottom } : {}),
-                        left: motorDropdownPos.left,
-                        width: motorDropdownPos.width,
-                        zIndex: 99999,
-                      }}
-                      className="bg-popover border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150 custom-dropdown-container"
-                    >
-                      <div className="max-h-[280px] overflow-y-auto">
-                        <div className="divide-y divide-border/20">
-                          {/* If searching, render the "Nenhum..." option separately at the top */}
-                          {!!motorSearchQuery.trim() && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setMotorSearchQuery('');
-                                setIsMotorDropdownOpen(false);
-                                const cylindersInput = document.getElementById('motor-cylinders-input');
-                                cylindersInput?.focus();
-                              }}
-                              className="w-full flex items-center justify-between py-2.5 px-3 cursor-pointer transition-colors text-left font-bold text-xs dropdown-item dropdown-item-none text-danger hover:bg-muted/50 dark:hover:bg-foreground/5"
-                            >
-                              <span>Nenhum motor/modelo selecionado</span>
-                            </button>
-                          )}
-                          {motorOptions.map((opt, index) => {
-                            const isSelected = (opt.type === 'motor' || opt.type === 'model') && motorSearchQuery.toUpperCase() === opt.value.toUpperCase();
-                            const isHighlighted = index === motorHighlightIndex;
-                            const isHeader = opt.type === 'header';
-                            return (
-                              <div
-                                key={index}
-                                ref={isHighlighted && !isHeader ? motorHighlightedItemRef : null}
-                                className={cn(
-                                  "w-full flex items-center justify-between py-2 px-3 cursor-pointer transition-colors text-left font-bold text-xs group/item dropdown-item",
-                                  isHeader ? "dropdown-item-header text-muted-foreground/60 bg-muted/20 font-bold tracking-wider cursor-default select-none pointer-events-none text-center justify-center border-y border-border/10 py-1" :
-                                    opt.type === 'none' ? "dropdown-item-none text-danger" : (opt.type === 'create_motor' || opt.type === 'create_model') ? "dropdown-item-create text-primary" : "dropdown-item-standard text-foreground/90",
-                                  isSelected ? "dropdown-item-selected bg-primary/5 dark:bg-primary/10" : "",
-                                  isHighlighted && !isHeader ? "dropdown-item-highlighted bg-muted dark:bg-foreground/10" : "hover:bg-muted/50 dark:hover:bg-foreground/5"
-                                )}
-                                onClick={(e) => {
-                                  if (isHeader) return;
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  if (opt.type === 'none') {
-                                    setMotorSearchQuery('');
-                                    setIsMotorDropdownOpen(false);
-                                    const cylindersInput = document.getElementById('motor-cylinders-input');
-                                    cylindersInput?.focus();
-                                  } else if (opt.type === 'motor' || opt.type === 'model') {
-                                    setMotorSearchQuery(opt.value);
-                                    setIsMotorDropdownOpen(false);
-                                    const cylindersInput = document.getElementById('motor-cylinders-input');
-                                    cylindersInput?.focus();
-                                  } else if (opt.type === 'create_motor') {
-                                    handleAddNewMotor(opt.value);
-                                  } else if (opt.type === 'create_model') {
-                                    handleAddNewModel(opt.value);
-                                  }
-                                }}
-                              >
-                                <span className="truncate pr-2">{opt.label}</span>
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                  {isSelected && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
-                                  {(opt.type === 'motor' || opt.type === 'model') && (
-                                    <div className="flex items-center gap-1.5 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleStartEditMotor(opt.value);
-                                        }}
-                                        className="p-1 hover:bg-accent rounded text-foreground/60 hover:text-foreground transition-colors"
-                                        title="Editar"
-                                      >
-                                        <Pencil className="w-3.5 h-3.5" />
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleStartDeleteMotor(opt.value);
-                                        }}
-                                        className="p-1 hover:bg-danger/10 rounded text-danger hover:text-danger transition-colors"
-                                        title="Excluir"
-                                      >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>,
-                    document.body
-                  )}
-                </div>
-
-                {/* Field 2: QUANTOS CILINDROS */}
-                <div className="space-y-1.5 relative">
-                  <Label className="text-xs font-bold text-muted-foreground/50 uppercase tracking-[0.15em] ml-1">QUANTOS CILINDROS</Label>
-                  <div className="relative">
-                    <Input
-                      ref={cylindersTriggerRef}
-                      id="motor-cylinders-input"
-                      type="text"
-                      disabled={readOnly}
-                      placeholder="Ex.: 4"
-                      value={currentCylinders}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setCurrentCylinders(val);
-                        setIsCylindersDropdownOpen(true);
-                        calculateCylindersDropdownPosition();
-                      }}
-                      onFocus={(e) => {
-                        if (readOnly) return;
-                        e.target.select();
-                        setIsCylindersDropdownOpen(true);
-                        calculateCylindersDropdownPosition();
-                      }}
-                      onClick={() => {
-                        if (readOnly) return;
-                        if (!isCylindersDropdownOpen) {
-                          setIsCylindersDropdownOpen(true);
-                          calculateCylindersDropdownPosition();
-                        }
-                      }}
-                      onKeyDown={handleCylindersKeyDown}
-                      className={cn(
-                        "w-full h-11 rounded-lg ref-light-input pl-3 pr-10 font-bold text-xs border border-input bg-background text-foreground transition-all focus:ring-2 focus:ring-primary/30 focus:border-primary/50",
-                        isCylindersDropdownOpen && "ref-light-input-open",
-                        readOnly && "opacity-60 cursor-not-allowed"
-                      )}
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                      {currentCylinders && !readOnly && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setCurrentCylinders('');
-                            setIsCylindersDropdownOpen(true);
-                          }}
-                          className="text-muted-foreground/40 hover:text-foreground transition-colors p-1"
-                        >
-                          <Plus className="w-3.5 h-3.5 rotate-45" />
-                        </button>
-                      )}
-                      <ChevronsUpDown
-                        className={cn("h-4 w-4 shrink-0 opacity-50 cursor-pointer", isCylindersDropdownOpen && "opacity-100 text-primary")}
-                        onClick={(e) => {
-                          if (readOnly) return;
-                          e.stopPropagation();
-                          setIsCylindersDropdownOpen(prev => {
-                            const next = !prev;
-                            if (next) setTimeout(calculateCylindersDropdownPosition, 0);
-                            return next;
-                          });
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Portal dropdown for Cylinders */}
-                  {isCylindersDropdownOpen && typeof window !== 'undefined' && createPortal(
-                    <div
-                      ref={cylindersDropdownRef}
-                      style={{
-                        position: 'fixed',
-                        ...(cylindersDropdownPos.top != null ? { top: cylindersDropdownPos.top } : {}),
-                        ...(cylindersDropdownPos.bottom != null ? { bottom: cylindersDropdownPos.bottom } : {}),
-                        left: cylindersDropdownPos.left,
-                        width: cylindersDropdownPos.width,
-                        zIndex: 99999,
-                      }}
-                      className="bg-popover border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150 custom-dropdown-container"
-                    >
-                      <div className="max-h-[280px] overflow-y-auto">
-                        <div className="divide-y divide-border/20">
-                          {cylindersOptions.map((opt, index) => {
-                            const isSelected = opt.type === 'cylinder' && currentCylinders === opt.value;
-                            const isHighlighted = index === cylindersHighlightIndex;
-                            return (
-                              <button
-                                key={index}
-                                ref={isHighlighted ? cylindersHighlightedItemRef : null}
-                                type="button"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  if (opt.type === 'none') {
-                                    setCurrentCylinders('');
-                                  } else {
-                                    setCurrentCylinders(opt.value);
-                                  }
-                                  setIsCylindersDropdownOpen(false);
-                                  const dispInput = document.getElementById('motor-displacement-input');
-                                  dispInput?.focus();
-                                }}
-                                className={cn(
-                                  "w-full flex items-center justify-between py-2.5 px-3 cursor-pointer transition-colors text-left font-bold text-xs dropdown-item",
-                                  opt.type === 'none' ? "dropdown-item-none text-danger" : "dropdown-item-standard text-foreground/90",
-                                  isSelected ? "dropdown-item-selected bg-primary/5 dark:bg-primary/10" : "",
-                                  isHighlighted ? "dropdown-item-highlighted bg-muted dark:bg-foreground/10" : "hover:bg-muted/50 dark:hover:bg-foreground/5"
-                                )}
-                              >
-                                <span>{opt.label}</span>
-                                {isSelected && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>,
-                    document.body
-                  )}
-                </div>
-
-                {/* Field 3: CILINDRADA */}
-                <div className="space-y-1.5 relative">
-                  <Label className="text-xs font-bold text-muted-foreground/50 uppercase tracking-[0.15em] ml-1">CILINDRADA</Label>
-                  <div className="relative">
-                    <Input
-                      ref={displacementTriggerRef}
-                      id="motor-displacement-input"
-                      type="text"
-                      disabled={readOnly}
-                      placeholder="Digite a cilindrada"
-                      value={displacementSearchQuery}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setDisplacementSearchQuery(val);
-                        setIsDisplacementDropdownOpen(true);
-                        calculateDisplacementDropdownPosition();
-                      }}
-                      onFocus={(e) => {
-                        if (readOnly) return;
-                        e.target.select();
-                        setIsDisplacementDropdownOpen(true);
-                        calculateDisplacementDropdownPosition();
-                      }}
-                      onClick={() => {
-                        if (readOnly) return;
-                        if (!isDisplacementDropdownOpen) {
-                          setIsDisplacementDropdownOpen(true);
-                          calculateDisplacementDropdownPosition();
-                        }
-                      }}
-                      onKeyDown={handleDisplacementKeyDown}
-                      className={cn(
-                        "w-full h-11 rounded-lg ref-light-input pl-3 pr-10 font-bold text-xs border border-input bg-background text-foreground transition-all focus:ring-2 focus:ring-primary/30 focus:border-primary/50",
-                        isDisplacementDropdownOpen && "ref-light-input-open"
-                      )}
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                      {displacementSearchQuery && !readOnly && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDisplacementSearchQuery('');
-                            setIsDisplacementDropdownOpen(true);
-                          }}
-                          className="text-muted-foreground/40 hover:text-foreground transition-colors p-1"
-                        >
-                          <Plus className="w-3.5 h-3.5 rotate-45" />
-                        </button>
-                      )}
-                      <ChevronsUpDown
-                        className={cn("h-4 w-4 shrink-0 opacity-50 cursor-pointer", isDisplacementDropdownOpen && "opacity-100 text-primary")}
-                        onClick={(e) => {
-                          if (readOnly) return;
-                          e.stopPropagation();
-                          setIsDisplacementDropdownOpen(prev => {
-                            const next = !prev;
-                            if (next) setTimeout(calculateDisplacementDropdownPosition, 0);
-                            return next;
-                          });
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Portal dropdown for Displacement */}
-                  {isDisplacementDropdownOpen && typeof window !== 'undefined' && createPortal(
-                    <div
-                      ref={displacementDropdownRef}
-                      style={{
-                        position: 'fixed',
-                        ...(displacementDropdownPos.top != null ? { top: displacementDropdownPos.top } : {}),
-                        ...(displacementDropdownPos.bottom != null ? { bottom: displacementDropdownPos.bottom } : {}),
-                        left: displacementDropdownPos.left,
-                        width: displacementDropdownPos.width,
-                        zIndex: 99999,
-                      }}
-                      className="bg-popover border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150 custom-dropdown-container"
-                    >
-                      <div className="max-h-[280px] overflow-y-auto">
-                        <div className="divide-y divide-border/20">
-                          {displacementOptions.map((opt, index) => {
-                            const isSelected = opt.type === 'displacement' && displacementSearchQuery === opt.value;
-                            const isHighlighted = index === displacementHighlightIndex;
-                            return (
-                              <button
-                                key={index}
-                                ref={isHighlighted ? displacementHighlightedItemRef : null}
-                                type="button"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  let finalDisp = opt.value;
-                                  if (opt.type === 'none') {
-                                    finalDisp = '';
-                                    setDisplacementSearchQuery('');
-                                  } else {
-                                    setDisplacementSearchQuery(opt.value);
-                                  }
-                                  setIsDisplacementDropdownOpen(false);
-
-                                  if (finalDisp && !availableDisplacements.includes(finalDisp)) {
-                                    const updatedAvail = [...availableDisplacements, finalDisp].sort((a, b) => parseFloat(a) - parseFloat(b));
-                                    setAvailableDisplacements(updatedAvail);
-                                  }
-                                  handleAddOrUpdateMotor(finalDisp);
-                                }}
-                                className={cn(
-                                  "w-full flex items-center justify-between py-2.5 px-3 cursor-pointer transition-colors text-left font-bold text-xs dropdown-item",
-                                  opt.type === 'none' ? "dropdown-item-none text-danger" :
-                                    opt.type === 'create_displacement' ? "dropdown-item-create text-primary" : "dropdown-item-standard text-foreground/90",
-                                  isSelected ? "dropdown-item-selected bg-primary/5 dark:bg-primary/10" : "",
-                                  isHighlighted ? "dropdown-item-highlighted bg-muted dark:bg-foreground/10" : "hover:bg-muted/50 dark:hover:bg-foreground/5"
-                                )}
-                              >
-                                <span>{opt.label}</span>
-                                {isSelected && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>,
-                    document.body
-                  )}
-                </div>
-
-                {/* Botão ADD em largura total */}
-                {!readOnly && (
-                  <Button
-                    type="button"
-                    onClick={() => handleAddOrUpdateMotor()}
-                    variant="outline"
-                    className="w-full h-11 rounded-lg cursor-pointer font-bold text-sm"
-                  >
-                    {editingIndex !== null ? 'Salvar motor' : '+ Adicionar motor'}
-                  </Button>
-                )}
-              </div>
-
-              {/* Coluna Direita (motores adicionados) */}
-              <div className="md:col-span-8 flex flex-col h-full justify-stretch">
-                <div className="border-2 border-dashed border-border rounded-xl p-4 min-h-[220px] flex items-center justify-center bg-secondary/5 h-full">
-                  {motorsList.length === 0 ? (
-                    <div className="text-center">
-                      <p className="text-xs text-muted-foreground italic font-medium">
-                        Nenhum motor selecionado • Nenhuma cilindrada selecionada
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2.5 items-start justify-start w-full h-full content-start">
-                      {motorsList.map((m, idx) => (
-                        <div
-                          key={idx}
-                          className={cn(
-                            "flex items-center justify-between bg-accent dark:bg-card/60 border border-border/80 dark:border-border rounded-xl px-4 py-2.5 gap-4 animate-in fade-in-50 duration-200",
-                            editingIndex === idx && "border-primary/50 bg-primary/5 ring-1 ring-primary/30"
-                          )}
-                        >
-                          <div className="flex flex-col gap-0.5">
-                            <span className="font-bold text-xs text-foreground/90 uppercase">
-                              {m.model}
-                              {m.cylinders ? ` • ${m.cylinders.replace(/\D/g, '')} CIL` : ''}
-                            </span>
-                            <span className="text-xs text-muted-foreground/80 font-bold uppercase tracking-wide">
-                              {m.displacement || 'Sem Cilindrada'}
-                            </span>
-                          </div>
-                          {!readOnly && (
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => handleEditMotor(idx)}
-                                className="h-8 px-2 text-xs font-bold uppercase tracking-wider text-primary hover:bg-primary/5 rounded-lg transition-colors cursor-pointer"
-                              >
-                                Editar
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveMotor(idx)}
-                                className="h-8 px-2 text-xs font-bold uppercase tracking-wider text-destructive hover:bg-destructive/5 rounded-lg transition-colors cursor-pointer"
-                              >
-                                Remover
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* CARD 3: ESPECIFICAÇÕES DO MOTOR (layout do SELEÇÃO MT) */}
+          <MotorSpecsCard
+            motors={motorsList}
+            readOnly={readOnly}
+            catalog={motorCatalog}
+            displacementOptions={availableDisplacements}
+            onAddDisplacement={(d) => {
+              if (!availableDisplacements.includes(d)) {
+                setAvailableDisplacements(prev => [...prev, d].sort((x, y) => parseFloat(x) - parseFloat(y)));
+              }
+            }}
+            onAdd={(m) => {
+              setMotorsList(prev => [...prev, m]);
+              // motor digitado que ainda não está no catálogo passa a existir na busca
+              if (!motorCatalog.some(c => c.name.toUpperCase() === m.model.toUpperCase())) {
+                addModelToDb(m.model).then(reloadMotorCatalog).catch(() => { });
+              }
+            }}
+            onUpdate={(index, m) => setMotorsList(prev => prev.map((old, i) => i === index ? m : old))}
+            onRemove={handleRemoveMotor}
+            onSaveCatalogMotor={handleSaveCatalogMotor}
+            onDeleteCatalogMotor={handleStartDeleteMotor}
+          />
 
           {/* CARD 4: CATÁLOGO DE SERVIÇOS */}
           <div className="bg-card border border-border/60 dark:border-border rounded-xl p-5 shadow-sm space-y-4">
@@ -4377,6 +3947,7 @@ function OSFormImpl({
                   ]);
                   setAvailableMotors(prev => prev.filter(m => m !== motorToDelete));
                   setAvailableModels(prev => prev.filter(m => m !== motorToDelete));
+                  setMotorCatalog(prev => prev.filter(m => m.name !== motorToDelete));
                   setMotorModels(prev => prev.filter(m => m !== motorToDelete));
                   toast.success(`Motor/Modelo "${motorToDelete}" excluído.`);
                 } catch {

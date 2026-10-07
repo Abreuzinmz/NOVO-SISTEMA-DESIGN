@@ -51,9 +51,14 @@ function initDatabase() {
       updated_at TEXT
     );
 
+    -- Catálogo de motores: marca, modelos do motor e veículos compatíveis
+    -- (listas separadas por vírgula, viram opções na O.S.)
     CREATE TABLE IF NOT EXISTS modelos (
       id TEXT PRIMARY KEY,
       is_favorite INTEGER DEFAULT 0,
+      brand TEXT,
+      engine_models TEXT,
+      cars TEXT,
       updated_at TEXT
     );
 
@@ -106,6 +111,7 @@ function initDatabase() {
       os_number INTEGER,
       concluded_index INTEGER,
       status_observation TEXT,
+      motor_specs TEXT,
       deleted_at TEXT DEFAULT NULL
     );
 
@@ -154,8 +160,25 @@ function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_entradas_pag_agrupado_pag ON entradas_pagamento_agrupado(pagamento_agrupado_id);
   `);
   console.timeEnd('⏱️ [DB INIT] Execute CREATE TABLE & INDEXES');
+
+  // Colunas acrescentadas depois da criação das tabelas (bancos já existentes)
+  ensureColumn('modelos', 'brand', 'TEXT');
+  ensureColumn('modelos', 'engine_models', 'TEXT');
+  ensureColumn('modelos', 'cars', 'TEXT');
+  // Especificações extras de cada motor da O.S. (JSON na mesma ordem de motor_model):
+  // válvulas, modelo do motor, veículo, aspiração e marca
+  ensureColumn('ordens_servico', 'motor_specs', 'TEXT');
+
   console.log('Local SQLite database initialized at:', dbFilePath);
   return db;
+}
+
+function ensureColumn(table, column, type) {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!columns.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+    console.log(`[DB] Coluna ${table}.${column} adicionada.`);
+  }
 }
 
 function getDatabase() {

@@ -78,12 +78,34 @@ export interface Client {
   defaultMechanicId?: string;
 }
 
+/** Especificações extras de um motor da O.S. (mesma posição que em motorModel) */
+export interface MotorExtraSpec {
+  valves?: string;
+  engineModel?: string;
+  cars?: string;
+  aspiration?: string;
+  brand?: string;
+  showExtra?: boolean;
+}
+
+function parseMotorSpecs(raw: any): MotorExtraSpec[] | undefined {
+  if (!raw) return undefined;
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    return Array.isArray(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export interface Order {
   id: number;
   clientId: string;
   mechanicId?: string;
   motorModel: string;
   displacement: string;
+  /** Válvulas, modelo, veículo, aspiração e marca de cada motor (posição = índice em motorModel) */
+  motorSpecs?: MotorExtraSpec[];
   serviceStatus: ServiceStatus;
   paymentStatus: PaymentStatus;
   paymentMethod?: PaymentMethod;
@@ -272,6 +294,7 @@ function orderFromSqlite(row: any): Order {
     mechanicId: row.mechanic_id || undefined,
     motorModel: row.motor_model || '',
     displacement: row.displacement || '',
+    motorSpecs: parseMotorSpecs(row.motor_specs),
     serviceStatus: (row.service_status as ServiceStatus) || 'Na Fila',
     paymentStatus: (row.payment_status as PaymentStatus) || 'Não Pago',
     paymentMethod: normalizePix(row.payment_method || '') || undefined,
@@ -660,7 +683,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       'payment_date', 'pix_paid_by', 'second_payment_method', 'second_payment_date', 'second_pix_paid_by',
       'entry_value', 'balance_value', 'parts_left', 'additional_parts', 'services', 'discount', 'total_value',
       'net_value', 'finished', 'finished_at', 'delivery_date', 'arrival_date', 'observations', 'payment_entries',
-      'created_at', 'updated_at', 'os_number', 'concluded_index', 'status_observation'
+      'created_at', 'updated_at', 'os_number', 'concluded_index', 'status_observation', 'motor_specs'
     ];
     const values = [
       newOrder.id,
@@ -694,7 +717,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       new Date().toISOString(),
       newOrder.osNumber,
       newOrder.concludedIndex || null,
-      newOrder.statusObservation || null
+      newOrder.statusObservation || null,
+      newOrder.motorSpecs && newOrder.motorSpecs.length ? JSON.stringify(newOrder.motorSpecs) : null
     ];
 
     try {
@@ -757,6 +781,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (updates.mechanicId !== undefined) { setClauses.push("mechanic_id = ?"); params.push(updates.mechanicId || null); }
       if (updates.motorModel !== undefined) { setClauses.push("motor_model = ?"); params.push(updates.motorModel); }
       if (updates.displacement !== undefined) { setClauses.push("displacement = ?"); params.push(updates.displacement); }
+      if (updates.motorSpecs !== undefined) { setClauses.push("motor_specs = ?"); params.push(updates.motorSpecs && updates.motorSpecs.length ? JSON.stringify(updates.motorSpecs) : null); }
       if (updates.serviceStatus !== undefined) { setClauses.push("service_status = ?"); params.push(updates.serviceStatus); }
       if (updates.paymentStatus !== undefined) { setClauses.push("payment_status = ?"); params.push(updates.paymentStatus); }
       if (updates.paymentMethod !== undefined) { setClauses.push("payment_method = ?"); params.push(normalizePix(updates.paymentMethod)); }

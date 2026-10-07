@@ -281,3 +281,76 @@ export function deleteDisplacement(dispName: string): boolean {
   }
   return true;
 }
+
+// ═══ Catálogo de motores (marca, modelos do motor e veículos compatíveis) ═══
+
+export interface CatalogMotor {
+  name: string;
+  brand: string;
+  /** Modelos/códigos do motor (ex.: EA111 1.0, EA111 1.6) */
+  engineModels: string[];
+  /** Veículos compatíveis (ex.: Gol, Fox, Polo) */
+  cars: string[];
+  isFavorite: boolean;
+}
+
+/** "Gol, Fox; Polo" → ['Gol', 'Fox', 'Polo'] */
+export function splitOptionsList(raw: any): string[] {
+  return String(raw ?? '')
+    .split(/[,;/]+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+export async function fetchMotorCatalog(): Promise<CatalogMotor[]> {
+  // Garante a semente inicial da tabela (mesma regra de fetchModels)
+  const names = await fetchModels();
+  const db = getLocalDb();
+  if (!db) {
+    return names.map(name => ({ name, brand: '', engineModels: [], cars: [], isFavorite: false }));
+  }
+  try {
+    const rows = await db.dbQuery(
+      "SELECT id, is_favorite, brand, engine_models, cars FROM modelos WHERE id IS NOT NULL AND TRIM(id) != ''"
+    );
+    return rows
+      .map((r: any) => ({
+        name: String(r.id).toUpperCase(),
+        brand: r.brand ? String(r.brand) : '',
+        engineModels: splitOptionsList(r.engine_models),
+        cars: splitOptionsList(r.cars),
+        isFavorite: r.is_favorite === 1,
+      }))
+      .sort((a: CatalogMotor, b: CatalogMotor) => normalizeName(a.name).localeCompare(normalizeName(b.name)));
+  } catch (err) {
+    console.error('Failed to fetch motor catalog from local SQLite:', err);
+    return names.map(name => ({ name, brand: '', engineModels: [], cars: [], isFavorite: false }));
+  }
+}
+
+/** Cadastra ou atualiza um motor do catálogo. Com originalName diferente, renomeia antes. */
+export async function saveCatalogMotor(
+  motor: { name: string; brand: string; engineModels: string[]; cars: string[] },
+  originalName?: string
+): Promise<void> {
+  const name = motor.name.trim().toUpperCase();
+  if (!name) return;
+  const db = requireLocalDb();
+
+  if (originalName && originalName.trim().toUpperCase() !== name) {
+    await updateModel(originalName, name);
+  }
+
+  const now = new Date().toISOString();
+  await db.dbRun("INSERT OR IGNORE INTO modelos (id, updated_at) VALUES (?, ?)", [name, now]);
+  await db.dbRun(
+    "UPDATE modelos SET brand = ?, engine_models = ?, cars = ?, updated_at = ? WHERE id = ?",
+    [
+      motor.brand.trim() || null,
+      motor.engineModels.map(s => s.trim().toUpperCase()).filter(Boolean).join(', ') || null,
+      motor.cars.map(s => s.trim()).filter(Boolean).join(', ') || null,
+      now,
+      name,
+    ]
+  );
+}
