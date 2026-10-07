@@ -35,6 +35,15 @@ import {
   Check,
   Loader2,
   Hash,
+  Filter,
+  CreditCard,
+  CircleDollarSign,
+  ListChecks,
+  Package,
+  Cog,
+  Gauge,
+  Wrench,
+  Users,
 } from 'lucide-react';
 
 export interface FilterValues {
@@ -102,14 +111,55 @@ export interface FilterBarProps {
   showClientType?: boolean;
   showPartsLeft?: boolean;
   showPayerName?: boolean;
-  /** Mantém Status Pagamento / Status Ordem na barra principal em vez de dentro de Filtros Avançados */
+  /** Mantido por compatibilidade: o status da O.S. agora fica sempre nos campos principais */
   showStatusInBar?: boolean;
+  /** Quando informado, mostra "Exibir N por página" no cabeçalho dos filtros */
+  pageSize?: number;
+  onPageSizeChange?: (size: number) => void;
 }
 
 function FilterField({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      <span className='text-xs font-bold uppercase tracking-wider text-muted-foreground/50 px-0.5'>{label}</span>
+    <div className={cn('flex flex-col gap-1.5 min-w-0', className)}>
+      <span className='text-xs font-semibold uppercase tracking-wide text-muted-foreground px-0.5 truncate'>{label}</span>
+      {children}
+    </div>
+  );
+}
+
+// Padrão visual dos campos de filtro: altura 40px, ícone à esquerda, seta à direita
+const controlBase = 'h-10 w-full rounded-xl border bg-card pl-9 pr-8 text-sm font-semibold text-foreground outline-none transition-colors cursor-pointer appearance-none hover:border-foreground/25 focus:border-primary focus:ring-2 focus:ring-primary/20';
+const controlActive = 'border-primary/70 bg-primary/5';
+const comboBase = 'h-10 w-full justify-start gap-2 rounded-xl bg-card px-3 text-sm font-semibold text-foreground hover:bg-card hover:border-foreground/25';
+
+function FilterSelect({ icon: Icon, value, onChange, allLabel, options, title }: {
+  icon: React.ElementType; value: string; onChange: (value: string) => void; allLabel: string;
+  options: { value: string; label: string }[]; title?: string;
+}) {
+  return (
+    <div className='relative'>
+      <Icon className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        title={title}
+        className={cn(controlBase, 'truncate', value ? controlActive : 'border-border')}
+      >
+        <option value=''>{allLabel}</option>
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <ChevronDown className='pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+    </div>
+  );
+}
+
+function AdvancedSection({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
+  return (
+    <div className='rounded-xl border border-border bg-card p-4 space-y-3'>
+      <div className='flex items-center gap-2'>
+        <Icon className='w-4 h-4 text-muted-foreground' />
+        <span className='text-sm font-semibold text-foreground'>{title}</span>
+      </div>
       {children}
     </div>
   );
@@ -117,10 +167,10 @@ function FilterField({ label, children, className }: { label: string; children: 
 
 function FilterTag({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold bg-primary/10 text-primary border border-primary/20 transition-all hover:bg-primary/15 group">
+    <span className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full text-xs font-semibold bg-primary/10 text-foreground border border-primary/25 transition-all hover:bg-primary/15 group">
       {label}
-      <button onClick={onRemove} className="ml-1 w-3.5 h-3.5 rounded-md inline-flex items-center justify-center hover:bg-destructive/20 hover:text-destructive transition-colors">
-        <X className="w-2.5 h-2.5" />
+      <button onClick={onRemove} title="Remover filtro" className="w-4 h-4 rounded-full inline-flex items-center justify-center hover:bg-destructive/20 hover:text-destructive transition-colors">
+        <X className="w-3 h-3" />
       </button>
     </span>
   );
@@ -147,9 +197,9 @@ function DateField({ value, onChange, placeholder, className }: { value: string;
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
-          <Button variant='outline' className={cn('w-full justify-start font-semibold h-8 rounded-lg px-2.5 text-xs border border-border bg-card shadow-xs', className)}>
-            <Calendar className='mr-1.5 h-3.5 w-3.5 text-muted-foreground/60 shrink-0' />
-            <span className="truncate">{selected ? selected.toLocaleDateString('pt-BR') : placeholder}</span>
+          <Button variant='outline' className={cn('w-full justify-start gap-2 font-semibold h-10 rounded-xl px-3 text-sm border border-border bg-card', className)}>
+            <Calendar className='h-4 w-4 text-muted-foreground shrink-0' />
+            <span className={cn('truncate', !selected && 'font-normal text-[var(--placeholder,var(--muted-foreground))]')}>{selected ? selected.toLocaleDateString('pt-BR') : placeholder}</span>
           </Button>
         }
       />
@@ -175,8 +225,8 @@ function SortButton({ label, field, currentField, direction, onSort }: {
     <button
       onClick={() => { onSort(field, isActive && direction === 'desc' ? 'asc' : 'desc'); }}
       className={cn(
-        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200',
-        isActive ? 'bg-foreground text-background shadow-sm' : 'text-muted-foreground/60 hover:text-foreground hover:bg-secondary/45'
+        'flex items-center gap-1.5 px-3 h-9 rounded-xl text-sm font-semibold border transition-all duration-200',
+        isActive ? 'solid-btn border-transparent shadow-sm' : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary/60'
       )}
     >
       {label}
@@ -215,14 +265,14 @@ function ActiveFilters({ filters, clients, onRemoveFilter, onClear, count }: {
 
   if (tags.length === 0) return null;
   return (
-    <div className="flex flex-wrap items-center gap-2 pt-1">
+    <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border">
       <div className="flex items-center gap-1.5 mr-1">
         <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-        <span className="text-xs text-muted-foreground/70 font-bold uppercase tracking-wider">Filtros ativos:</span>
+        <span className="text-xs text-muted-foreground font-semibold">Filtros ativos:</span>
       </div>
       {tags.map((t) => <FilterTag key={t.key} label={t.label} onRemove={() => onRemoveFilter(t.key)} />)}
       {tags.length > 1 && (
-        <button onClick={onClear} className="text-xs text-muted-foreground hover:text-destructive transition-colors font-bold uppercase tracking-wider ml-1">
+        <button onClick={onClear} className="text-xs text-muted-foreground hover:text-destructive transition-colors font-semibold ml-1">
           Limpar tudo
         </button>
       )}
@@ -261,7 +311,8 @@ export function FilterBar({
   showClientType = true,
   showPartsLeft = true,
   showPayerName = true,
-  showStatusInBar = false,
+  pageSize,
+  onPageSizeChange,
 }: FilterBarProps) {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [clientOpen, setClientOpen] = useState(false);
@@ -327,12 +378,6 @@ export function FilterBar({
 
   const hasActiveFilters = useMemo(() => Object.values(filters).some((v) => v !== ''), [filters]);
   const activeFilterCount = useMemo(() => Object.values(filters).filter((v) => v !== '').length, [filters]);
-  const drawerFilterCount = useMemo(
-    () => (['osId', 'clientId', 'clientType', 'motorModel', 'displacement', 'paymentMethod', 'serviceType', 'partsLeft', 'payerName', 'dateFrom', 'dateTo', 'minValue', 'maxValue'] as (keyof FilterValues)[])
-      .concat(showStatusInBar ? [] : ['serviceStatus'])
-      .filter((k) => filters[k] !== '').length,
-    [filters, showStatusInBar]
-  );
   const selectedClientName = useMemo(() => clients.find((c) => c.id === filters.clientId)?.name || '', [clients, filters.clientId]);
 
   const updateFilter = (key: keyof FilterValues, value: string | null) => {
@@ -348,523 +393,435 @@ export function FilterBar({
     { label: 'Status', field: 'status' },
   ];
 
+  const advancedFilterCount = useMemo(
+    () => (['osId', 'clientId', 'clientType', 'dateFrom', 'dateTo', 'minValue', 'maxValue'] as (keyof FilterValues)[])
+      .filter((k) => filters[k] !== '').length,
+    [filters]
+  );
+
+  const paymentMethodOptions = ['PIX', 'Dinheiro', 'Débito', 'Crédito à Vista', 'Crédito 2x', 'Crédito 3x'].map((m) => ({ value: m, label: m }));
+  const paymentStatusOptions = [
+    { value: 'Não Pago', label: 'Não pago' },
+    { value: 'Entrada', label: 'Entrada' },
+    { value: 'Pago', label: 'Pago' },
+  ];
+
   return (
-    <div className={cn('space-y-3 w-full', className)}>
-      <div className='flex items-center justify-between gap-3 flex-wrap'>
-        <div className='flex items-end gap-2 flex-wrap flex-1 min-w-0'>
-          {showSearch && (
-            <div className='flex items-end gap-2 flex-wrap flex-1 min-w-[220px] max-w-[320px]'>
-              <FilterField label='Buscar' className='flex-1 min-w-[220px] max-w-[320px]'>
-                <div className='relative'>
-                  <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/60' />
-                  <Input
-                    placeholder='Nº da O.S., cliente, telefone ou motor'
-                    value={localSearch}
-                    onChange={(e) => setLocalSearch(e.target.value)}
-                    className='h-8 pl-9 pr-3 text-xs rounded-lg bg-card border-border w-full shadow-xs'
-                  />
-                </div>
-              </FilterField>
-            </div>
-          )}
-
-          {showPaymentStatus && (
-            <FilterField label='Pagamento'>
-              <select
-                value={filters.paymentStatus}
-                onChange={(e) => updateFilter('paymentStatus', e.target.value)}
-                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer max-w-[135px]'
-                title='Status de Pagamento'
-              >
-                <option value=''>Todos</option>
-                <option value='Não Pago'>Não pago</option>
-                <option value='Entrada'>Entrada</option>
-                <option value='Pago'>Pago</option>
-              </select>
-            </FilterField>
-          )}
-
-          {showStatusInBar && showServiceStatus && (
-            <FilterField label='Status'>
-              <select
-                value={filters.serviceStatus}
-                onChange={(e) => updateFilter('serviceStatus', e.target.value)}
-                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer max-w-[135px]'
-                title='Status Ordem'
-              >
-                <option value=''>Todos</option>
-                {serviceStatuses.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </FilterField>
-          )}
-
-          <Button
-            variant='outline'
-            onClick={() => setShowAdvancedFilters((prev) => !prev)}
-            className={cn(
-              'h-8 px-3 gap-2 font-semibold text-xs rounded-lg transition-all border-border shrink-0',
-              showAdvancedFilters ? 'bg-secondary text-foreground' : 'bg-card hover:bg-secondary/40 text-foreground'
-            )}
-          >
-            <SlidersHorizontal className='w-3.5 h-3.5 stroke-[1.5]' />
-            Mais filtros
-            {drawerFilterCount > 0 && (
-              <span className='min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center px-1'>
-                {drawerFilterCount}
+    <div className={cn('w-full rounded-2xl border border-border bg-card shadow-sm overflow-hidden', className)}>
+      {/* ═══ Cabeçalho: título, contagem e ações ═══ */}
+      <div className='flex items-center justify-between gap-4 flex-wrap px-5 py-4 bg-muted/40 border-b border-border'>
+        <div className='flex items-center gap-3 min-w-0 flex-1 basis-[280px]'>
+          <div className='w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0'>
+            <Filter className='w-5 h-5 stroke-[1.75]' />
+          </div>
+          <div className='min-w-0'>
+            <div className='flex items-center gap-2'>
+              <h3 className='text-base font-bold text-foreground'>Filtros</h3>
+              <span className='px-2 py-0.5 rounded-full bg-card border border-border text-xs text-muted-foreground whitespace-nowrap'>
+                {resultCount === totalCount
+                  ? <><span className='font-bold text-foreground tabular-nums'>{totalCount}</span> O.S.</>
+                  : <><span className='font-bold text-foreground tabular-nums'>{resultCount}</span> de <span className='tabular-nums'>{totalCount}</span> O.S.</>}
               </span>
-            )}
-          </Button>
-
-          {hasActiveFilters && (
-            <Button
-              variant='ghost'
-              size='sm'
-              onClick={onClear}
-              className='h-8 px-2.5 gap-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 font-semibold text-xs rounded-lg transition-all shrink-0'
-            >
-              <RotateCcw className='w-3.5 h-3.5 stroke-[1.5]' /> Limpar filtros
-            </Button>
-          )}
+              {loading && <Loader2 className='w-3.5 h-3.5 animate-spin text-muted-foreground' />}
+            </div>
+            <p className='text-sm text-muted-foreground truncate'>Refine sua busca e encontre as ordens de serviço rapidamente.</p>
+          </div>
         </div>
 
-        <div className='flex items-center gap-3 shrink-0'>
-          {loading && <Loader2 className='w-3.5 h-3.5 animate-spin text-foreground' />}
-          <span className='text-sm text-muted-foreground'>
-            {resultCount === totalCount
-              ? <><span className='font-bold text-foreground tabular-nums'>{totalCount}</span> O.S.</>
-              : <><span className='font-bold text-foreground tabular-nums'>{resultCount}</span> de <span className='tabular-nums'>{totalCount}</span> O.S.</>}
-          </span>
+        <div className='flex items-center gap-2 flex-wrap shrink-0'>
+          <Button
+            variant='outline'
+            onClick={onClear}
+            disabled={!hasActiveFilters}
+            className='h-10 px-4 gap-2 rounded-xl border-border bg-card text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-50'
+          >
+            <RotateCcw className='w-4 h-4' /> Limpar filtros
+          </Button>
+          <Button
+            onClick={() => setShowAdvancedFilters(true)}
+            className='solid-btn h-10 px-4 gap-2 rounded-xl text-sm font-bold'
+          >
+            <SlidersHorizontal className='w-4 h-4' />
+            Filtros avançados
+            {advancedFilterCount > 0 && (
+              <span className='min-w-[20px] h-5 rounded-full bg-primary-foreground text-primary text-xs font-bold flex items-center justify-center px-1.5'>
+                {advancedFilterCount}
+              </span>
+            )}
+            <ChevronDown className='w-4 h-4 opacity-80' />
+          </Button>
+          {onPageSizeChange && pageSize !== undefined && (
+            <>
+              <div className='hidden sm:block w-px h-8 bg-border mx-2' />
+              <label className='flex items-center gap-2 text-sm text-muted-foreground whitespace-nowrap'>
+                Exibir
+                <span className='relative'>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                    className='h-10 pl-3 pr-8 rounded-xl border border-border bg-card text-sm font-semibold text-foreground outline-none appearance-none cursor-pointer focus:border-primary focus:ring-2 focus:ring-primary/20'
+                  >
+                    {[10, 20, 50, 100].map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  <ChevronDown className='pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+                </span>
+                por página
+              </label>
+            </>
+          )}
         </div>
       </div>
 
-      {showAdvancedFilters && (
-        <div className="fixed inset-0 z-[9999] flex justify-end overflow-hidden">
-          {/* Backdrop Overlay */}
-          <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-200" 
-            onClick={() => setShowAdvancedFilters(false)}
-          />
-
-          {/* Slide-over Drawer Panel */}
-          <div className="relative z-10 w-full max-w-md sm:max-w-lg h-full bg-card border-l border-border shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-200">
-            {/* Drawer Header */}
-            <div className="p-4 border-b border-border/80 flex items-center justify-between bg-muted/30 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <SlidersHorizontal className="w-4 h-4 text-primary stroke-[2]" />
-                <h3 className="text-sm font-extrabold uppercase tracking-wider text-foreground">Mais filtros</h3>
-                {activeFilterCount > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-foreground text-background text-xs font-bold">
-                    {activeFilterCount} ativo(s)
-                  </span>
-                )}
+      {/* ═══ Campos ═══ */}
+      <div className='px-5 py-4 space-y-3'>
+        <div className='grid gap-3 grid-cols-2 md:grid-cols-4 min-[1600px]:grid-cols-8'>
+          {showSearch && (
+            <FilterField label='Buscar' className='col-span-2'>
+              <div className='relative'>
+                <Search className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+                <Input
+                  placeholder='Nº da O.S., cliente, telefone ou motor'
+                  value={localSearch}
+                  onChange={(e) => setLocalSearch(e.target.value)}
+                  className={cn(controlBase, 'pr-3 cursor-text', localSearch ? controlActive : 'border-border')}
+                />
               </div>
-              <Button
-                variant="ghost"
-                onClick={() => setShowAdvancedFilters(false)}
-                className="w-8 h-8 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground p-0 flex items-center justify-center"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+            </FilterField>
+          )}
 
-            {/* Drawer Body (Scrollable) */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
-                {/* Ordenação */}
-                <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-2 col-span-1 sm:col-span-2'>
-                  <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
-                    <ArrowUpDown className='w-3.5 h-3.5 text-foreground/70' />
-                    <span className='text-xs font-extrabold uppercase tracking-wider text-muted-foreground/80'>Ordenar Resultados Por</span>
-                  </div>
-                  <div className='flex flex-wrap items-center gap-1.5 pt-1'>
-                    {sortOptions.map((opt) => (
-                      <SortButton 
-                        key={opt.field} 
-                        label={opt.label} 
-                        field={opt.field} 
-                        currentField={sort.field}
-                        direction={sort.direction} 
-                        onSort={(f, d) => onSortChange({ field: f, direction: d })} 
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Mais critérios (antes ficavam todos na barra principal) */}
-                <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-3 col-span-1 sm:col-span-2'>
-                  <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
-                    <SlidersHorizontal className='w-3.5 h-3.5 text-foreground/70' />
-                    <span className='text-xs font-bold uppercase tracking-wide text-muted-foreground'>Pagamento, motor e serviço</span>
-                  </div>
-                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                    {showSearch && (
-              <FilterField className='w-full' label='Nº da O.S.'>
-                <div className='relative'>
-                  <Hash className='absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/60' />
-                  <Input
-                    placeholder='Ex: 8454'
-                    value={localOsId}
-                    onChange={(e) => setLocalOsId(e.target.value)}
-                    className='h-8 pl-8 pr-3 text-xs font-mono font-bold rounded-lg bg-card border-border w-full shadow-xs'
-                  />
-                </div>
-              </FilterField>
-                    )}
-          {/* Controls do Grupo Financeiro sempre visíveis */}
           {showPaymentMethod && (
-            <FilterField className='w-full' label='Forma de pagamento'>
-              <select
-                value={filters.paymentMethod}
-                onChange={(e) => updateFilter('paymentMethod', e.target.value)}
-                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer w-full'
-                title='Forma de Pagamento'
-              >
-                <option value=''>Todas</option>
-                <option value='PIX'>PIX</option>
-                <option value='Dinheiro'>Dinheiro</option>
-                <option value='Débito'>Débito</option>
-                <option value='Crédito à Vista'>Crédito à Vista</option>
-                <option value='Crédito 2x'>Crédito 2x</option>
-                <option value='Crédito 3x'>Crédito 3x</option>
-              </select>
+            <FilterField label='Forma pagto'>
+              <FilterSelect icon={CreditCard} value={filters.paymentMethod} onChange={(v) => updateFilter('paymentMethod', v)} allLabel='Todas' options={paymentMethodOptions} title='Forma de pagamento' />
+            </FilterField>
+          )}
+
+          {showPaymentStatus && (
+            <FilterField label='Status pagto'>
+              <FilterSelect icon={CircleDollarSign} value={filters.paymentStatus} onChange={(v) => updateFilter('paymentStatus', v)} allLabel='Todos' options={paymentStatusOptions} title='Situação do pagamento' />
+            </FilterField>
+          )}
+
+          {showServiceStatus && (
+            <FilterField label='Status ordem'>
+              <FilterSelect icon={ListChecks} value={filters.serviceStatus} onChange={(v) => updateFilter('serviceStatus', v)} allLabel='Todos' options={serviceStatuses.map((s) => ({ value: s, label: s }))} title='Status da O.S.' />
             </FilterField>
           )}
 
           {showPayerName && (
-            <FilterField label='Pagador' className='w-full'>
+            <FilterField label='Pagador'>
               <div className='relative'>
-                <User className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/60' />
+                <User className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
                 <Input
                   placeholder='Pagador...'
                   value={localPayerName}
                   onChange={(e) => setLocalPayerName(e.target.value)}
-                  className='h-8 pl-8 pr-2.5 text-xs rounded-lg bg-card border border-border w-full shadow-xs'
+                  className={cn(controlBase, 'pr-3 cursor-text', localPayerName ? controlActive : 'border-border')}
                 />
               </div>
             </FilterField>
           )}
 
           {showPartsLeft && (
-            <FilterField className='w-full' label='Material deixado'>
-              <select
-                value={filters.partsLeft}
-                onChange={(e) => updateFilter('partsLeft', e.target.value)}
-                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer w-full'
-                title='Material Deixado'
-              >
-                <option value=''>Todos</option>
-                {partsLeft.map((p) => <option key={p} value={p}>{p}</option>)}
-              </select>
+            <FilterField label='Material deixado'>
+              <FilterSelect icon={Package} value={filters.partsLeft} onChange={(v) => updateFilter('partsLeft', v)} allLabel='Todos' options={partsLeft.map((p) => ({ value: p, label: p }))} title='Material deixado' />
             </FilterField>
           )}
 
           {showMotor && (
-            <FilterField className='w-full' label='Motor'>
-            <Popover open={motorOpen} onOpenChange={setMotorOpen}>
-              <PopoverTrigger
-                render={
-                  <Button variant='outline' role='combobox' className='h-8 px-2.5 text-xs font-semibold rounded-lg bg-card border border-border justify-between w-full shrink-0'>
-                    <span className="truncate">{filters.motorModel || 'Todos'}</span>
-                    <ChevronsUpDown className='ml-1 h-3 w-3 shrink-0 opacity-40' />
-                  </Button>
-                }
-              />
-              <PopoverContent className='z-[10000] w-[260px] p-0 shadow-lg border border-border rounded-lg overflow-hidden bg-popover' align='start'>
-                <Command className="bg-transparent">
-                  <CommandInput placeholder='Buscar motor...' className="h-8 text-xs" />
-                  <CommandList className="max-h-[220px]">
-                    <CommandEmpty className="py-3 text-center text-xs text-muted-foreground/60 font-bold uppercase tracking-wider">Nenhum motor encontrado</CommandEmpty>
-                    <CommandGroup heading="Motores Cadastrados" className="px-2 pb-2">
-                      <CommandItem
-                        value="todos-os-motores"
-                        onSelect={() => { updateFilter('motorModel', ''); setMotorOpen(false); }}
-                        className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
-                      >
-                        <span className='text-xs font-bold uppercase tracking-tight'>Todos</span>
-                        {!filters.motorModel && <Check className='h-3.5 w-3.5 text-foreground' />}
-                      </CommandItem>
-                      {motors.map((m) => (
+            <FilterField label='Motor'>
+              <Popover open={motorOpen} onOpenChange={setMotorOpen}>
+                <PopoverTrigger
+                  render={
+                    <Button variant='outline' role='combobox' className={cn(comboBase, filters.motorModel ? controlActive : 'border-border')}>
+                      <Cog className='w-4 h-4 text-muted-foreground shrink-0' />
+                      <span className='truncate'>{filters.motorModel || 'Todos'}</span>
+                      <ChevronDown className='ml-auto w-4 h-4 text-muted-foreground shrink-0' />
+                    </Button>
+                  }
+                />
+                <PopoverContent className='z-[10000] w-[260px] p-0 shadow-lg border border-border rounded-xl overflow-hidden bg-popover' align='start'>
+                  <Command className='bg-transparent'>
+                    <CommandInput placeholder='Buscar motor...' className='h-9 text-sm' />
+                    <CommandList className='max-h-[240px]'>
+                      <CommandEmpty className='py-3 text-center text-xs text-muted-foreground'>Nenhum motor encontrado</CommandEmpty>
+                      <CommandGroup heading='Motores cadastrados' className='px-2 pb-2'>
                         <CommandItem
-                          key={m}
-                          value={m}
-                          onSelect={() => { updateFilter('motorModel', filters.motorModel === m ? '' : m); setMotorOpen(false); }}
+                          value='todos-os-motores'
+                          onSelect={() => { updateFilter('motorModel', ''); setMotorOpen(false); }}
                           className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
                         >
-                          <span className='text-xs font-bold uppercase tracking-tight truncate'>{m}</span>
-                          {filters.motorModel === m && <Check className='h-3.5 w-3.5 text-foreground shrink-0' />}
+                          <span className='text-sm font-medium'>Todos</span>
+                          {!filters.motorModel && <Check className='h-4 w-4 text-primary' />}
                         </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+                        {motors.map((m) => (
+                          <CommandItem
+                            key={m}
+                            value={m}
+                            onSelect={() => { updateFilter('motorModel', filters.motorModel === m ? '' : m); setMotorOpen(false); }}
+                            className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
+                          >
+                            <span className='text-sm font-medium uppercase truncate'>{m}</span>
+                            {filters.motorModel === m && <Check className='h-4 w-4 text-primary shrink-0' />}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </FilterField>
           )}
 
           {showDisplacement && (
-            <FilterField className='w-full' label='Cilindrada'>
-              <select
-                value={filters.displacement}
-                onChange={(e) => updateFilter('displacement', e.target.value)}
-                className='h-8 text-xs font-semibold rounded-lg bg-card border border-border px-2 text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer w-full'
-                title='Cilindrada'
-              >
-                <option value=''>Todas</option>
-                {displacements.map((d) => <option key={d} value={d}>{d}</option>)}
-              </select>
+            <FilterField label='Cilindrada'>
+              <FilterSelect icon={Gauge} value={filters.displacement} onChange={(v) => updateFilter('displacement', v)} allLabel='Todas' options={displacements.map((d) => ({ value: d, label: d }))} title='Cilindrada' />
             </FilterField>
           )}
 
           {showServiceType && (
-            <FilterField className='w-full' label='Tipo de serviço'>
-            <Popover open={serviceTypeOpen} onOpenChange={setServiceTypeOpen}>
-              <PopoverTrigger
-                render={
-                  <Button variant='outline' role='combobox' className='h-8 px-2.5 text-xs font-semibold rounded-lg bg-card border border-border justify-between w-full shrink-0'>
-                    <span className="truncate">{filters.serviceType || 'Todos'}</span>
-                    <ChevronsUpDown className='ml-1 h-3 w-3 shrink-0 opacity-40' />
-                  </Button>
-                }
-              />
-              <PopoverContent className='z-[10000] w-[260px] p-0 shadow-lg border border-border rounded-lg overflow-hidden bg-popover' align='start'>
-                <Command className="bg-transparent">
-                  <CommandInput placeholder='Buscar serviço...' className="h-8 text-xs" />
-                  <CommandList className="max-h-[220px]">
-                    <CommandEmpty className="py-3 text-center text-xs text-muted-foreground/60 font-bold uppercase tracking-wider">Nenhum serviço encontrado</CommandEmpty>
-                    <CommandGroup heading="Serviços Cadastrados" className="px-2 pb-2">
-                      <CommandItem
-                        value="todos-os-servicos"
-                        onSelect={() => { updateFilter('serviceType', ''); setServiceTypeOpen(false); }}
-                        className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
-                      >
-                        <span className='text-xs font-bold uppercase tracking-tight'>Todos</span>
-                        {!filters.serviceType && <Check className='h-3.5 w-3.5 text-foreground' />}
-                      </CommandItem>
-                      {serviceTypes.map((t) => (
+            <FilterField label='Tipo serviço'>
+              <Popover open={serviceTypeOpen} onOpenChange={setServiceTypeOpen}>
+                <PopoverTrigger
+                  render={
+                    <Button variant='outline' role='combobox' className={cn(comboBase, filters.serviceType ? controlActive : 'border-border')}>
+                      <Wrench className='w-4 h-4 text-muted-foreground shrink-0' />
+                      <span className='truncate'>{filters.serviceType || 'Todos'}</span>
+                      <ChevronDown className='ml-auto w-4 h-4 text-muted-foreground shrink-0' />
+                    </Button>
+                  }
+                />
+                <PopoverContent className='z-[10000] w-[280px] p-0 shadow-lg border border-border rounded-xl overflow-hidden bg-popover' align='end'>
+                  <Command className='bg-transparent'>
+                    <CommandInput placeholder='Buscar serviço...' className='h-9 text-sm' />
+                    <CommandList className='max-h-[240px]'>
+                      <CommandEmpty className='py-3 text-center text-xs text-muted-foreground'>Nenhum serviço encontrado</CommandEmpty>
+                      <CommandGroup heading='Serviços cadastrados' className='px-2 pb-2'>
                         <CommandItem
-                          key={t}
-                          value={t}
-                          onSelect={() => { updateFilter('serviceType', filters.serviceType === t ? '' : t); setServiceTypeOpen(false); }}
+                          value='todos-os-servicos'
+                          onSelect={() => { updateFilter('serviceType', ''); setServiceTypeOpen(false); }}
                           className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
                         >
-                          <span className='text-xs font-bold uppercase tracking-tight truncate'>{t}</span>
-                          {filters.serviceType === t && <Check className='h-3.5 w-3.5 text-foreground shrink-0' />}
+                          <span className='text-sm font-medium'>Todos</span>
+                          {!filters.serviceType && <Check className='h-4 w-4 text-primary' />}
                         </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+                        {serviceTypes.map((t) => (
+                          <CommandItem
+                            key={t}
+                            value={t}
+                            onSelect={() => { updateFilter('serviceType', filters.serviceType === t ? '' : t); setServiceTypeOpen(false); }}
+                            className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
+                          >
+                            <span className='text-sm font-medium uppercase truncate'>{t}</span>
+                            {filters.serviceType === t && <Check className='h-4 w-4 text-primary shrink-0' />}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </FilterField>
           )}
+        </div>
 
-                  </div>
+        <ActiveFilters filters={filters} clients={clients} onRemoveFilter={removeFilter} onClear={onClear} count={resultCount} />
+      </div>
+
+      {/* ═══ Filtros avançados (painel lateral) ═══ */}
+      {showAdvancedFilters && (
+        <div className='fixed inset-0 z-[9999] flex justify-end overflow-hidden'>
+          <div
+            className='fixed inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-200'
+            onClick={() => setShowAdvancedFilters(false)}
+          />
+
+          <div className='relative z-10 w-full max-w-md sm:max-w-lg h-full bg-card border-l border-border shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-200'>
+            <div className='px-5 py-4 border-b border-border flex items-center justify-between bg-muted/40 shrink-0'>
+              <div className='flex items-center gap-3'>
+                <div className='w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center'>
+                  <SlidersHorizontal className='w-4 h-4' />
                 </div>
-
-                {/* Cliente */}
-                {(showClient || showClientType) && (
-                  <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-2'>
-                    <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
-                      <User className='w-3.5 h-3.5 text-foreground/70' />
-                      <span className='text-xs font-extrabold uppercase tracking-wider text-muted-foreground/80'>Cliente</span>
-                    </div>
-                    <div className='space-y-2'>
-                      {showClient && (
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
-                            <User className='w-2.5 h-2.5 text-muted-foreground/50' /> Cliente
-                          </Label>
-                          <Popover open={clientOpen} onOpenChange={setClientOpen}>
-                            <PopoverTrigger
-                              render={
-                                <Button variant='outline' role='combobox' className='w-full justify-between font-semibold h-8 rounded-lg px-2.5 text-xs border border-border bg-background'>
-                                  <span className="truncate">{selectedClientName || 'Todos os clientes'}</span>
-                                  <ChevronsUpDown className='ml-1 h-3 w-3 shrink-0 opacity-40' />
-                                </Button>
-                              }
-                            />
-                            <PopoverContent className='z-[10000] w-[280px] p-0 shadow-lg border border-border rounded-lg overflow-hidden bg-popover' align='start'>
-                              <Command className="bg-transparent">
-                                <CommandInput placeholder='Buscar por nome ou documento...' className="h-8 text-xs" />
-                                <CommandList className="max-h-[200px]">
-                                  <CommandEmpty className="py-3 text-center text-xs text-muted-foreground/60 font-bold uppercase tracking-wider">Nenhum cliente encontrado</CommandEmpty>
-                                  <CommandGroup heading="Clientes Cadastrados" className="px-2 pb-2">
-                                    <CommandItem
-                                      value="todos-os-clientes"
-                                      onSelect={() => { updateFilter('clientId', ''); setClientOpen(false); }}
-                                      className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
-                                    >
-                                      <span className='text-xs font-bold uppercase tracking-tight'>Todos os clientes</span>
-                                      {!filters.clientId && <Check className='h-3.5 w-3.5 text-foreground' />}
-                                    </CommandItem>
-                                    {clients.map((c) => (
-                                      <CommandItem
-                                        key={c.id}
-                                        value={c.name + ' ' + c.phone + ' ' + c.document}
-                                        onSelect={() => { updateFilter('clientId', filters.clientId === c.id ? '' : c.id); setClientOpen(false); }}
-                                        className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
-                                      >
-                                        <div className="flex flex-col">
-                                          <span className='text-xs font-bold uppercase tracking-tight'>{c.name}</span>
-                                          <span className='text-xs text-muted-foreground/60 font-bold font-mono'>{c.phone}</span>
-                                        </div>
-                                        {filters.clientId === c.id && <Check className='h-3.5 w-3.5 text-foreground' />}
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                </CommandList>
-                              </Command>
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                      )}
-                      {showClientType && (
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
-                            <User className='w-2.5 h-2.5 text-muted-foreground/50' /> Tipo de Cliente
-                          </Label>
-                          <select
-                            value={filters.clientType}
-                            onChange={(e) => updateFilter('clientType', e.target.value)}
-                            className='h-8 text-xs font-semibold rounded-lg bg-background border border-border px-2 w-full text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer'
-                          >
-                            <option value=''>Todos</option>
-                            <option value='regular'>Cliente</option>
-                            <option value='mechanic'>Mecânico</option>
-                          </select>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Status */}
-                {!showStatusInBar && showServiceStatus && (
-                  <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-2'>
-                    <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
-                      <Check className='w-3.5 h-3.5 text-foreground/70' />
-                      <span className='text-xs font-extrabold uppercase tracking-wider text-muted-foreground/80'>Status</span>
-                    </div>
-                    <div className='space-y-2'>
-                      {showServiceStatus && (
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
-                            <Check className='w-2.5 h-2.5 text-muted-foreground/50' /> Status Ordem
-                          </Label>
-                          <select
-                            value={filters.serviceStatus}
-                            onChange={(e) => updateFilter('serviceStatus', e.target.value)}
-                            className='h-8 text-xs font-semibold rounded-lg bg-background border border-border px-2 w-full text-foreground outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer'
-                          >
-                            <option value=''>Todos</option>
-                            {serviceStatuses.map((s) => <option key={s} value={s}>{s}</option>)}
-                          </select>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Período */}
-                {showDates && (
-                  <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-2'>
-                    <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
-                      <Calendar className='w-3.5 h-3.5 text-foreground/70' />
-                      <span className='text-xs font-extrabold uppercase tracking-wider text-muted-foreground/80'>Período</span>
-                    </div>
-                    <div className='space-y-2'>
-                      <div className='space-y-1'>
-                        <Label className='text-xs font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
-                          <Calendar className='w-2.5 h-2.5 text-muted-foreground/50' /> De
-                        </Label>
-                        <DateField value={filters.dateFrom} onChange={(v) => updateFilter('dateFrom', v)} placeholder='De (dd/mm)' className='bg-background' />
-                      </div>
-                      <div className='space-y-1'>
-                        <Label className='text-xs font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
-                          <Calendar className='w-2.5 h-2.5 text-muted-foreground/50' /> Até
-                        </Label>
-                        <DateField value={filters.dateTo} onChange={(v) => updateFilter('dateTo', v)} placeholder='Até (dd/mm)' className='bg-background' />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Valor */}
-                {showValues && (
-                  <div className='border border-border/50 bg-muted/20 p-3 rounded-xl space-y-2'>
-                    <div className='flex items-center gap-1.5 pb-1 border-b border-border/30'>
-                      <DollarSign className='w-3.5 h-3.5 text-foreground/70' />
-                      <span className='text-xs font-extrabold uppercase tracking-wider text-muted-foreground/80'>Valor</span>
-                    </div>
-                    <div className='space-y-2'>
-                      <div className='space-y-1'>
-                        <Label className='text-xs font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
-                          <DollarSign className='w-2.5 h-2.5 text-muted-foreground/50' /> Valor Mínimo
-                        </Label>
-                        <div className='relative'>
-                          <DollarSign className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/60' />
-                          <Input
-                            type='number'
-                            step='0.01'
-                            placeholder='Min R$'
-                            value={localMinValue}
-                            onChange={(e) => setLocalMinValue(e.target.value)}
-                            className='h-8 pl-7 pr-2 text-xs font-mono font-bold rounded-lg bg-background border border-border w-full'
-                          />
-                        </div>
-                      </div>
-                      <div className='space-y-1'>
-                        <Label className='text-xs font-bold text-muted-foreground/75 uppercase tracking-wider flex items-center gap-1'>
-                          <DollarSign className='w-2.5 h-2.5 text-muted-foreground/50' /> Valor Máximo
-                        </Label>
-                        <div className='relative'>
-                          <DollarSign className='absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/60' />
-                          <Input
-                            type='number'
-                            step='0.01'
-                            placeholder='Max R$'
-                            value={localMaxValue}
-                            onChange={(e) => setLocalMaxValue(e.target.value)}
-                            className='h-8 pl-7 pr-2 text-xs font-mono font-bold rounded-lg bg-background border border-border w-full'
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
+                <div>
+                  <h3 className='text-base font-bold text-foreground'>Filtros avançados</h3>
+                  <p className='text-xs text-muted-foreground'>Ordenação, cliente, período e valor.</p>
+                </div>
               </div>
+              <Button
+                variant='ghost'
+                onClick={() => setShowAdvancedFilters(false)}
+                className='w-9 h-9 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground p-0 flex items-center justify-center'
+              >
+                <X className='w-4 h-4' />
+              </Button>
             </div>
 
-            {/* Drawer Footer */}
-            <div className="p-4 border-t border-border/80 bg-muted/30 flex items-center justify-between gap-3 shrink-0">
-              {hasActiveFilters ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onClear}
-                  className="text-xs font-bold uppercase text-muted-foreground hover:text-destructive border-border h-9"
-                >
-                  <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Limpar Filtros
-                </Button>
-              ) : (
-                <div />
+            <div className='flex-1 overflow-y-auto p-5 space-y-4 min-h-0'>
+              {/* Ordenação */}
+              <AdvancedSection icon={ArrowUpDown} title='Ordenar resultados por'>
+                <div className='flex flex-wrap items-center gap-1.5'>
+                  {sortOptions.map((opt) => (
+                    <SortButton
+                      key={opt.field}
+                      label={opt.label}
+                      field={opt.field}
+                      currentField={sort.field}
+                      direction={sort.direction}
+                      onSort={(f, d) => onSortChange({ field: f, direction: d })}
+                    />
+                  ))}
+                </div>
+              </AdvancedSection>
+
+              {/* Nº da O.S. */}
+              {showSearch && (
+                <AdvancedSection icon={Hash} title='Nº da O.S.'>
+                  <div className='relative'>
+                    <Hash className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+                    <Input
+                      placeholder='Ex: 8454'
+                      value={localOsId}
+                      onChange={(e) => setLocalOsId(e.target.value)}
+                      className={cn(controlBase, 'pr-3 cursor-text font-mono', localOsId ? controlActive : 'border-border')}
+                    />
+                  </div>
+                </AdvancedSection>
               )}
+
+              {/* Cliente */}
+              {(showClient || showClientType) && (
+                <AdvancedSection icon={User} title='Cliente'>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                    {showClient && (
+                      <FilterField label='Cliente'>
+                        <Popover open={clientOpen} onOpenChange={setClientOpen}>
+                          <PopoverTrigger
+                            render={
+                              <Button variant='outline' role='combobox' className={cn(comboBase, filters.clientId ? controlActive : 'border-border')}>
+                                <User className='w-4 h-4 text-muted-foreground shrink-0' />
+                                <span className='truncate'>{selectedClientName || 'Todos os clientes'}</span>
+                                <ChevronDown className='ml-auto w-4 h-4 text-muted-foreground shrink-0' />
+                              </Button>
+                            }
+                          />
+                          <PopoverContent className='z-[10000] w-[300px] p-0 shadow-lg border border-border rounded-xl overflow-hidden bg-popover' align='start'>
+                            <Command className='bg-transparent'>
+                              <CommandInput placeholder='Buscar por nome ou documento...' className='h-9 text-sm' />
+                              <CommandList className='max-h-[220px]'>
+                                <CommandEmpty className='py-3 text-center text-xs text-muted-foreground'>Nenhum cliente encontrado</CommandEmpty>
+                                <CommandGroup heading='Clientes cadastrados' className='px-2 pb-2'>
+                                  <CommandItem
+                                    value='todos-os-clientes'
+                                    onSelect={() => { updateFilter('clientId', ''); setClientOpen(false); }}
+                                    className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
+                                  >
+                                    <span className='text-sm font-medium'>Todos os clientes</span>
+                                    {!filters.clientId && <Check className='h-4 w-4 text-primary' />}
+                                  </CommandItem>
+                                  {clients.map((c) => (
+                                    <CommandItem
+                                      key={c.id}
+                                      value={c.name + ' ' + c.phone + ' ' + c.document}
+                                      onSelect={() => { updateFilter('clientId', filters.clientId === c.id ? '' : c.id); setClientOpen(false); }}
+                                      className='flex items-center justify-between rounded-lg py-1.5 px-2.5 hover:bg-secondary cursor-pointer'
+                                    >
+                                      <div className='flex flex-col min-w-0'>
+                                        <span className='text-sm font-medium uppercase truncate'>{c.name}</span>
+                                        <span className='text-xs text-muted-foreground tabular-nums'>{c.phone}</span>
+                                      </div>
+                                      {filters.clientId === c.id && <Check className='h-4 w-4 text-primary shrink-0' />}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </FilterField>
+                    )}
+                    {showClientType && (
+                      <FilterField label='Tipo de cliente'>
+                        <FilterSelect
+                          icon={Users}
+                          value={filters.clientType}
+                          onChange={(v) => updateFilter('clientType', v)}
+                          allLabel='Todos'
+                          options={[{ value: 'regular', label: 'Cliente' }, { value: 'mechanic', label: 'Mecânico' }]}
+                          title='Tipo de cliente'
+                        />
+                      </FilterField>
+                    )}
+                  </div>
+                </AdvancedSection>
+              )}
+
+              {/* Período */}
+              {showDates && (
+                <AdvancedSection icon={Calendar} title='Período'>
+                  <div className='grid grid-cols-2 gap-3'>
+                    <FilterField label='De'>
+                      <DateField value={filters.dateFrom} onChange={(v) => updateFilter('dateFrom', v)} placeholder='dd/mm/aaaa' className={filters.dateFrom ? controlActive : undefined} />
+                    </FilterField>
+                    <FilterField label='Até'>
+                      <DateField value={filters.dateTo} onChange={(v) => updateFilter('dateTo', v)} placeholder='dd/mm/aaaa' className={filters.dateTo ? controlActive : undefined} />
+                    </FilterField>
+                  </div>
+                </AdvancedSection>
+              )}
+
+              {/* Valor */}
+              {showValues && (
+                <AdvancedSection icon={DollarSign} title='Valor'>
+                  <div className='grid grid-cols-2 gap-3'>
+                    <FilterField label='Mínimo'>
+                      <div className='relative'>
+                        <DollarSign className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+                        <Input
+                          type='number'
+                          step='0.01'
+                          placeholder='R$ mínimo'
+                          value={localMinValue}
+                          onChange={(e) => setLocalMinValue(e.target.value)}
+                          className={cn(controlBase, 'pr-3 cursor-text tabular-nums', localMinValue ? controlActive : 'border-border')}
+                        />
+                      </div>
+                    </FilterField>
+                    <FilterField label='Máximo'>
+                      <div className='relative'>
+                        <DollarSign className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+                        <Input
+                          type='number'
+                          step='0.01'
+                          placeholder='R$ máximo'
+                          value={localMaxValue}
+                          onChange={(e) => setLocalMaxValue(e.target.value)}
+                          className={cn(controlBase, 'pr-3 cursor-text tabular-nums', localMaxValue ? controlActive : 'border-border')}
+                        />
+                      </div>
+                    </FilterField>
+                  </div>
+                </AdvancedSection>
+              )}
+            </div>
+
+            <div className='px-5 py-4 border-t border-border bg-muted/40 flex items-center justify-between gap-3 shrink-0'>
+              <Button
+                variant='outline'
+                onClick={onClear}
+                disabled={!hasActiveFilters}
+                className='h-10 px-4 gap-2 rounded-xl border-border bg-card text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-50'
+              >
+                <RotateCcw className='w-4 h-4' /> Limpar filtros
+              </Button>
               <Button
                 onClick={() => setShowAdvancedFilters(false)}
-                className="text-xs font-bold uppercase tracking-wider bg-foreground text-background hover:bg-foreground/90 px-6 h-9"
+                className='solid-btn h-10 px-6 rounded-xl text-sm font-bold'
               >
-                Ver Resultados ({resultCount})
+                Ver resultados ({resultCount})
               </Button>
             </div>
           </div>
         </div>
       )}
-
-      <ActiveFilters filters={filters} clients={clients} onRemoveFilter={removeFilter} onClear={onClear} count={resultCount} />
     </div>
   );
 }

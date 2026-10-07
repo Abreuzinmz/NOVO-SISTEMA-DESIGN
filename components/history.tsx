@@ -198,6 +198,8 @@ export function History() {
             showServiceType={true}
             showValues={true}
             showSearch={true}
+            pageSize={pageSize}
+            onPageSizeChange={setPageSize}
           />
         </ErrorBoundary>
       </div>
@@ -248,7 +250,6 @@ export function History() {
         pageSize={pageSize}
         totalItems={totalFilteredCount}
         onPageChange={setPage}
-        onPageSizeChange={setPageSize}
       />
 
       {isViewModalOpen && (

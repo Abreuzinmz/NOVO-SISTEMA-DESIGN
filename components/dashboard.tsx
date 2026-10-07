@@ -676,6 +676,8 @@ export function Dashboard({
               showValues={false}
               showSearch={false}
               showStatusInBar={true}
+              pageSize={pageSize}
+              onPageSizeChange={setPageSize}
             />
           )}
 
@@ -724,7 +726,6 @@ export function Dashboard({
             pageSize={pageSize}
             totalItems={totalFilteredCount}
             onPageChange={setPage}
-            onPageSizeChange={setPageSize}
           />
         </>
       )}
