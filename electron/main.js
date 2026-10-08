@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, protocol, net } = require('electron');
+const { app, BrowserWindow, ipcMain, protocol, net, shell } = require('electron');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const fs = require('fs');
@@ -57,7 +57,14 @@ function createWindow() {
       event.preventDefault();
     }
   });
-  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  // Nenhuma janela nova dentro do app. Exceção: links de WhatsApp e Google Maps
+  // (botões da O.S.) abrem no navegador do computador.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https:\/\/wa\.me\/\d+(\?text=[^\s]*)?$/.test(url) || url.startsWith('https://www.google.com/maps/search/')) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
 
   // Force 1:1 zoom limit to ensure sharp pixel rendering in desktop app
   mainWindow.webContents.on('did-finish-load', () => {
