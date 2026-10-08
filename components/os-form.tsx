@@ -2335,9 +2335,9 @@ function OSFormImpl({
   const defaultAdditionalParts = ['MANCAIS DO BLOCO', 'TAMPA CABEÇOTE', 'JETCOOLER', 'COMANDO DE VÁLVULA'];
   const initialAdditionalParts = [...defaultAdditionalParts];
   order?.additionalParts?.forEach(p => {
-    const uppercased = p.toUpperCase();
-    if (!initialAdditionalParts.includes(uppercased)) {
-      initialAdditionalParts.push(uppercased);
+    const name = (p.includes('|') ? p.split('|')[0] : p).trim().toUpperCase();
+    if (name && !initialAdditionalParts.includes(name)) {
+      initialAdditionalParts.push(name);
     }
   });
 
@@ -2355,7 +2355,7 @@ function OSFormImpl({
       setNewAdditionalPartName('');
       toast.success(`Peça "${name}" adicionada.`);
     } else {
-      if (!additionalParts.includes(name)) {
+      if (!additionalParts.some(p => p === name || p.startsWith(name + '|'))) {
         setAdditionalParts([...additionalParts, name]);
         setNewAdditionalPartName('');
       } else {
@@ -2367,7 +2367,7 @@ function OSFormImpl({
   const handleRemoveAvailableAdditionalPart = (part: string) => {
     if (defaultAdditionalParts.includes(part)) return;
     setAvailableAdditionalParts(prev => prev.filter(p => p !== part));
-    setAdditionalParts(prev => prev.filter(p => p !== part));
+    setAdditionalParts(prev => prev.filter(p => p !== part && !p.startsWith(part + '|')));
   };
 
   const handleAddPartLeft = (e: React.MouseEvent) => {
