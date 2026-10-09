@@ -1,15 +1,16 @@
 import type {Metadata} from 'next';
 import './globals.css';
-import { Inter } from 'next/font/google';
+import { Sora } from 'next/font/google';
 import { cn } from "@/lib/utils";
 import { StoreProvider } from '@/lib/store';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from 'next-themes';
 import { ConfirmDialogProvider } from '@/components/ui/confirm-dialog';
 
-const inter = Inter({
+const sora = Sora({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-sora',
+  weight: ['300', '400', '500', '600', '700', '800'],
   display: 'swap',
 });
 
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning className={cn("font-sans antialiased", inter.variable)}>
+    <html lang="pt-BR" suppressHydrationWarning className={cn("font-sans antialiased", sora.variable)}>
       <body className="min-h-screen bg-background text-foreground">
         <ThemeProvider
           attribute="class"

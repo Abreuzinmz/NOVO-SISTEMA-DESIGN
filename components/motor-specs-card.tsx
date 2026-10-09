@@ -24,7 +24,6 @@ import {
   Car,
   Package,
   Zap,
-  EyeOff,
   CheckCircle2,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -652,7 +651,7 @@ export function MotorSpecsCard({
             </button>
           </div>
 
-          {form.showExtra ? (
+          {form.showExtra && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in-0 slide-in-from-top-1 duration-150">
               <FieldCard icon={<Package className="w-4 h-4" />} label="Modelo do Motor">
                 <SpecSelect
@@ -681,23 +680,15 @@ export function MotorSpecsCard({
                 <SpecSelect value={form.aspiration} onChange={(v) => set('aspiration', v)} options={aspirationOptions} actionLabel="Cadastrar outra..." onAction={() => { setCustomTarget('aspiration'); setCustomValue(''); }} />
               </FieldCard>
             </div>
-          ) : (
-            <div className="flex items-center gap-3 rounded-xl border-2 border-dashed border-border px-4 py-3.5 text-muted-foreground">
-              <EyeOff className="w-5 h-5 shrink-0" />
-              <div>
-                <div className="text-sm font-semibold">Opções adicionais ocultas</div>
-                <div className="text-xs">Marque a opção acima para exibir mais campos.</div>
-              </div>
-            </div>
           )}
 
           {/* Ações */}
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button type="button" onClick={submitMotor} disabled={!form.model.trim() && !form.cars.trim() && !form.engineModel.trim()} className="solid-btn flex-1 h-12 rounded-xl text-sm font-bold gap-2 disabled:opacity-50">
+          <div className="flex flex-col sm:flex-row sm:justify-center gap-2">
+            <Button type="button" onClick={submitMotor} disabled={!form.model.trim() && !form.cars.trim() && !form.engineModel.trim()} className="solid-btn w-full sm:w-auto sm:min-w-[280px] h-11 px-8 rounded-xl text-sm font-bold gap-2 disabled:opacity-50">
               {editingIndex !== null ? <><Check className="w-4 h-4" /> Salvar alterações do motor</> : <><Plus className="w-4 h-4" /> Adicionar Motor à O.S.</>}
             </Button>
             {motors.length > 0 && (
-              <Button type="button" variant="outline" onClick={resetForm} className="h-12 px-5 rounded-xl border-border text-sm font-semibold">
+              <Button type="button" variant="outline" onClick={resetForm} className="h-11 px-5 rounded-xl border-border text-sm font-semibold">
                 {editingIndex !== null ? 'Cancelar edição' : 'Voltar aos motores'}
               </Button>
             )}

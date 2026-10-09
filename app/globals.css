@@ -5,9 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-inter), 'Inter', system-ui, sans-serif;
-    --font-sans: var(--font-inter), 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-    --font-mono: var(--font-inter), 'Inter', system-ui, sans-serif;
+    --font-heading: var(--font-sora), 'Sora', system-ui, sans-serif;
+    --font-sans: var(--font-sora), 'Sora', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: var(--font-sora), 'Sora', system-ui, sans-serif;
 
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
@@ -200,7 +200,6 @@
 
     body {
         @apply bg-background text-foreground antialiased;
-        font-feature-settings: "cv11", "ss01";
         transition: background-color 0.2s ease, color 0.15s ease;
     }
 

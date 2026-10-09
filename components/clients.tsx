@@ -24,7 +24,6 @@ import {
   CreditCard, 
   ChevronRight,
   TrendingUp,
-  Wallet,
   History as HistoryIcon,
   Plus,
   MapPin,
@@ -36,7 +35,11 @@ import {
   Tag,
   FileText,
   Users,
-  Wrench
+  Wrench,
+  Layers,
+  ListFilter,
+  ClipboardList,
+  Check
 } from 'lucide-react';
 import { cn, formatMotorDisplay, formatMotorModelAndCylinders } from '@/lib/utils';
 import { 
@@ -53,6 +56,8 @@ import { toast } from 'sonner';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { FormSection, FieldLabel, IconField, ClientTypeToggle, ClientDialogHeader, ClientDialogFooter, iconInputClass, clientDialogClass } from '@/components/client-form';
 import { OSViewModal } from '@/components/os-view-modal';
+import { FilterDropdown } from '@/components/filter-bar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 // ═══ FORMATTING HELPERS ═══
 
@@ -144,12 +149,11 @@ interface ClientRowProps extends ClientRowData {
   style: React.CSSProperties;
 }
 
-const ClientRow = React.memo(({ index, style, filteredClients, balances, selectedClientId, onSelectClient }: ClientRowProps): React.ReactElement | null => {
+const ClientRow = React.memo(({ index, style, filteredClients, selectedClientId, onSelectClient }: ClientRowProps): React.ReactElement | null => {
   const client = filteredClients[index];
   if (!client) return null;
 
   const isSelected = selectedClientId === client.id;
-  const bal = balances.get(client.id);
 
   return (
     <div 
@@ -163,14 +167,20 @@ const ClientRow = React.memo(({ index, style, filteredClients, balances, selecte
       <button
         onClick={() => onSelectClient(client.id)}
         className={cn(
-          "w-full h-full text-left px-3.5 transition-all duration-200 group flex items-center justify-between",
+          "w-full h-full text-left pl-4 pr-3 transition-colors duration-200 group flex items-center gap-3",
           "hover:bg-secondary/20",
-          isSelected && "bg-secondary/50 border-l-[3px] border-foreground"
+          isSelected && "bg-secondary/50 shadow-[inset_3px_0_0_var(--foreground)]"
         )}
       >
-        <div className="space-y-0.5 flex flex-col justify-center h-full min-w-0">
+        <div className={cn(
+          "w-10 h-10 rounded-xl border flex items-center justify-center text-sm font-bold shrink-0",
+          isSelected ? "bg-foreground text-background border-foreground" : "bg-muted/60 text-foreground/80 border-border"
+        )}>
+          {client.name.charAt(0)}
+        </div>
+        <div className="flex-1 flex flex-col justify-center min-w-0 leading-tight gap-1">
           {client.nickname ? (
-            <span className="text-xs font-bold text-muted-foreground tracking-wide uppercase truncate block min-w-0">
+            <span className="text-[11px] font-semibold text-muted-foreground tracking-wide uppercase truncate block min-w-0">
               {client.nickname}
             </span>
           ) : null}
@@ -181,38 +191,34 @@ const ClientRow = React.memo(({ index, style, filteredClients, balances, selecte
             )}>
               {client.name}
             </span>
-            {client.clientType === 'mechanic' ? (
-              <span className="h-[20px] text-xs font-bold bg-info/10 text-info border border-info/20 rounded px-1.5 flex items-center justify-center flex-shrink-0">
-                MECÂNICO
-              </span>
-            ) : (
-              <span className="h-[20px] text-xs font-bold bg-secondary text-secondary-foreground border border-border rounded px-1.5 flex items-center justify-center flex-shrink-0">
-                CLIENTE
-              </span>
-            )}
           </div>
           {(client.document || client.phone) && (
-            <div className="flex items-center gap-3 text-xs text-muted-foreground font-mono truncate">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground truncate">
               {client.document && (
-                <span className="flex items-center gap-1 flex-shrink-0">
+                <span className="flex items-center gap-1.5 flex-shrink-0 tabular-nums">
                   <CreditCard className="w-3.5 h-3.5 stroke-[1.5]" /> {maskCPFCNPJ(client.document)}
                 </span>
               )}
               {client.phone && (
-                <span className="flex items-center gap-1 flex-shrink-0">
+                <span className="flex items-center gap-1.5 flex-shrink-0 tabular-nums">
                   <Phone className="w-3.5 h-3.5 stroke-[1.5]" /> {maskPhone(client.phone)}
                 </span>
               )}
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2 shrink-0 pl-2">
-          {bal && bal.balance > 0 && (
-            <span className="text-right leading-tight">
-              <span className="block text-xs text-muted-foreground">deve</span>
-              <span className="block text-sm font-bold text-danger tabular-nums">{formatBRL(bal.balance)}</span>
-            </span>
-          )}
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="w-[84px] flex justify-center">
+            {client.clientType === 'mechanic' ? (
+              <span className="h-[22px] text-[11px] font-bold tracking-wide bg-info/10 text-info border border-info/20 rounded-md px-2 flex items-center justify-center">
+                MECÂNICO
+              </span>
+            ) : (
+              <span className="h-[22px] text-[11px] font-bold tracking-wide bg-secondary text-secondary-foreground border border-border rounded-md px-2 flex items-center justify-center">
+                CLIENTE
+              </span>
+            )}
+          </span>
           <ChevronRight className={cn(
             "w-4 h-4 transition-transform flex-shrink-0",
             isSelected ? "rotate-90 text-foreground" : "text-muted-foreground/30"
@@ -224,6 +230,34 @@ const ClientRow = React.memo(({ index, style, filteredClients, balances, selecte
 });
 
 ClientRow.displayName = 'ClientRow';
+
+// ═══ OPÇÕES DO HISTÓRICO DE O.S. ═══
+
+type OrderSort = 'recent' | 'oldest' | 'value_desc' | 'value_asc';
+
+const ORDER_SORT_OPTIONS: { value: OrderSort; label: string }[] = [
+  { value: 'recent', label: 'Mais recentes' },
+  { value: 'oldest', label: 'Mais antigas' },
+  { value: 'value_desc', label: 'Maior valor' },
+  { value: 'value_asc', label: 'Menor valor' },
+];
+
+const ORDER_STATUS_OPTIONS = [
+  { value: '', label: 'Todos' },
+  { value: 'Na Fila', label: 'Na fila' },
+  { value: 'Em Andamento', label: 'Em andamento' },
+  { value: 'Aguardando Peça', label: 'Aguardando peça' },
+  { value: 'Pronto', label: 'Pronto' },
+  { value: 'Levou', label: 'Levou' },
+  { value: 'finalizada', label: 'Finalizada' },
+];
+
+const ORDER_PAYMENT_OPTIONS = [
+  { value: '', label: 'Todos' },
+  { value: 'nao_pago', label: 'Não pago' },
+  { value: 'entrada', label: 'Entrada' },
+  { value: 'pago', label: 'Pago' },
+];
 
 // ═══ CLIENT LIST COMPONENT ═══
 
@@ -237,7 +271,7 @@ interface ClientListProps {
 
 const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectClient, addClient }: ClientListProps) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'regular' | 'mechanic' | 'debtors'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'regular' | 'mechanic'>('all');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -350,7 +384,6 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
         if (!c) return false;
         if (typeFilter === 'regular' && c.clientType === 'mechanic') return false;
         if (typeFilter === 'mechanic' && c.clientType !== 'mechanic') return false;
-        if (typeFilter === 'debtors' && !((balances.get(c.id)?.balance || 0) > 0)) return false;
         const name = normalizeText(c.name || "");
         const nickname = normalizeText(c.nickname || "");
         const doc = onlyNumbers(c.document || "");
@@ -363,26 +396,9 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
 
         return matchesName || matchesDoc || matchesPhone;
       })
-      .sort((a, b) => {
-        const nameA = a?.name || '';
-        const nameB = b?.name || '';
-
-        if (queryText) {
-          const normNameA = normalizeText(nameA);
-          const normNickA = normalizeText(a?.nickname || '');
-          const normNameB = normalizeText(nameB);
-          const normNickB = normalizeText(b?.nickname || '');
-
-          const startsA = normNameA.startsWith(queryText) || normNickA.startsWith(queryText);
-          const startsB = normNameB.startsWith(queryText) || normNickB.startsWith(queryText);
-
-          if (startsA && !startsB) return -1;
-          if (!startsA && startsB) return 1;
-        }
-
-        return nameA.localeCompare(nameB, 'pt-BR');
-      });
-  }, [clients, debouncedSearchTerm, typeFilter, balances]);
+      // Sempre em ordem alfabética pelo nome (ignorando acentos e maiúsculas)
+      .sort((a, b) => (a?.name || '').localeCompare(b?.name || '', 'pt-BR', { sensitivity: 'base' }));
+  }, [clients, debouncedSearchTerm, typeFilter]);
 
   const itemData = useMemo(() => ({
     filteredClients,
@@ -392,14 +408,17 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
   }), [filteredClients, balances, selectedClientId, onSelectClient]);
 
   return (
-    <div className="lg:col-span-2 flex flex-col gap-4 min-w-0">
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h2 className="text-2xl font-extrabold tracking-tight text-foreground">Clientes</h2>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground"><span className="font-bold text-foreground tabular-nums">{clients.length}</span> cadastrados</span>
+    <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-3 min-w-0">
+      <div className="flex flex-col gap-3">
+        <div className="min-w-0">
+          <h2 className="text-2xl font-extrabold tracking-tight text-foreground leading-tight">Clientes</h2>
+          <p className="text-sm text-muted-foreground">Cadastro de clientes, mecânicos e histórico de O.S.</p>
+        </div>
+        <div className="flex items-center justify-end gap-2">
+          <span className="h-7 px-2.5 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground flex items-center tabular-nums whitespace-nowrap">{clients.length} Total</span>
           <Dialog open={isModalOpen} onOpenChange={(open) => { setIsModalOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger render={
-              <Button size="sm" className="font-bold gap-2 solid-btn rounded-lg text-xs h-8">
+              <Button size="sm" className="font-bold gap-2 solid-btn rounded-xl text-sm h-9 px-3.5">
                 <Plus className="w-4 h-4" />
                 Adicionar Cliente
               </Button>
@@ -499,7 +518,6 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
           ['all', 'Todos'],
           ['regular', 'Clientes'],
           ['mechanic', 'Mecânicos'],
-          ['debtors', 'Devendo'],
         ] as const).map(([value, label]) => (
           <button
             key={value}
@@ -507,10 +525,10 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
             onClick={() => setTypeFilter(value)}
             aria-pressed={typeFilter === value}
             className={cn(
-              "h-8 px-3 rounded-lg text-sm font-semibold border transition-colors",
+              "h-8 px-3.5 rounded-xl text-sm font-medium border transition-all cursor-pointer",
               typeFilter === value
-                ? "bg-foreground text-background border-foreground"
-                : "bg-card text-muted-foreground border-border hover:text-foreground"
+                ? "bg-foreground text-background border-foreground shadow-sm"
+                : "bg-card text-foreground border-border/70 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:bg-muted/60 hover:border-border"
             )}
           >
             {label}
@@ -518,14 +536,14 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
         ))}
       </div>
 
-      <div ref={containerRef} className="flex-1 rounded-lg border bg-card border-border shadow-sm min-h-0">
+      <div ref={containerRef} className="flex-1 rounded-xl border bg-card border-border shadow-sm min-h-0 overflow-hidden">
         {filteredClients.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground/50 italic text-xs">Nenhum cliente encontrado.</div>
         ) : (
           height > 0 && (
             <List<ClientRowData>
               rowCount={filteredClients.length}
-              rowHeight={70}
+              rowHeight={76}
               rowComponent={ClientRow as any}
               rowProps={itemData}
               style={{ height, width: '100%', overscrollBehavior: 'contain' }}
@@ -586,7 +604,48 @@ const ClientDetailsContent = React.memo(({
     return clientOrders.reduce((acc, o) => acc + o.netValue, 0);
   }, [clientOrders]);
 
-  const openBalance = balances.get(selectedClientId)?.balance || 0;
+
+  const { getGroupedPaymentForOrder } = useStore();
+
+  // ═══ BUSCA / FILTRO / ORDEM DO HISTÓRICO ═══
+  const [orderSearch, setOrderSearch] = useState('');
+  const [orderStatusFilter, setOrderStatusFilter] = useState('');
+  const [orderPaymentFilter, setOrderPaymentFilter] = useState('');
+  const [orderSort, setOrderSort] = useState<OrderSort>('recent');
+  const orderFilterCount = (orderStatusFilter ? 1 : 0) + (orderPaymentFilter ? 1 : 0);
+
+  useEffect(() => {
+    setOrderSearch('');
+    setOrderStatusFilter('');
+    setOrderPaymentFilter('');
+  }, [selectedClientId]);
+
+  const visibleOrders = useMemo(() => {
+    const q = orderSearch.trim().toLowerCase();
+    const list = clientOrders.filter((o) => {
+      if (orderStatusFilter === 'finalizada' ? !o.finished : orderStatusFilter && (o.finished || o.serviceStatus !== orderStatusFilter)) return false;
+      if (orderPaymentFilter && getOrderPaymentSummary(o, getGroupedPaymentForOrder(o.id)).situation !== orderPaymentFilter) return false;
+      if (!q) return true;
+      const client = clients.find((c) => c.id === o.clientId);
+      const mech = o.mechanicId ? clients.find((c) => c.id === o.mechanicId) : undefined;
+      const hay = [
+        String(o.osNumber || o.id), o.motorModel, o.displacement, o.serviceStatus,
+        client?.name, client?.nickname, o.clientNickname,
+        mech?.name, mech?.nickname, o.mechanicName, o.mechanicNickname,
+      ].filter(Boolean).join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+    const dateOf = (o: Order) => o.arrivalDate || o.createdAt.slice(0, 10);
+    const numOf = (o: Order) => Number(o.osNumber || o.id) || 0;
+    return [...list].sort((a, b) => {
+      switch (orderSort) {
+        case 'oldest': return dateOf(a).localeCompare(dateOf(b)) || numOf(a) - numOf(b);
+        case 'value_desc': return b.netValue - a.netValue;
+        case 'value_asc': return a.netValue - b.netValue;
+        default: return dateOf(b).localeCompare(dateOf(a)) || numOf(b) - numOf(a);
+      }
+    });
+  }, [clientOrders, orderSearch, orderStatusFilter, orderPaymentFilter, orderSort, clients, getGroupedPaymentForOrder]);
 
   // ═══ 4. STATES & REFS ═══
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -641,7 +700,7 @@ const ClientDetailsContent = React.memo(({
 
   if (!selectedClient) {
     return (
-      <div className="lg:col-span-3 flex items-center justify-center text-muted-foreground/50 border border-dashed border-border rounded-lg p-12 text-center bg-card/50">
+      <div className="lg:col-span-7 xl:col-span-8 flex items-center justify-center text-muted-foreground/50 border border-dashed border-border rounded-lg p-12 text-center bg-card/50">
         <div className="client-empty-state">
           Selecione um cliente para ver os detalhes
         </div>
@@ -654,7 +713,6 @@ const ClientDetailsContent = React.memo(({
     setIsViewModalOpen(true);
   };
 
-  const { getGroupedPaymentForOrder } = useStore();
   const { confirm } = useConfirmDialog();
 
   const handleDeleteOrder = async (id: number) => {
@@ -723,10 +781,10 @@ const ClientDetailsContent = React.memo(({
   };
 
   return (
-    <div ref={detailsRef} className="lg:col-span-3 space-y-6 overflow-y-auto pr-2 custom-scrollbar min-w-0">
+    <div ref={detailsRef} className="lg:col-span-7 xl:col-span-8 space-y-6 overflow-y-auto pr-2 custom-scrollbar min-w-0">
       {/* Client Card */}
-      <div className="rounded-lg border bg-card border-border shadow-sm overflow-hidden">
-        <div className="bg-secondary/10 p-5 border-b border-border">
+      <div className="rounded-xl border bg-card border-border shadow-sm overflow-hidden">
+        <div className="p-5">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground text-xl font-bold flex-shrink-0">
@@ -792,44 +850,127 @@ const ClientDetailsContent = React.memo(({
             </div>
           </div>
         </div>
-        <div className="p-5 grid grid-cols-2 xl:grid-cols-4 gap-3">
-          <div className={cn("p-3 rounded-lg border", openBalance > 0 ? "bg-danger/5 border-danger/30" : "bg-secondary/15 border-border/80")}>
-            <p className="text-xs font-semibold text-muted-foreground mb-0.5">Em aberto</p>
-            <p className={cn("text-lg font-extrabold flex items-center gap-1.5 tabular-nums", openBalance > 0 ? "text-danger" : "text-foreground")}>
-              <Wallet className="w-4 h-4 stroke-[1.5]" />
-              {formatBRL(openBalance)}
-            </p>
+      </div>
+
+      {/* Indicadores */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card shadow-sm">
+          <div className="w-11 h-11 rounded-xl border border-border bg-muted/50 flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5 text-muted-foreground stroke-[1.5]" />
           </div>
-          <div className="p-3 rounded-lg bg-secondary/15 border border-border/80">
-            <p className="text-xs font-semibold text-muted-foreground mb-0.5">Total de O.S.</p>
-            <p className="text-lg font-extrabold text-foreground flex items-center gap-1.5">
-              <HistoryIcon className="w-4 h-4 text-muted-foreground stroke-[1.5]" />
-              {clientOrders.length}
-            </p>
+          <div className="min-w-0">
+            <p className="text-sm text-muted-foreground">Total de O.S.</p>
+            <p className="text-xl font-extrabold text-foreground tabular-nums">{clientOrders.length}</p>
           </div>
-          <div className="p-3 rounded-lg bg-secondary/15 border border-border/80">
-            <p className="text-xs font-semibold text-muted-foreground mb-0.5">Total em serviços</p>
-            <p className="text-lg font-extrabold text-success flex items-center gap-1.5">
-              <TrendingUp className="w-4 h-4 stroke-[1.5]" />
-              {totalInvestment.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-            </p>
+        </div>
+        <div className="flex items-center gap-3 p-4 rounded-xl border border-success/20 bg-success/5 shadow-sm">
+          <div className="w-11 h-11 rounded-xl bg-success/15 flex items-center justify-center shrink-0">
+            <TrendingUp className="w-5 h-5 text-success stroke-[2]" />
           </div>
-          <div className="p-3 rounded-lg bg-secondary/15 border border-border/80">
-            <p className="text-xs font-semibold text-muted-foreground mb-0.5">O.S. abertas</p>
-            <p className="text-lg font-extrabold text-warning">
-              {activeOrdersCount}
-            </p>
+          <div className="min-w-0">
+            <p className="text-sm text-muted-foreground">Total em serviços</p>
+            <p className="text-xl font-extrabold text-success tabular-nums truncate">{formatBRL(totalInvestment)}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 p-4 rounded-xl border border-orange-500/20 bg-orange-500/5 shadow-sm">
+          <div className="w-11 h-11 rounded-xl bg-orange-500/15 flex items-center justify-center shrink-0">
+            <Layers className="w-5 h-5 text-orange-500 stroke-[2]" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm text-muted-foreground">O.S. abertas</p>
+            <p className="text-xl font-extrabold text-orange-500 tabular-nums">{activeOrdersCount}</p>
           </div>
         </div>
       </div>
 
       {/* Client Orders */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-extrabold flex items-center gap-1.5 text-foreground">
-          <HistoryIcon className="w-4 h-4 text-muted-foreground stroke-[1.5]" />
-          Ordens de serviço
-        </h3>
-        <div className="rounded-lg border bg-card border-border shadow-sm overflow-hidden">
+      <div className="rounded-xl border bg-card border-border shadow-sm overflow-hidden">
+        <div className="flex items-center gap-2 flex-wrap px-4 py-3 border-b border-border">
+          <h3 className="text-sm font-extrabold flex items-center gap-2 text-foreground">
+            <ClipboardList className="w-4 h-4 text-muted-foreground stroke-[1.75]" />
+            Ordens de serviço
+          </h3>
+          <span className="h-6 px-2.5 rounded-full bg-muted text-xs font-semibold text-muted-foreground flex items-center tabular-nums">
+            {visibleOrders.length === clientOrders.length ? clientOrders.length : `${visibleOrders.length} de ${clientOrders.length}`} {clientOrders.length === 1 ? 'registro' : 'registros'}
+          </span>
+          <div className="ml-auto flex items-center gap-2 flex-wrap">
+            <div className="relative w-56 max-w-full">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                value={orderSearch}
+                onChange={(e) => setOrderSearch(e.target.value)}
+                placeholder="Buscar na lista..."
+                className="h-9 w-full rounded-xl border border-border bg-card pl-9 pr-8 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+              {orderSearch && (
+                <button type="button" onClick={() => setOrderSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <Popover>
+              <PopoverTrigger
+                render={
+                  <button
+                    type="button"
+                    title="Filtrar"
+                    className={cn(
+                      "relative h-9 w-9 shrink-0 flex items-center justify-center rounded-xl border bg-card text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer",
+                      orderFilterCount > 0 ? "border-primary/70 text-foreground" : "border-border"
+                    )}
+                  >
+                    <ListFilter className="w-4 h-4" />
+                    {orderFilterCount > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1">{orderFilterCount}</span>
+                    )}
+                  </button>
+                }
+              />
+              <PopoverContent align="end" sideOffset={6} className="w-60 p-1.5 gap-0 rounded-xl border border-border shadow-lg">
+                {([
+                  ['Status', orderStatusFilter, setOrderStatusFilter, ORDER_STATUS_OPTIONS],
+                  ['Pagamento', orderPaymentFilter, setOrderPaymentFilter, ORDER_PAYMENT_OPTIONS],
+                ] as const).map(([title, current, setter, options]) => (
+                  <div key={title} className="py-1">
+                    <div className="px-2.5 pt-1 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
+                    {options.map((o) => (
+                      <button
+                        key={o.value}
+                        type="button"
+                        onClick={() => setter(o.value)}
+                        className={cn(
+                          "w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm text-left transition-colors cursor-pointer",
+                          current === o.value ? "bg-muted font-semibold text-foreground" : "text-foreground/80 hover:bg-muted"
+                        )}
+                      >
+                        <span className="flex-1">{o.label}</span>
+                        {current === o.value && <Check className="w-4 h-4 text-primary" />}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+                {orderFilterCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => { setOrderStatusFilter(''); setOrderPaymentFilter(''); }}
+                    className="w-full mt-1 pt-2 border-t border-border flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground hover:text-destructive cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" /> Limpar filtros
+                  </button>
+                )}
+              </PopoverContent>
+            </Popover>
+            <FilterDropdown
+              value={orderSort}
+              onChange={(v) => setOrderSort((v || 'recent') as OrderSort)}
+              options={ORDER_SORT_OPTIONS}
+              align="end"
+              title="Ordenar"
+              className="h-9 w-auto rounded-xl"
+            />
+          </div>
+        </div>
+        <div>
           <Table>
             <TableHeader className="bg-secondary/10">
               <TableRow className="border-border">
@@ -846,17 +987,17 @@ const ClientDetailsContent = React.memo(({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clientOrders.length === 0 ? (
+              {visibleOrders.length === 0 ? (
                 <TableRow>
                   <TableCell 
                     colSpan={6} 
                     className="h-32 text-center text-muted-foreground/50 italic text-xs"
                   >
-                    Este cliente ainda não possui ordens de serviço.
+                    {clientOrders.length === 0 ? 'Este cliente ainda não possui ordens de serviço.' : 'Nenhuma O.S. encontrada com esses filtros.'}
                   </TableCell>
                 </TableRow>
               ) : (
-                clientOrders.map((order) => (
+                visibleOrders.map((order) => (
                   <TableRow 
                     key={order.id} 
                     className="border-border hover:bg-secondary/10 cursor-pointer transition-all"
@@ -925,9 +1066,6 @@ const ClientDetailsContent = React.memo(({
                         return (
                           <div className="flex flex-col items-start gap-0.5">
                             <PaymentBadge situation={p.situation} grouped={!!group} />
-                            {p.situation !== 'pago' && (
-                              <span className="text-xs font-semibold text-danger whitespace-nowrap">falta {formatBRL(p.balance)}{group ? ' (grupo)' : ''}</span>
-                            )}
                           </div>
                         );
                       })()}
@@ -1137,7 +1275,7 @@ interface ClientDetailsProps {
 const ClientDetails = React.memo((props: ClientDetailsProps) => {
   if (!props.selectedClientId) {
     return (
-      <div className="lg:col-span-3 flex items-center justify-center text-muted-foreground/50 border border-dashed border-border rounded-lg p-12 text-center bg-card/50">
+      <div className="lg:col-span-7 xl:col-span-8 flex items-center justify-center text-muted-foreground/50 border border-dashed border-border rounded-lg p-12 text-center bg-card/50">
         <div className="client-empty-state">
           Selecione um cliente para ver os detalhes
         </div>
@@ -1190,7 +1328,7 @@ export function Clients({ onEdit, onView, onNewOrder }: ClientsProps = {}) {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 h-[calc(100vh-120px)] relative z-10">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-120px)] relative z-10">
       <ClientList
         clients={clients}
         balances={balances}

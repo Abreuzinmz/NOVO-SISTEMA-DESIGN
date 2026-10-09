@@ -415,120 +415,139 @@ export function FilterBar({
 
   const chipClass = (active: boolean) =>
     cn(
-      'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors cursor-pointer',
-      active ? 'bg-foreground text-background' : 'bg-muted text-foreground hover:bg-accent'
+      'inline-flex items-center gap-1.5 h-9 px-4 rounded-xl border text-sm font-medium whitespace-nowrap transition-all cursor-pointer',
+      active
+        ? 'bg-foreground text-background border-foreground shadow-sm'
+        : 'bg-card text-foreground border-border/70 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:bg-muted/60 hover:border-border'
     );
 
-  return (
-    <div className={cn('w-full space-y-3', className)}>
-      {/* ═══ Linha 1: status da O.S. em chips ═══ */}
-      {showServiceStatus && (
-        <div className='flex items-center gap-1.5 flex-wrap'>
-          <div className='contents' role='tablist' aria-label='Status da O.S.'>
-            <button type='button' role='tab' aria-selected={!filters.serviceStatus} onClick={() => updateFilter('serviceStatus', '')} className={chipClass(!filters.serviceStatus)}>
-              Todas
+  const filterButtons = (
+    <>
+      <button
+        type='button'
+        onClick={() => setPanelOpen((v) => !v)}
+        aria-expanded={panelOpen}
+        className={cn(
+          'inline-flex items-center gap-2 h-9 px-4 rounded-xl border text-sm font-medium transition-all cursor-pointer',
+          panelOpen || panelCount > 0 ? 'border-primary/60 bg-primary/5 text-foreground' : 'bg-card text-foreground border-border/70 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:bg-muted/60 hover:border-border'
+        )}
+      >
+        <Filter className='w-4 h-4' />
+        Filtros
+        {panelCount > 0 && (
+          <span className='min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center px-1'>{panelCount}</span>
+        )}
+        <ChevronDown className={cn('w-3.5 h-3.5 text-muted-foreground transition-transform', panelOpen && 'rotate-180')} />
+      </button>
+
+      {hasActiveFilters && (
+        <button
+          type='button'
+          onClick={() => { onClear(); setLocalSearch(''); }}
+          className='inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer'
+        >
+          <RotateCcw className='w-3.5 h-3.5' /> Limpar
+        </button>
+      )}
+    </>
+  );
+
+  const rightControls = (
+    <>
+      {showSearch && (
+        <div className='relative w-64 max-w-full'>
+          <Search className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+          <input
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            placeholder='Buscar O.S., cliente, telefone...'
+            className={cn('h-9 w-full rounded-xl border bg-card pl-9 pr-8 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20', localSearch ? triggerActive : 'border-border')}
+          />
+          {localSearch && (
+            <button type='button' onClick={() => setLocalSearch('')} className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground'>
+              <X className='w-3.5 h-3.5' />
             </button>
-            {statusChips.map((s) => {
-              const active = filters.serviceStatus === s;
-              return (
-                <button key={s} type='button' role='tab' aria-selected={active} onClick={() => updateFilter('serviceStatus', active ? '' : s)} className={chipClass(active)}>
-                  {STATUS_LABEL[s] || s}
-                </button>
-              );
-            })}
-          </div>
+          )}
         </div>
       )}
 
-      {/* ═══ Linha 2: Filtros / Limpar à esquerda; busca, ordenação e quantidade à direita ═══ */}
-      <div className='flex items-center gap-2 flex-wrap'>
-        <button
-          type='button'
-          onClick={() => setPanelOpen((v) => !v)}
-          aria-expanded={panelOpen}
-          className={cn(
-            'inline-flex items-center gap-2 h-8 px-3 rounded-lg border text-sm font-medium transition-colors cursor-pointer',
-            panelOpen || panelCount > 0 ? 'border-primary/60 bg-primary/5 text-foreground' : 'border-border bg-card text-foreground hover:bg-muted'
-          )}
-        >
-          <Filter className='w-4 h-4' />
-          Filtros
-          {panelCount > 0 && (
-            <span className='min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center px-1'>{panelCount}</span>
-          )}
-          <ChevronDown className={cn('w-3.5 h-3.5 text-muted-foreground transition-transform', panelOpen && 'rotate-180')} />
-        </button>
+      <FilterDropdown
+        icon={ArrowUpDown}
+        value={sort.field}
+        onChange={(v) => onSortChange({ field: (v || 'id') as SortField, direction: sort.direction })}
+        options={SORT_OPTIONS.map((o) => ({ value: o.field, label: o.label }))}
+        align='end'
+        title='Ordenar por'
+        className='h-9 w-auto rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.04)]'
+      />
+      <button
+        type='button'
+        title={sort.direction === 'desc' ? 'Decrescente (clique para inverter)' : 'Crescente (clique para inverter)'}
+        onClick={() => onSortChange({ field: sort.field, direction: sort.direction === 'desc' ? 'asc' : 'desc' })}
+        className='h-9 w-9 shrink-0 flex items-center justify-center rounded-xl border border-border bg-card text-muted-foreground shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:text-foreground hover:bg-muted cursor-pointer'
+      >
+        {sort.direction === 'desc' ? <ArrowDown className='w-4 h-4' /> : <ArrowUp className='w-4 h-4' />}
+      </button>
 
-        {hasActiveFilters && (
-          <button
-            type='button'
-            onClick={() => { onClear(); setLocalSearch(''); }}
-            className='inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer'
-          >
-            <RotateCcw className='w-3.5 h-3.5' /> Limpar
-          </button>
-        )}
+      {onPageSizeChange && pageSize !== undefined && (
+        <FilterDropdown
+          value={String(pageSize)}
+          onChange={(v) => onPageSizeChange(Number(v))}
+          options={[10, 20, 50, 100].map((n) => ({ value: String(n), label: `Exibir ${n}` }))}
+          align='end'
+          title='O.S. por página'
+          className='h-9 w-auto rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.04)]'
+        />
+      )}
 
-        <div className='ml-auto flex items-center gap-2 flex-wrap'>
-          {showSearch && (
-            <div className='relative w-64 max-w-full'>
-              <Search className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-              <input
-                value={localSearch}
-                onChange={(e) => setLocalSearch(e.target.value)}
-                placeholder='Buscar O.S., cliente, telefone...'
-                className={cn('h-8 w-full rounded-lg border bg-card pl-9 pr-8 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20', localSearch ? triggerActive : 'border-border')}
-              />
-              {localSearch && (
-                <button type='button' onClick={() => setLocalSearch('')} className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground'>
-                  <X className='w-3.5 h-3.5' />
-                </button>
-              )}
+      {/* Contagem só aparece quando não há chips de status */}
+      {(loading || !showServiceStatus) && (
+        <span className='text-sm text-muted-foreground whitespace-nowrap pl-1'>
+          {loading && <Loader2 className='inline w-3.5 h-3.5 mr-1 animate-spin' />}
+          {resultCount === totalCount
+            ? <><span className='font-semibold text-foreground tabular-nums'>{totalCount}</span> O.S.</>
+            : <><span className='font-semibold text-foreground tabular-nums'>{resultCount}</span> de <span className='tabular-nums'>{totalCount}</span> O.S.</>}
+        </span>
+      )}
+    </>
+  );
+
+  return (
+    <div className={cn('w-full space-y-3', className)}>
+      {showServiceStatus ? (
+        /* ═══ Status da O.S. + Filtros à esquerda; ordenação e quantidade à direita ═══ */
+        <div>
+          <div className='flex items-center gap-2 flex-wrap'>
+            <div className='contents' role='tablist' aria-label='Status da O.S.'>
+              <button type='button' role='tab' aria-selected={!filters.serviceStatus} onClick={() => updateFilter('serviceStatus', '')} className={chipClass(!filters.serviceStatus)}>
+                Todas
+              </button>
+              {statusChips.map((s) => {
+                const active = filters.serviceStatus === s;
+                return (
+                  <button key={s} type='button' role='tab' aria-selected={active} onClick={() => updateFilter('serviceStatus', active ? '' : s)} className={chipClass(active)}>
+                    {STATUS_LABEL[s] || s}
+                  </button>
+                );
+              })}
             </div>
-          )}
-
-          <div className='flex items-center'>
-            <FilterDropdown
-              icon={ArrowUpDown}
-              value={sort.field}
-              onChange={(v) => onSortChange({ field: (v || 'id') as SortField, direction: sort.direction })}
-              options={SORT_OPTIONS.map((o) => ({ value: o.field, label: o.label }))}
-              align='end'
-              title='Ordenar por'
-              className='h-8 w-auto rounded-r-none'
-            />
-            <button
-              type='button'
-              title={sort.direction === 'desc' ? 'Decrescente (clique para inverter)' : 'Crescente (clique para inverter)'}
-              onClick={() => onSortChange({ field: sort.field, direction: sort.direction === 'desc' ? 'asc' : 'desc' })}
-              className='h-8 w-8 flex items-center justify-center rounded-r-lg border border-l-0 border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer'
-            >
-              {sort.direction === 'desc' ? <ArrowDown className='w-4 h-4' /> : <ArrowUp className='w-4 h-4' />}
-            </button>
+            <span className='w-px h-6 bg-border mx-1' aria-hidden />
+            {filterButtons}
+            <div className='ml-auto flex items-center gap-2 flex-wrap'>
+              <span className='hidden xl:block w-px h-6 bg-border mx-1' aria-hidden />
+              {rightControls}
+            </div>
           </div>
-
-          {onPageSizeChange && pageSize !== undefined && (
-            <FilterDropdown
-              value={String(pageSize)}
-              onChange={(v) => onPageSizeChange(Number(v))}
-              options={[10, 20, 50, 100].map((n) => ({ value: String(n), label: `Exibir ${n}` }))}
-              align='end'
-              title='O.S. por página'
-              className='h-8 w-auto'
-            />
-          )}
-
-          {/* Contagem só aparece quando não há chips de status */}
-          {(loading || !showServiceStatus) && (
-            <span className='text-sm text-muted-foreground whitespace-nowrap pl-1'>
-              {loading && <Loader2 className='inline w-3.5 h-3.5 mr-1 animate-spin' />}
-              {resultCount === totalCount
-                ? <><span className='font-semibold text-foreground tabular-nums'>{totalCount}</span> O.S.</>
-                : <><span className='font-semibold text-foreground tabular-nums'>{resultCount}</span> de <span className='tabular-nums'>{totalCount}</span> O.S.</>}
-            </span>
-          )}
         </div>
-      </div>
+      ) : (
+        /* ═══ Filtros / Limpar à esquerda; busca, ordenação e quantidade à direita ═══ */
+        <div className='flex items-center gap-2 flex-wrap'>
+          {filterButtons}
+          <div className='ml-auto flex items-center gap-2 flex-wrap'>
+            {rightControls}
+          </div>
+        </div>
+      )}
 
       {/* ═══ Painel de filtros (compacto, por grupos) ═══ */}
       {panelOpen && (

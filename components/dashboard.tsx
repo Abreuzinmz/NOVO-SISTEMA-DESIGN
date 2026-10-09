@@ -23,7 +23,9 @@ import {
   Plus,
   Search,
   X,
-  Calendar
+  Calendar,
+  List,
+  LayoutGrid,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -635,27 +637,29 @@ export function Dashboard({
       </div>
 
       {/* ═══ SUB TABS ═══ */}
-      <div className="flex gap-2 border-b border-border/60 pb-px -mt-2">
+      <div className="flex gap-1 border-b border-border/60 -mt-2">
         <button
           onClick={() => setActiveTab('gerenciamento')}
           className={cn(
-            "px-4 py-2 text-sm font-bold border-b-2 transition-all cursor-pointer",
+            "-mb-px inline-flex items-center gap-2 px-4 h-10 rounded-t-xl text-sm font-semibold border-b-2 transition-all cursor-pointer",
             activeTab === 'gerenciamento'
-              ? "border-primary text-foreground font-bold"
-              : "border-transparent text-muted-foreground/60 hover:text-foreground font-bold"
+              ? "border-foreground bg-card text-foreground shadow-[0_-1px_2px_rgba(0,0,0,0.03)]"
+              : "border-transparent text-muted-foreground hover:text-foreground"
           )}
         >
+          <List className="w-4 h-4" />
           Lista detalhada
         </button>
         <button
           onClick={() => setActiveTab('visao-ampla')}
           className={cn(
-            "px-4 py-2 text-sm font-bold border-b-2 transition-all cursor-pointer",
+            "-mb-px inline-flex items-center gap-2 px-4 h-10 rounded-t-xl text-sm font-semibold border-b-2 transition-all cursor-pointer",
             activeTab === 'visao-ampla'
-              ? "border-primary text-foreground font-bold"
-              : "border-transparent text-muted-foreground/60 hover:text-foreground font-bold"
+              ? "border-foreground bg-card text-foreground shadow-[0_-1px_2px_rgba(0,0,0,0.03)]"
+              : "border-transparent text-muted-foreground hover:text-foreground"
           )}
         >
+          <LayoutGrid className="w-4 h-4" />
           Lista compacta
         </button>
       </div>
