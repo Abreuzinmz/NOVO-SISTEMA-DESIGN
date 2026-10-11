@@ -306,6 +306,8 @@ export function MotorSpecsCard({
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [addingAnother, setAddingAnother] = useState(false);
+  // Motor confirmado na busca (Enter ou motor digitado à mão): libera os cards abaixo
+  const [motorConfirmed, setMotorConfirmed] = useState(false);
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((f) => ({ ...f, [key]: value }));
 
   // Listas personalizadas (válvulas / aspiração) guardadas neste computador
@@ -332,6 +334,8 @@ export function MotorSpecsCard({
     if (form.cars && !list.includes(form.cars)) list.unshift(form.cars);
     return list;
   }, [selectedCatalog, form.cars]);
+
+  const showSpecs = editingIndex !== null || (!!form.model.trim() && (!!selectedCatalog || motorConfirmed));
 
   const allDisplacements = useMemo(() => {
     const set = new Set([...DEFAULT_DISPLACEMENTS, ...displacementOptions]);
@@ -379,6 +383,7 @@ export function MotorSpecsCard({
       cars: f.cars || cars,
       displacement: f.displacement || dispFromModel,
     }));
+    setMotorConfirmed(true);
     setSearchOpen(false);
   };
 
@@ -416,6 +421,7 @@ export function MotorSpecsCard({
         setForm((f) => ({ ...f, model: catName.trim().toUpperCase(), brand: catBrand.trim() }));
       } else if (!catalogDialog?.originalName && showForm) {
         setForm((f) => ({ ...f, model: catName.trim().toUpperCase(), brand: catBrand.trim() }));
+        setMotorConfirmed(true);
       }
       setCatalogDialog(null);
     }
@@ -426,6 +432,7 @@ export function MotorSpecsCard({
     setForm(EMPTY_FORM);
     setEditingIndex(null);
     setAddingAnother(false);
+    setMotorConfirmed(false);
   };
 
   const submitMotor = () => {
@@ -527,17 +534,17 @@ export function MotorSpecsCard({
                   value={form.model}
                   autoComplete="off"
                   placeholder="Busque por motor ou veículo (ex: Onix, Fire, EA111...)"
-                  onChange={(e) => { set('model', e.target.value.toUpperCase()); setSearchOpen(true); }}
+                  onChange={(e) => { set('model', e.target.value.toUpperCase()); setMotorConfirmed(false); setSearchOpen(true); }}
                   onFocus={() => setSearchOpen(true)}
                   onKeyDown={(e) => {
                     if (e.key === 'Escape') setSearchOpen(false);
-                    if (e.key === 'Enter') { e.preventDefault(); setSearchOpen(false); }
+                    if (e.key === 'Enter') { e.preventDefault(); setSearchOpen(false); if (form.model.trim()) setMotorConfirmed(true); }
                   }}
                   className="h-11 pl-3 pr-16 rounded-lg text-sm font-semibold uppercase placeholder:normal-case bg-card"
                 />
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                   {form.model && (
-                    <button type="button" title="Limpar" onClick={() => setForm((f) => ({ ...f, model: '', brand: '' }))} className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer">
+                    <button type="button" title="Limpar" onClick={() => { setForm((f) => ({ ...f, model: '', brand: '' })); setMotorConfirmed(false); }} className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer">
                       <X className="w-4 h-4" />
                     </button>
                   )}
@@ -621,6 +628,16 @@ export function MotorSpecsCard({
             </div>
           </FieldCard>
 
+          {!showSpecs && motors.length > 0 && (
+            <div className="flex justify-center">
+              <Button type="button" variant="outline" onClick={resetForm} className="h-11 px-5 rounded-xl border-border text-sm font-semibold">
+                Voltar aos motores
+              </Button>
+            </div>
+          )}
+
+          {showSpecs && (
+          <div className="space-y-4 animate-in fade-in-0 slide-in-from-top-1 duration-150">
           {/* Cilindros • Cilindrada • Válvulas */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FieldCard icon={<PistonIcon className="w-4 h-4" />} label="Cilindros">
@@ -693,6 +710,8 @@ export function MotorSpecsCard({
               </Button>
             )}
           </div>
+          </div>
+          )}
         </div>
       )}
 
