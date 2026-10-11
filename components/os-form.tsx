@@ -82,6 +82,7 @@ import { toast } from 'sonner';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { cn, formatMotorDisplay, getLocalDateString } from '@/lib/utils';
 import { fetchMotors, fetchModels, addMotor as addMotorToDb, addModel as addModelToDb, deleteMotor as deleteMotorFromDb, deleteModel as deleteModelFromDb, updateModel as updateModelInDb, fetchMotorCatalog, saveCatalogMotor, type CatalogMotor } from '@/lib/motors';
+import { PartsPickerModal, type PartsKind } from '@/components/parts-picker-modal';
 import { MotorSpecsCard } from '@/components/motor-specs-card';
 import { PrintPreviewModal } from './print-preview-modal';
 import { FormSection, FieldLabel, IconField, ClientTypeToggle, ClientDialogHeader, ClientDialogFooter, iconInputClass, clientDialogClass } from '@/components/client-form';
@@ -300,7 +301,6 @@ function OSFormImpl({
   });
 
   const [availablePartsLeft, setAvailablePartsLeft] = useState<string[]>(initialPartsLeft);
-  const [newPartLeftName, setNewPartLeftName] = useState('');
   const [partsLeft, setPartsLeft] = useState<string[]>(
     (order?.partsLeft || []).map(p => p.toUpperCase())
   );
@@ -2342,26 +2342,17 @@ function OSFormImpl({
   });
 
   const [availableAdditionalParts, setAvailableAdditionalParts] = useState(initialAdditionalParts);
-  const [newAdditionalPartName, setNewAdditionalPartName] = useState('');
+  const [partsModal, setPartsModal] = useState<PartsKind | null>(null);
 
-  const handleAddAdditionalPart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const name = newAdditionalPartName.trim().toUpperCase();
-    if (!name) return;
-
-    if (!availableAdditionalParts.includes(name)) {
-      setAvailableAdditionalParts([...availableAdditionalParts, name]);
-      setAdditionalParts([...additionalParts, name]);
-      setNewAdditionalPartName('');
-      toast.success(`Peça "${name}" adicionada.`);
-    } else {
-      if (!additionalParts.some(p => p === name || p.startsWith(name + '|'))) {
-        setAdditionalParts([...additionalParts, name]);
-        setNewAdditionalPartName('');
-      } else {
-        toast.error('Esta peça já está na lista.');
-      }
-    }
+  const handleAddAdditionalParts = (names: string[]) => {
+    const list = names.map(n => n.trim().toUpperCase()).filter(Boolean);
+    if (!list.length) return;
+    setAvailableAdditionalParts(prev => [...prev, ...list.filter(n => !prev.includes(n))]);
+    setAdditionalParts(prev => [
+      ...prev,
+      ...list.filter(n => !prev.some(p => p === n || p.startsWith(n + '|'))).map(n => `${n}|1`),
+    ]);
+    toast.success(list.length === 1 ? `Peça "${list[0]}" adicionada.` : `${list.length} peças adicionadas.`);
   };
 
   const handleRemoveAvailableAdditionalPart = (part: string) => {
@@ -2370,25 +2361,16 @@ function OSFormImpl({
     setAdditionalParts(prev => prev.filter(p => p !== part && !p.startsWith(part + '|')));
   };
 
-  const handleAddPartLeft = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const name = newPartLeftName.trim().toUpperCase();
-    if (!name) return;
-
-    if (!availablePartsLeft.includes(name)) {
-      setAvailablePartsLeft([...availablePartsLeft, name]);
-      setPartsLeft([...partsLeft, name + '|1']);
-      setNewPartLeftName('');
-      toast.success(`Material "${name}" adicionado.`);
-    } else {
-      const isChecked = partsLeft.some(p => p === name || p.startsWith(name + '|'));
-      if (!isChecked) {
-        setPartsLeft([...partsLeft, name + '|1']);
-        setNewPartLeftName('');
-      } else {
-        toast.error('Este material já está na lista.');
-      }
-    }
+  const handleAddPartsLeft = (names: string[]) => {
+    const list = names.map(n => n.trim().toUpperCase()).filter(Boolean);
+    if (!list.length) return;
+    const cyl = parseInt(motorsList[0]?.cylinders || '') || 4;
+    setAvailablePartsLeft(prev => [...prev, ...list.filter(n => !prev.includes(n))]);
+    setPartsLeft(prev => [
+      ...prev,
+      ...list.filter(n => !prev.some(p => p === n || p.startsWith(n + '|'))).map(n => `${n}|${n === 'BIELAS' ? cyl : 1}`),
+    ]);
+    toast.success(list.length === 1 ? `Material "${list[0]}" adicionado.` : `${list.length} materiais adicionados.`);
   };
 
   const handleRemoveAvailablePartLeft = (part: string) => {
@@ -3441,11 +3423,11 @@ function OSFormImpl({
           <div className="bg-card border border-border/60 dark:border-border rounded-xl p-5 shadow-sm space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-border/50">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
-                  <Package className="w-4 h-4 text-primary" />
+                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center border border-border shadow-2xs shrink-0">
+                  <Package className="w-5 h-5 text-foreground/80" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs uppercase tracking-[0.2em] text-foreground/90 font-bold">
+                  <span className="text-sm uppercase tracking-[0.22em] text-foreground/90 font-extrabold">
                     MATERIAIS E PEÇAS
                   </span>
                   {(partsLeft.length > 0 || additionalParts.length > 0) && (
@@ -3472,7 +3454,7 @@ function OSFormImpl({
             </div>
 
             <div className="space-y-4 pt-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-5">
                 {([
                   {
                     key: 'left',
@@ -3483,10 +3465,8 @@ function OSFormImpl({
                     setSelected: setPartsLeft,
                     defaultQty: (name: string) => (name === 'PISTÕES' || name === 'BIELAS') ? (parseInt(motorsList[0]?.cylinders || '') || 4) : 1,
                     onRemoveAvailable: handleRemoveAvailablePartLeft,
-                    newValue: newPartLeftName,
-                    setNewValue: setNewPartLeftName,
-                    onAdd: handleAddPartLeft,
-                    addPlaceholder: 'Adicionar outro material...',
+                    modalKind: 'material' as PartsKind,
+                    moreLabel: 'Mais material',
                     idPrefix: 'material',
                   },
                   {
@@ -3498,17 +3478,15 @@ function OSFormImpl({
                     setSelected: setAdditionalParts,
                     defaultQty: (name: string) => name.includes('MANCAIS') ? 5 : name.includes('JETCOOLER') ? (parseInt(motorsList[0]?.cylinders || '') || 4) : 1,
                     onRemoveAvailable: handleRemoveAvailableAdditionalPart,
-                    newValue: newAdditionalPartName,
-                    setNewValue: setNewAdditionalPartName,
-                    onAdd: handleAddAdditionalPart,
-                    addPlaceholder: 'Adicionar outra peça...',
+                    modalKind: 'peca' as PartsKind,
+                    moreLabel: 'Mais peças',
                     idPrefix: 'additional',
                   },
                 ]).map((group) => (
-                  <div key={group.key} className="space-y-2.5">
-                    <div className="flex items-center justify-between min-h-[30px] pb-1">
+                  <div key={group.key} className={cn("space-y-3", group.key === 'additional' && "pt-5 border-t border-dashed border-border")}>
+                    <div className="flex flex-wrap items-center gap-x-8 gap-y-2 min-h-[36px]">
                       <div className="flex items-center gap-2">
-                        <Label className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground ml-1">
+                        <Label className="text-sm font-extrabold uppercase tracking-[0.2em] text-muted-foreground ml-1">
                           {group.label}
                         </Label>
                         {group.selected.length > 0 && (
@@ -3522,7 +3500,7 @@ function OSFormImpl({
                         <button
                           type="button"
                           onClick={handleSelectCompleteMotor}
-                          className="h-7 px-3 rounded-lg text-[10px] font-bold uppercase tracking-wider text-foreground/80 bg-muted hover:bg-accent border border-border flex items-center gap-1.5 transition-all cursor-pointer shadow-none"
+                          className="h-9 px-4 rounded-xl text-xs font-bold uppercase tracking-wider text-foreground/80 bg-muted hover:bg-accent border border-border flex items-center gap-2 transition-all cursor-pointer shadow-2xs"
                           title="Marcar Bloco, Cabeçote, Eixo e Pistões"
                         >
                           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
@@ -3531,7 +3509,7 @@ function OSFormImpl({
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {group.available.map(part => {
                         const normalizedPart = part.toUpperCase();
                         const entry = group.selected.find(p => p === normalizedPart || p.startsWith(normalizedPart + '|'));
@@ -3561,22 +3539,22 @@ function OSFormImpl({
                             key={part}
                             onClick={togglePart}
                             className={cn(
-                              "group relative flex items-center justify-between min-h-[44px] px-3 py-1.5 rounded-xl border transition-all cursor-pointer select-none",
+                              "@container/part group relative flex items-center justify-between min-h-[52px] px-3 @[220px]/part:px-4 py-2 rounded-xl border transition-all cursor-pointer select-none",
                               isChecked
                                 ? "bg-foreground/[0.04] border-foreground/30 shadow-2xs"
                                 : "bg-card border-border hover:border-foreground/20 hover:bg-muted/50"
                             )}
                           >
-                            <div className="flex items-center gap-2 min-w-0 flex-1 pr-1">
+                            <div className="flex items-center gap-2.5 @[220px]/part:gap-3 min-w-0 flex-1 pr-1">
                               <Checkbox
                                 id={partId}
                                 checked={isChecked}
                                 onCheckedChange={togglePart}
-                                className="w-4 h-4 rounded-md border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground transition-colors"
+                                className="w-5 h-5 rounded-full border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground transition-colors"
                                 disabled={readOnly}
                               />
                               <span className={cn(
-                                "text-xs font-bold uppercase tracking-tight leading-snug transition-colors",
+                                "text-xs @[220px]/part:text-sm font-bold uppercase tracking-tight leading-snug transition-colors",
                                 isChecked ? "text-foreground" : "text-muted-foreground"
                               )}>
                                 {part}
@@ -3627,36 +3605,30 @@ function OSFormImpl({
                     </div>
 
                     {!readOnly && (
-                      <div className="flex gap-2 mt-3 pt-2 border-t border-dashed border-border">
-                        <Input
-                          placeholder={group.addPlaceholder}
-                          value={group.newValue}
-                          onChange={e => group.setNewValue(e.target.value.toUpperCase())}
-                          className="h-10 text-xs w-full rounded-xl border border-border bg-card px-3.5 text-foreground placeholder:normal-case uppercase"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              group.onAdd(e as any);
-                            }
-                          }}
-                        />
-                        <Button
-                          onClick={group.onAdd}
-                          size="sm"
-                          type="button"
-                          disabled={!group.newValue.trim()}
-                          className="solid-btn h-10 px-3.5 rounded-xl font-semibold text-xs flex items-center gap-1.5 shrink-0 shadow-2xs disabled:opacity-40 cursor-pointer"
-                        >
-                          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                          <span className="hidden sm:inline">Adicionar</span>
-                        </Button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPartsModal(group.modalKind)}
+                        className="h-10 px-4 rounded-xl text-sm font-bold text-foreground/80 bg-card hover:bg-muted border border-dashed border-foreground/25 hover:border-foreground/40 flex items-center gap-2 transition-all cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4 stroke-[2.5]" />
+                        <span>{group.moreLabel}</span>
+                      </button>
                     )}
                   </div>
                 ))}
               </div>
             </div>
           </div>
+
+          {!readOnly && (
+            <PartsPickerModal
+              kind={partsModal ?? 'material'}
+              open={partsModal !== null}
+              onOpenChange={(o) => { if (!o) setPartsModal(null); }}
+              inList={partsModal === 'peca' ? availableAdditionalParts : availablePartsLeft}
+              onConfirm={partsModal === 'peca' ? handleAddAdditionalParts : handleAddPartsLeft}
+            />
+          )}
 
           {/* CARD 3: ESPECIFICAÇÕES DO MOTOR (layout do SELEÇÃO MT) */}
           <MotorSpecsCard
