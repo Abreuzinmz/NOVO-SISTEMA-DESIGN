@@ -1,6 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css';
-import { Sora } from 'next/font/google';
+import { Sora, Plus_Jakarta_Sans } from 'next/font/google';
 import { cn } from "@/lib/utils";
 import { StoreProvider } from '@/lib/store';
 import { Toaster } from '@/components/ui/sonner';
@@ -14,6 +14,13 @@ const sora = Sora({
   display: 'swap',
 });
 
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-jakarta',
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   title: 'Retifica Mendonça - Gestão de O.S.',
   description: 'Sistema completo de gerenciamento de ordens de serviço para Retifica Mendonça.',
@@ -21,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning className={cn("font-sans antialiased", sora.variable)}>
+    <html lang="pt-BR" suppressHydrationWarning className={cn("font-sans antialiased", sora.variable, plusJakarta.variable)}>
       <body className="min-h-screen bg-background text-foreground">
         <ThemeProvider
           attribute="class"
