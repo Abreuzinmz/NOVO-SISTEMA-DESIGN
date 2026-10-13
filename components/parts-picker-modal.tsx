@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Package, Search, Plus, Check, X, Trash2 } from 'lucide-react';
+import { getPartImage } from '@/lib/part-images';
 
 // ═══ Itens cadastrados de cada grupo ═══
 
@@ -14,7 +15,7 @@ export type PartsKind = 'material' | 'peca';
 const CONFIG: Record<PartsKind, { storageKey: string; builtIn: string[]; title: string; description: string; newPlaceholder: string; empty: string }> = {
   material: {
     storageKey: 'retifica_catalogo_materiais',
-    builtIn: ['BIELAS', 'MOTOR COMPLETO'],
+    builtIn: ['BIELAS', 'MOTOR COMPLETO', 'CARCAÇA', 'BOMBA INJETORA'],
     title: 'Mais materiais',
     description: 'Selecione materiais cadastrados ou cadastre um novo',
     newPlaceholder: 'Nome do material',
@@ -45,7 +46,7 @@ function saveCatalog(kind: PartsKind, list: string[]) {
   try { localStorage.setItem(CONFIG[kind].storageKey, JSON.stringify(list)); } catch { /* ignore */ }
 }
 
-const normalize = (v: string) => v.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const normalize = (v: string) => v.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim();
 
 // ═══ Componente ═══
 
@@ -169,6 +170,7 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, onConfirm }
             {items.map((name) => {
               const already = inListSet.has(name.toUpperCase());
               const isPicked = picked.includes(name);
+              const image = getPartImage(name);
               return (
                 <div
                   key={name}
@@ -179,7 +181,7 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, onConfirm }
                   onClick={() => !already && togglePick(name)}
                   onKeyDown={(e) => { if (!already && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); togglePick(name); } }}
                   className={cn(
-                    'group relative flex items-center gap-3 min-h-[52px] px-4 py-2 rounded-xl border transition-all select-none outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                    'group relative flex items-center gap-3 min-h-[64px] px-4 py-2 rounded-xl border transition-all select-none outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
                     already
                       ? 'bg-muted/40 border-border opacity-60 cursor-not-allowed'
                       : isPicked
@@ -195,6 +197,12 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, onConfirm }
                   >
                     {(isPicked || already) && <Check className="w-3 h-3 stroke-[3]" />}
                   </span>
+                  {image && (
+                    <div className="w-12 h-10 shrink-0 flex items-center justify-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={image} alt="" draggable={false} className="max-w-full max-h-full object-contain drop-shadow-sm" />
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <div className={cn('text-sm font-bold uppercase tracking-tight leading-snug', isPicked ? 'text-foreground' : 'text-muted-foreground')}>{name}</div>
                     {already && <div className="text-[11px] font-semibold text-muted-foreground">Já está na O.S.</div>}
@@ -215,7 +223,7 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, onConfirm }
 
             {/* Cadastrar novo */}
             {adding ? (
-              <div className="flex items-center gap-2 min-h-[52px] px-2 py-1.5 rounded-xl border-2 border-dashed border-foreground/30 bg-muted/30">
+              <div className="flex items-center gap-2 min-h-[64px] px-2 py-1.5 rounded-xl border-2 border-dashed border-foreground/30 bg-muted/30">
                 <Input
                   ref={newInputRef}
                   value={newName}
@@ -238,7 +246,7 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, onConfirm }
               <button
                 type="button"
                 onClick={startAdding}
-                className="flex items-center justify-center gap-2 min-h-[52px] px-4 rounded-xl border-2 border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-muted/30 transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-2 min-h-[64px] px-4 rounded-xl border-2 border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-muted/30 transition-colors cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-[0.1em]">Cadastrar novo</span>
