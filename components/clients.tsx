@@ -427,7 +427,7 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
               <ClientDialogHeader title="Novo Cliente" subtitle="Cadastre um novo cliente no sistema." onClose={() => setIsModalOpen(false)} />
               <form onSubmit={handleAddClient} className="flex flex-col min-h-0 flex-1">
                 <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 space-y-3">
-                  <FormSection icon={User} title="Dados principais" hint="Informações básicas do cliente.">
+                  <FormSection icon={FileText} tone="info" title="Dados principais" hint="Informações básicas do cliente.">
                     <div className="space-y-1.5">
                       <FieldLabel htmlFor="name" required>Nome completo</FieldLabel>
                       <IconField icon={User}>
@@ -450,7 +450,7 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
                     </div>
                   </FormSection>
 
-                  <FormSection icon={Phone} title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
+                  <FormSection icon={Phone} tone="success" title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="space-y-1.5">
                         <FieldLabel htmlFor="phone" optional>Telefone</FieldLabel>
@@ -473,7 +473,7 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
                     </div>
                   </FormSection>
 
-                  <FormSection icon={MapPin} title="Localização" hint="Cidade do cliente.">
+                  <FormSection icon={MapPin} tone="levou" title="Localização" hint="Cidade do cliente.">
                     <div className="space-y-1.5">
                       <FieldLabel htmlFor="city" optional>Cidade</FieldLabel>
                       <IconField icon={MapPin}>
@@ -482,7 +482,7 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
                     </div>
                   </FormSection>
 
-                  <FormSection icon={Users} title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
+                  <FormSection icon={Users} tone="warning" title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
                     <ClientTypeToggle value={newClientType} onChange={setNewClientType} />
                   </FormSection>
                 </div>
@@ -1130,7 +1130,7 @@ const ClientDetailsContent = React.memo(({
           <ClientDialogHeader icon={Pencil} title="Editar Cliente" subtitle="Atualize os dados do cliente." onClose={() => setIsEditModalOpen(false)} />
           <form onSubmit={handleEditClient} className="flex flex-col min-h-0 flex-1">
             <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 space-y-3">
-              <FormSection icon={User} title="Dados principais" hint="Informações básicas do cliente.">
+              <FormSection icon={FileText} tone="info" title="Dados principais" hint="Informações básicas do cliente.">
                 <div className="space-y-1.5">
                   <FieldLabel htmlFor="edit-name" required>Nome completo</FieldLabel>
                   <IconField icon={User}>
@@ -1153,7 +1153,7 @@ const ClientDetailsContent = React.memo(({
                 </div>
               </FormSection>
 
-              <FormSection icon={Phone} title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
+              <FormSection icon={Phone} tone="success" title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1.5">
                     <FieldLabel htmlFor="edit-phone" optional>Telefone</FieldLabel>
@@ -1176,7 +1176,7 @@ const ClientDetailsContent = React.memo(({
                 </div>
               </FormSection>
 
-              <FormSection icon={MapPin} title="Localização" hint="Cidade do cliente.">
+              <FormSection icon={MapPin} tone="levou" title="Localização" hint="Cidade do cliente.">
                 <div className="space-y-1.5">
                   <FieldLabel htmlFor="edit-city" optional>Cidade</FieldLabel>
                   <IconField icon={MapPin}>
@@ -1185,7 +1185,7 @@ const ClientDetailsContent = React.memo(({
                 </div>
               </FormSection>
 
-              <FormSection icon={Users} title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
+              <FormSection icon={Users} tone="warning" title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
                 <ClientTypeToggle value={editClientType} onChange={setEditClientType} />
               </FormSection>
             </div>
