@@ -956,19 +956,19 @@ export function MotorSpecsCard({
 
           <div className="px-6 pb-3 space-y-3 border-b border-border">
             <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none z-10" />
               <Input
                 value={listQuery}
                 onChange={(e) => setListQuery(e.target.value)}
                 placeholder="Filtrar por motor, modelo ou veículo..."
-                className="h-11 pl-10 rounded-xl text-sm bg-card"
+                className="h-12 pl-14 pr-4 rounded-2xl text-[15px] bg-muted/30 border-border/70 shadow-2xs placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:border-foreground/30"
               />
             </div>
-            <div className="flex gap-1.5 overflow-x-auto pb-1">
+            <div className="flex gap-2 overflow-x-auto pb-1.5">
               <button
                 type="button"
                 onClick={() => setListBrand(null)}
-                className={cn('h-8 px-3 rounded-full border text-xs font-bold whitespace-nowrap transition-colors cursor-pointer', !listBrand ? 'bg-foreground text-background border-foreground' : 'bg-card border-border text-muted-foreground hover:text-foreground')}
+                className={cn('h-11 px-5 rounded-full border text-sm font-bold whitespace-nowrap shrink-0 transition-colors cursor-pointer shadow-2xs', !listBrand ? 'bg-foreground text-background border-foreground' : 'bg-card border-border/70 text-foreground hover:bg-muted/50')}
               >
                 Todas ({catalog.length})
               </button>
@@ -977,9 +977,9 @@ export function MotorSpecsCard({
                   key={brand}
                   type="button"
                   onClick={() => setListBrand(listBrand === brand ? null : brand)}
-                  className={cn('h-9 pl-1 pr-3 rounded-full border text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-colors cursor-pointer', listBrand === brand ? 'bg-foreground text-background border-foreground' : 'bg-card border-border text-muted-foreground hover:text-foreground')}
+                  className={cn('h-11 pl-3 pr-5 rounded-full border text-sm font-semibold whitespace-nowrap shrink-0 flex items-center gap-2.5 transition-colors cursor-pointer shadow-2xs', listBrand === brand ? 'bg-foreground text-background border-foreground' : 'bg-card border-border/70 text-foreground hover:bg-muted/50')}
                 >
-                  <BrandLogo brand={brand === 'Outros' ? '' : brand} size={28} className="rounded-full" />
+                  <BrandLogo brand={brand === 'Outros' ? '' : brand} size={34} fill={92} className="border-0 bg-transparent rounded-md dark:bg-white" />
                   {brand} ({count})
                 </button>
               ))}
