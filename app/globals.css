@@ -944,6 +944,29 @@ input[type="number"] {
   margin-bottom: 16px;
 }
 
+/* Cabeçalho dos outros cards da O.S. no mesmo estilo (linha embutida) */
+.os-card-header-rf {
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eaecf0;
+  margin-bottom: 16px;
+}
+
+.dark .os-card-header-rf {
+  border-bottom-color: #27272a;
+}
+
+/* Conteúdo dos cards da O.S. continua na Sora (negrito como antes);
+   só o cabeçalho usa a fonte do Resumo Financeiro */
+.financial-card.os-card-rf {
+  font-family: var(--font-sora), 'Sora', system-ui, sans-serif;
+}
+
+.os-card-rf .header-title-rf,
+.os-card-rf .header-subtitle-rf {
+  font-family: var(--font-jakarta), var(--font-sora), sans-serif;
+}
+
 .dark .header-divider-rf {
   background-color: #27272a;
 }

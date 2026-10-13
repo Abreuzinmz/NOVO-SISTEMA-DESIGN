@@ -83,6 +83,7 @@ import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { cn, formatMotorDisplay, getLocalDateString } from '@/lib/utils';
 import { fetchMotors, fetchModels, addMotor as addMotorToDb, addModel as addModelToDb, deleteMotor as deleteMotorFromDb, deleteModel as deleteModelFromDb, updateModel as updateModelInDb, fetchMotorCatalog, saveCatalogMotor, type CatalogMotor } from '@/lib/motors';
 import { PartsPickerModal, type PartsKind } from '@/components/parts-picker-modal';
+import { getPartImage } from '@/lib/part-images';
 import { MotorSpecsCard } from '@/components/motor-specs-card';
 import { PrintPreviewModal } from './print-preview-modal';
 import { FormSection, FieldLabel, IconField, ClientTypeToggle, ClientDialogHeader, ClientDialogFooter, iconInputClass, clientDialogClass } from '@/components/client-form';
@@ -2583,15 +2584,15 @@ function OSFormImpl({
         {/* ═══ SINGLE-COLUMN LAYOUT CONTAINER ═══ */}
         <div className={cn("space-y-6 w-full", readOnly && "pointer-events-none")}>
           {/* SEÇÃO 1: DETALHES DA O.S. */}
-          <div className="bg-card border border-border rounded-2xl p-6 sm:p-7 space-y-4 shadow-sm">
+          <div className="financial-card os-card-rf space-y-4">
             {/* Cabeçalho */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
-                <FileText className="w-3.5 h-3.5" />
+            <div className="card-header-rf os-card-header-rf">
+              <div className="header-left-rf">
+                <div className="icon-badge-rf"><FileText size={18} /></div>
+                <div className="header-title-group-rf">
+                  <h2 className="header-title-rf">DETALHES DA O.S.</h2>
+                </div>
               </div>
-              <span className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
-                DETALHES DA O.S.
-              </span>
             </div>
 
             {/* Linha: O.S. Nº e Data de Chegada */}
@@ -2729,18 +2730,16 @@ function OSFormImpl({
           </div>
 
           {/* SEÇÃO 2: INFORMAÇÕES DO CLIENTE */}
-          <div className="bg-card border border-border rounded-2xl p-6 sm:p-7 space-y-5 shadow-sm">
+          <div className="financial-card os-card-rf space-y-5">
             {/* Cabeçalho */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-2xl bg-muted text-muted-foreground border border-border flex items-center justify-center shrink-0">
-                  <User className="w-5 h-5 stroke-[2]" />
-                </div>
-                <div className="min-w-0">
-                  <h2 className="font-extrabold text-sm sm:text-base uppercase tracking-tight text-foreground">
+            <div className="card-header-rf os-card-header-rf flex-wrap">
+              <div className="header-left-rf min-w-0">
+                <div className="icon-badge-rf shrink-0"><User size={18} /></div>
+                <div className="header-title-group-rf min-w-0">
+                  <h2 className="header-title-rf">
                     INFORMAÇÕES DO CLIENTE <span className="text-danger">*</span>
                   </h2>
-                  <p className="text-xs text-muted-foreground font-medium">
+                  <p className="header-subtitle-rf">
                     Busque por nome, apelido, telefone, CPF/CNPJ ou cidade para vincular à O.S.
                   </p>
                 </div>
@@ -3026,33 +3025,32 @@ function OSFormImpl({
                   const infoTile = "rounded-2xl border border-border bg-card p-3.5 sm:p-4 flex items-center justify-between gap-3 hover:border-foreground/20 transition-all group";
                   const infoIcon = "w-10 h-10 rounded-xl bg-muted text-muted-foreground border border-border flex items-center justify-center shrink-0";
                   const copyBtn = "opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer";
-                  const waBtn = "px-2.5 py-1 rounded-lg border border-emerald-300 dark:border-emerald-700/80 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-bold hover:scale-105 active:scale-95 transition-all flex items-center gap-1 shrink-0 cursor-pointer";
+                  const waBtn = "w-8 h-8 rounded-lg border border-emerald-300 dark:border-emerald-700/80 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:scale-105 active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer";
                   const value = (filled: boolean) => cn("text-sm sm:text-[15px] select-all truncate mt-0.5", filled ? "font-black font-mono tracking-tight text-foreground" : "font-medium text-muted-foreground");
 
                   return (
                     <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 space-y-4 shadow-sm">
                       {/* Cabeçalho do card: avatar + apelido/nome e tag do tipo */}
                       <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="flex items-center gap-4 min-w-0">
                           <div className={cn(
-                            "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm text-white",
+                            "w-[68px] h-[68px] rounded-2xl flex items-center justify-center shrink-0 shadow-sm text-white",
                             isMechanicClient ? "bg-slate-800" : "bg-slate-700"
                           )}>
-                            {isMechanicClient ? <Wrench className="w-6 h-6 stroke-[2]" /> : <User className="w-6 h-6 stroke-[2]" />}
+                            {isMechanicClient ? <Wrench className="w-7 h-7 stroke-[1.75]" /> : <User className="w-7 h-7 stroke-[1.75]" />}
                           </div>
 
                           <div className="flex flex-col min-w-0">
-                            <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground font-semibold">
-                              <span className="uppercase tracking-wider text-[11px] text-muted-foreground/80 font-bold">Apelido:</span>
-                              <span className={cn(
-                                "text-sm sm:text-base font-extrabold text-foreground tracking-tight",
-                                !selectedClient?.nickname && "font-normal italic text-muted-foreground text-xs sm:text-sm"
-                              )}>
-                                {selectedClient?.nickname || 'Não informado'}
-                              </span>
-                            </div>
+                            <span className="uppercase tracking-[0.14em] text-[11px] text-muted-foreground font-medium">Apelido</span>
+                            <span className={cn(
+                              "text-sm sm:text-base font-extrabold text-foreground uppercase tracking-tight leading-tight truncate",
+                              !selectedClient?.nickname && "font-normal normal-case italic text-muted-foreground text-xs sm:text-sm"
+                            )}>
+                              {selectedClient?.nickname || 'Não informado'}
+                            </span>
+                            <span className="uppercase tracking-[0.14em] text-[11px] text-muted-foreground font-medium mt-2">Nome</span>
                             <h3
-                              className="text-lg sm:text-xl font-black text-foreground uppercase tracking-tight leading-tight truncate select-all mt-0.5"
+                              className="text-xl sm:text-2xl font-black text-foreground uppercase tracking-tight leading-tight truncate select-all"
                               title={selectedClient?.name || ''}
                             >
                               {selectedClient?.name || '—'}
@@ -3062,13 +3060,13 @@ function OSFormImpl({
 
                         <div className="shrink-0 pt-1">
                           {isMechanicClient ? (
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-blue-200 dark:border-blue-500/30 bg-blue-50/70 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-bold tracking-tight">
-                              <Wrench className="w-3.5 h-3.5 stroke-[2.2]" />
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-info/10 text-info text-sm font-semibold">
+                              <Wrench className="w-4 h-4 stroke-[2]" />
                               <span>Mecânico</span>
                             </div>
                           ) : (
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-border bg-muted text-muted-foreground text-xs font-bold tracking-tight">
-                              <User className="w-3.5 h-3.5 stroke-[2.2]" />
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted text-muted-foreground text-sm font-semibold">
+                              <User className="w-4 h-4 stroke-[2]" />
                               <span>Cliente Padrão</span>
                             </div>
                           )}
@@ -3079,55 +3077,7 @@ function OSFormImpl({
 
                       {/* Grade 2x2 */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
-                        {/* 1. TELEFONE 1 */}
-                        <div className={infoTile}>
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className={infoIcon}><Phone className="w-4 h-4 stroke-[2]" /></div>
-                            <div className="flex flex-col min-w-0">
-                              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">TELEFONE 1</span>
-                              <span className={value(!!selectedClient?.phone)}>
-                                {selectedClient?.phone ? maskPhone(selectedClient.phone) : 'Não cadastrado'}
-                              </span>
-                            </div>
-                          </div>
-                          {selectedClient?.phone && (
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <button type="button" onClick={() => handleCopy(maskPhone(selectedClient.phone!), 'Telefone 1')} className={copyBtn} title="Copiar Telefone 1">
-                                {copiedField === 'Telefone 1' ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                              </button>
-                              <a href={getWhatsAppUrl(selectedClient.whatsapp || selectedClient.phone, selectedClient.nickname || selectedClient.name, osNumber)} target="_blank" rel="noopener noreferrer" className={waBtn} title="Conversar no WhatsApp">
-                                <WhatsAppIcon className="w-3.5 h-3.5" />
-                                <span>WhatsApp</span>
-                              </a>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* 2. TELEFONE 2 */}
-                        <div className={infoTile}>
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className={infoIcon}><Smartphone className="w-4 h-4 stroke-[2]" /></div>
-                            <div className="flex flex-col min-w-0">
-                              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">TELEFONE 2</span>
-                              <span className={value(!!selectedClient?.phone2)}>
-                                {selectedClient?.phone2 ? maskPhone(selectedClient.phone2) : 'Não cadastrado'}
-                              </span>
-                            </div>
-                          </div>
-                          {selectedClient?.phone2 && (
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <button type="button" onClick={() => handleCopy(maskPhone(selectedClient.phone2!), 'Telefone 2')} className={copyBtn} title="Copiar Telefone 2">
-                                {copiedField === 'Telefone 2' ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                              </button>
-                              <a href={getWhatsAppUrl(selectedClient.phone2, selectedClient.nickname || selectedClient.name, osNumber)} target="_blank" rel="noopener noreferrer" className={waBtn} title="Conversar no WhatsApp (Telefone 2)">
-                                <WhatsAppIcon className="w-3.5 h-3.5" />
-                                <span>WhatsApp</span>
-                              </a>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* 3. CPF / CNPJ */}
+                        {/* 1. CPF / CNPJ */}
                         <div className={infoTile}>
                           <div className="flex items-center gap-3 min-w-0">
                             <div className={infoIcon}><CreditCard className="w-4 h-4 stroke-[2]" /></div>
@@ -3145,7 +3095,7 @@ function OSFormImpl({
                           )}
                         </div>
 
-                        {/* 4. ENDEREÇO / CIDADE */}
+                        {/* 2. ENDEREÇO / CIDADE */}
                         <div className={infoTile}>
                           <div className="flex items-center gap-3 min-w-0">
                             <div className={infoIcon}><MapPin className="w-4 h-4 stroke-[2]" /></div>
@@ -3164,6 +3114,52 @@ function OSFormImpl({
                               <button type="button" onClick={() => handleCopy(fullAddress, 'Endereço')} className={copyBtn} title="Copiar Endereço">
                                 {copiedField === 'Endereço' ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                               </button>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 3. TELEFONE 1 */}
+                        <div className={infoTile}>
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={infoIcon}><Phone className="w-4 h-4 stroke-[2]" /></div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">TELEFONE 1</span>
+                              <span className={value(!!selectedClient?.phone)}>
+                                {selectedClient?.phone ? maskPhone(selectedClient.phone) : 'Não cadastrado'}
+                              </span>
+                            </div>
+                          </div>
+                          {selectedClient?.phone && (
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button type="button" onClick={() => handleCopy(maskPhone(selectedClient.phone!), 'Telefone 1')} className={copyBtn} title="Copiar Telefone 1">
+                                {copiedField === 'Telefone 1' ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                              </button>
+                              <a href={getWhatsAppUrl(selectedClient.whatsapp || selectedClient.phone, selectedClient.nickname || selectedClient.name, osNumber)} target="_blank" rel="noopener noreferrer" className={waBtn} title="Conversar no WhatsApp">
+                                <WhatsAppIcon className="w-4 h-4" />
+                              </a>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 4. TELEFONE 2 */}
+                        <div className={infoTile}>
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={infoIcon}><Smartphone className="w-4 h-4 stroke-[2]" /></div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">TELEFONE 2</span>
+                              <span className={value(!!selectedClient?.phone2)}>
+                                {selectedClient?.phone2 ? maskPhone(selectedClient.phone2) : 'Não cadastrado'}
+                              </span>
+                            </div>
+                          </div>
+                          {selectedClient?.phone2 && (
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button type="button" onClick={() => handleCopy(maskPhone(selectedClient.phone2!), 'Telefone 2')} className={copyBtn} title="Copiar Telefone 2">
+                                {copiedField === 'Telefone 2' ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                              </button>
+                              <a href={getWhatsAppUrl(selectedClient.phone2, selectedClient.nickname || selectedClient.name, osNumber)} target="_blank" rel="noopener noreferrer" className={waBtn} title="Conversar no WhatsApp (Telefone 2)">
+                                <WhatsAppIcon className="w-4 h-4" />
+                              </a>
                             </div>
                           )}
                         </div>
@@ -3420,14 +3416,12 @@ function OSFormImpl({
           </div>
 
           {/* CARD 2: MATERIAIS E PEÇAS */}
-          <div className="bg-card border border-border/60 dark:border-border rounded-xl p-5 shadow-sm space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-border/50">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center border border-border shadow-2xs shrink-0">
-                  <Package className="w-5 h-5 text-foreground/80" />
-                </div>
+          <div className="financial-card os-card-rf space-y-4">
+            <div className="card-header-rf os-card-header-rf flex-wrap">
+              <div className="header-left-rf">
+                <div className="icon-badge-rf"><Package size={18} /></div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm uppercase tracking-[0.22em] text-foreground/90 font-extrabold">
+                  <span className="header-title-rf">
                     MATERIAIS E PEÇAS
                   </span>
                   {(partsLeft.length > 0 || additionalParts.length > 0) && (
@@ -3533,13 +3527,14 @@ function OSFormImpl({
                         };
 
                         const partId = `${group.idPrefix}-${normalizeText(part).replace(/\s+/g, '-')}`;
+                        const partImage = getPartImage(part);
 
                         return (
                           <div
                             key={part}
                             onClick={togglePart}
                             className={cn(
-                              "@container/part group relative flex items-center justify-between min-h-[52px] px-3 @[220px]/part:px-4 py-2 rounded-xl border transition-all cursor-pointer select-none",
+                              "@container/part group relative flex items-center justify-between min-h-[64px] px-3 @[220px]/part:px-3.5 py-2 rounded-xl border transition-all cursor-pointer select-none",
                               isChecked
                                 ? "bg-foreground/[0.04] border-foreground/30 shadow-2xs"
                                 : "bg-card border-border hover:border-foreground/20 hover:bg-muted/50"
@@ -3553,41 +3548,50 @@ function OSFormImpl({
                                 className="w-5 h-5 rounded-full border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground transition-colors"
                                 disabled={readOnly}
                               />
-                              <span className={cn(
-                                "text-xs @[220px]/part:text-sm font-bold uppercase tracking-tight leading-snug transition-colors",
-                                isChecked ? "text-foreground" : "text-muted-foreground"
-                              )}>
-                                {part}
-                              </span>
-                            </div>
-                            {isChecked ? (
-                              <div
-                                className="flex items-center gap-0.5 shrink-0 ml-1 bg-card rounded-lg p-0.5 border border-border shadow-2xs"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); setQty(qty - 1); }}
-                                  className="w-5 h-5 flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                  disabled={qty <= 1 || readOnly}
-                                  title="Diminuir"
-                                >
-                                  <Minus className="w-2.5 h-2.5 stroke-[2.5]" />
-                                </button>
-                                <span className="min-w-[15px] text-center text-xs font-black font-mono text-foreground">
-                                  {qty}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); setQty(qty + 1); }}
-                                  className="w-5 h-5 flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                  disabled={readOnly}
-                                  title="Aumentar"
-                                >
-                                  <Plus className="w-2.5 h-2.5 stroke-[2.5]" />
-                                </button>
+                              <div className="w-10 h-9 @[220px]/part:w-12 @[220px]/part:h-10 shrink-0 flex items-center justify-center">
+                                {partImage && (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={partImage} alt="" draggable={false} className="max-w-full max-h-full object-contain drop-shadow-sm" />
+                                )}
                               </div>
-                            ) : (
+                              <div className="flex flex-col items-start gap-1 min-w-0">
+                                <span className={cn(
+                                  "text-xs @[220px]/part:text-sm font-bold uppercase tracking-tight leading-snug transition-colors",
+                                  isChecked ? "text-foreground" : "text-muted-foreground"
+                                )}>
+                                  {part}
+                                </span>
+                                {isChecked && (
+                                  <div
+                                    className="flex items-center gap-0.5 shrink-0 bg-card rounded-lg p-0.5 border border-border shadow-2xs"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.stopPropagation(); setQty(qty - 1); }}
+                                      className="w-5 h-5 flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                      disabled={qty <= 1 || readOnly}
+                                      title="Diminuir"
+                                    >
+                                      <Minus className="w-2.5 h-2.5 stroke-[2.5]" />
+                                    </button>
+                                    <span className="min-w-[15px] text-center text-xs font-black font-mono text-foreground">
+                                      {qty}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.stopPropagation(); setQty(qty + 1); }}
+                                      className="w-5 h-5 flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                      disabled={readOnly}
+                                      title="Aumentar"
+                                    >
+                                      <Plus className="w-2.5 h-2.5 stroke-[2.5]" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            {!isChecked && (
                               !group.defaults.includes(part) && !readOnly && (
                                 <button
                                   type="button"
@@ -3655,13 +3659,13 @@ function OSFormImpl({
           />
 
           {/* CARD 4: CATÁLOGO DE SERVIÇOS */}
-          <div className="bg-card border border-border/60 dark:border-border rounded-xl p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-border/50 dark:border-border">
-              <div className="flex items-center gap-2.5 text-xs uppercase tracking-[0.2em] text-foreground/90 font-bold">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
-                  <Wrench className="w-4 h-4 text-primary" />
+          <div className="financial-card os-card-rf space-y-4">
+            <div className="card-header-rf os-card-header-rf">
+              <div className="header-left-rf">
+                <div className="icon-badge-rf"><Wrench size={18} /></div>
+                <div className="header-title-group-rf">
+                  <h2 className="header-title-rf">CATÁLOGO DE SERVIÇOS</h2>
                 </div>
-                CATÁLOGO DE SERVIÇOS
               </div>
             </div>
 
@@ -3702,13 +3706,13 @@ function OSFormImpl({
           </div>
 
           {/* CARD 6: OBSERVAÇÕES */}
-          <div className="bg-card border border-border/60 dark:border-border rounded-xl p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-border/50 dark:border-border">
-              <div className="flex items-center gap-2.5 text-xs uppercase tracking-[0.2em] text-foreground/90 font-bold">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
-                  <MessageSquare className="w-4 h-4 text-primary" />
+          <div className="financial-card os-card-rf space-y-4">
+            <div className="card-header-rf os-card-header-rf">
+              <div className="header-left-rf">
+                <div className="icon-badge-rf"><MessageSquare size={18} /></div>
+                <div className="header-title-group-rf">
+                  <h2 className="header-title-rf">OBSERVAÇÕES</h2>
                 </div>
-                OBSERVAÇÕES
               </div>
             </div>
 
@@ -3725,7 +3729,7 @@ function OSFormImpl({
           {/* CARD 7: FINALIZADO E ENTREGUE (só ao editar) */}
           {order && (
           <div className="flex justify-end w-full">
-            <div className="bg-card border border-border/60 dark:border-border rounded-xl p-5 shadow-sm flex flex-col gap-4 select-none hover:border-foreground/10 transition-all w-full max-w-[320px]">
+            <div className="financial-card os-card-rf flex flex-col gap-4 select-none hover:border-foreground/10 transition-all w-full max-w-[320px]">
               <div
                 className="flex items-center space-x-3 cursor-pointer"
                 onClick={() => {
@@ -3990,7 +3994,7 @@ function OSFormImpl({
           <DialogContent showCloseButton={false} className={cn(clientDialogClass, 'z-[1100]')} overlayClassName="z-[1099]">
             <ClientDialogHeader title="Novo Cliente" subtitle="Cadastre um novo cliente sem sair da O.S." onClose={() => setIsClientModalOpen(false)} />
             <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 space-y-3">
-              <FormSection icon={User} title="Dados principais" hint="Informações básicas do cliente.">
+              <FormSection icon={FileText} tone="info" title="Dados principais" hint="Informações básicas do cliente.">
                 <div className="space-y-1.5">
                   <FieldLabel htmlFor="os-new-client-name" required>Nome completo</FieldLabel>
                   <IconField icon={User}>
@@ -4041,7 +4045,7 @@ function OSFormImpl({
                 </div>
               </FormSection>
 
-              <FormSection icon={Phone} title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
+              <FormSection icon={Phone} tone="success" title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1.5">
                     <FieldLabel htmlFor="os-new-client-phone" optional>Telefone</FieldLabel>
@@ -4064,7 +4068,7 @@ function OSFormImpl({
                 </div>
               </FormSection>
 
-              <FormSection icon={MapPin} title="Localização" hint="Cidade do cliente.">
+              <FormSection icon={MapPin} tone="levou" title="Localização" hint="Cidade do cliente.">
                 <div className="space-y-1.5">
                   <FieldLabel htmlFor="os-new-client-city" optional>Cidade</FieldLabel>
                   <IconField icon={MapPin}>
@@ -4073,7 +4077,7 @@ function OSFormImpl({
                 </div>
               </FormSection>
 
-              <FormSection icon={Users} title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
+              <FormSection icon={Users} tone="warning" title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
                 <ClientTypeToggle value={newClientType} onChange={setNewClientType} />
               </FormSection>
             </div>
@@ -4093,7 +4097,7 @@ function OSFormImpl({
               onClose={() => setIsEditClientModalOpen(false)}
             />
             <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 space-y-3">
-              <FormSection icon={User} title="Dados principais" hint="Informações básicas do cliente.">
+              <FormSection icon={FileText} tone="info" title="Dados principais" hint="Informações básicas do cliente.">
                 <div className="space-y-1.5">
                   <FieldLabel htmlFor="os-edit-client-name" required>Nome completo</FieldLabel>
                   <IconField icon={User}>
@@ -4116,7 +4120,7 @@ function OSFormImpl({
                 </div>
               </FormSection>
 
-              <FormSection icon={Phone} title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
+              <FormSection icon={Phone} tone="success" title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1.5">
                     <FieldLabel htmlFor="os-edit-client-phone" optional>Telefone</FieldLabel>
@@ -4139,7 +4143,7 @@ function OSFormImpl({
                 </div>
               </FormSection>
 
-              <FormSection icon={MapPin} title="Localização" hint="Cidade do cliente.">
+              <FormSection icon={MapPin} tone="levou" title="Localização" hint="Cidade do cliente.">
                 <div className="space-y-1.5">
                   <FieldLabel htmlFor="os-edit-client-city" optional>Cidade</FieldLabel>
                   <IconField icon={MapPin}>
@@ -4148,7 +4152,7 @@ function OSFormImpl({
                 </div>
               </FormSection>
 
-              <FormSection icon={Users} title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
+              <FormSection icon={Users} tone="warning" title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
                 <ClientTypeToggle value={editClientType} onChange={setEditClientType} />
               </FormSection>
             </div>
