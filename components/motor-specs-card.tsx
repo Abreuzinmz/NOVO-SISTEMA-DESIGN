@@ -25,6 +25,7 @@ import {
   Package,
   Zap,
   CheckCircle2,
+  List,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { CatalogMotor } from '@/lib/motors';
@@ -371,6 +372,54 @@ export function MotorSpecsCard({
   const totalResults = groupedResults.reduce((n, [, list]) => n + list.length, 0);
   const exactMatch = catalog.some((c) => c.name.toUpperCase() === form.model.trim().toUpperCase());
 
+  // ── Lista de motores (modal) ──
+  const [listOpen, setListOpen] = useState(false);
+  const [listQuery, setListQuery] = useState('');
+  const [listBrand, setListBrand] = useState<string | null>(null);
+
+  const brandOf = (m: CatalogMotor) => m.brand || detectBrandFromName(`${m.name} ${m.cars.join(' ')}`) || 'Outros';
+
+  const listGroups = useMemo(() => {
+    const ignore = ['e', 'de', 'do', 'da', 'com', 'o', 'a', 'em', 'para'];
+    const valid = listQuery.trim().toLowerCase().split(/\s+/).filter((t) => t && !ignore.includes(t));
+    const groups = new Map<string, CatalogMotor[]>();
+    catalog.forEach((m) => {
+      const brand = brandOf(m);
+      if (!groups.has(brand)) groups.set(brand, []);
+      groups.get(brand)!.push(m);
+    });
+    const all = Array.from(groups.entries())
+      .map(([brand, list]) => [brand, [...list].sort((a, b) => a.name.localeCompare(b.name))] as [string, CatalogMotor[]])
+      .sort(([a], [b]) => (a === 'Outros' ? 1 : b === 'Outros' ? -1 : a.localeCompare(b)));
+    const brands = all.map(([brand, list]) => ({ brand, count: list.length }));
+    const filtered = all
+      .filter(([brand]) => !listBrand || brand === listBrand)
+      .map(([brand, list]) => [brand, list.filter((m) => {
+        if (!valid.length) return true;
+        const blob = [m.name, brand, m.engineModels.join(' '), m.cars.join(' ')].join(' ').toLowerCase();
+        return valid.every((t) => blob.includes(t));
+      })] as [string, CatalogMotor[]])
+      .filter(([, list]) => list.length > 0);
+    return { brands, filtered, total: filtered.reduce((n, [, list]) => n + list.length, 0) };
+  }, [catalog, listQuery, listBrand]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const openMotorList = () => {
+    setListQuery('');
+    setListBrand(null);
+    setListOpen(true);
+  };
+
+  const pickFromList = (m: CatalogMotor) => {
+    if (!showForm) {
+      // já há motores na O.S.: começa um novo com o escolhido
+      setForm(EMPTY_FORM);
+      setEditingIndex(null);
+      setAddingAnother(true);
+    }
+    selectCatalogMotor(m);
+    setListOpen(false);
+  };
+
   const selectCatalogMotor = (m: CatalogMotor) => {
     const engineModel = m.engineModels[0] || '';
     const cars = m.cars.length === 1 ? m.cars[0] : '';
@@ -501,24 +550,27 @@ export function MotorSpecsCard({
 
   // ═══ Render ═══
   return (
-    <div className="bg-card border border-border/60 dark:border-border rounded-xl p-5 shadow-sm space-y-5">
+    <div className="financial-card os-card-rf space-y-5">
       {/* Cabeçalho */}
-      <div className="flex items-start justify-between gap-4 pb-4 border-b border-border/60">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-11 h-11 rounded-xl bg-muted border border-border flex items-center justify-center shrink-0">
-            <Settings className="w-5 h-5 text-foreground/80" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-sm font-extrabold uppercase tracking-wide text-foreground">Especificações do Motor</h3>
-            <p className="text-sm text-muted-foreground">
+      <div className="card-header-rf os-card-header-rf flex-wrap">
+        <div className="header-left-rf min-w-0">
+          <div className="icon-badge-rf shrink-0"><Settings size={18} /></div>
+          <div className="header-title-group-rf min-w-0">
+            <h3 className="header-title-rf">ESPECIFICAÇÕES DO MOTOR</h3>
+            <p className="header-subtitle-rf">
               {readOnly ? 'Motores desta ordem de serviço.' : 'Busque o motor ou veículo e adicione à O.S.'}
             </p>
           </div>
         </div>
         {!readOnly && (
-          <Button type="button" onClick={() => openCatalogDialog(undefined, '')} className="solid-btn h-10 px-4 rounded-lg text-sm font-bold gap-1.5 shrink-0">
-            <Plus className="w-4 h-4" /> Cadastrar Motor
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button type="button" variant="outline" onClick={openMotorList} className="h-10 px-4 rounded-lg border-border text-sm font-bold gap-1.5">
+              <List className="w-4 h-4" /> Lista de Motores
+            </Button>
+            <Button type="button" onClick={() => openCatalogDialog(undefined, '')} className="solid-btn h-10 px-4 rounded-lg text-sm font-bold gap-1.5">
+              <Plus className="w-4 h-4" /> Cadastrar Motor
+            </Button>
+          </div>
         )}
       </div>
 
@@ -535,7 +587,7 @@ export function MotorSpecsCard({
                   autoComplete="off"
                   placeholder="Busque por motor ou veículo (ex: Onix, Fire, EA111...)"
                   onChange={(e) => { set('model', e.target.value.toUpperCase()); setMotorConfirmed(false); setSearchOpen(true); }}
-                  onFocus={() => setSearchOpen(true)}
+                  onFocus={() => { if (form.model.trim()) setSearchOpen(true); }}
                   onKeyDown={(e) => {
                     if (e.key === 'Escape') setSearchOpen(false);
                     if (e.key === 'Enter') { e.preventDefault(); setSearchOpen(false); if (form.model.trim()) setMotorConfirmed(true); }
@@ -552,7 +604,7 @@ export function MotorSpecsCard({
                 </div>
               </div>
 
-              {searchOpen && (
+              {searchOpen && form.model.trim() && (
                 <div className="absolute z-50 left-0 right-0 mt-1.5 rounded-xl border border-border bg-popover shadow-xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-100">
                   <div className="px-3 py-2 text-xs text-muted-foreground border-b border-border bg-muted/40">
                     {form.model.trim()
@@ -568,10 +620,12 @@ export function MotorSpecsCard({
                     )}
                     {groupedResults.map(([brand, list]) => (
                       <div key={brand} className="mb-1">
-                        <div className="flex items-center gap-2 px-2 py-1.5 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                          <BrandLogo brand={brand === 'Outros' ? '' : brand} size={22} className="rounded-md" />
-                          <span>{brand}</span>
-                          <span className="ml-auto px-1.5 rounded-full bg-muted text-[11px] tabular-nums">{list.length}</span>
+                        <div className="flex items-center gap-3 px-2 py-2">
+                          <BrandLogo brand={brand === 'Outros' ? '' : brand} size={44} className="rounded-xl shadow-2xs" />
+                          <div className="min-w-0">
+                            <div className="text-base font-extrabold uppercase tracking-tight text-foreground leading-tight truncate">{brand}</div>
+                            <div className="text-xs text-muted-foreground">Marca · {list.length} motor{list.length === 1 ? '' : 'es'}</div>
+                          </div>
                         </div>
                         {list.map((m) => (
                           <div
@@ -802,6 +856,109 @@ export function MotorSpecsCard({
           </div>
         )
       )}
+
+      {/* ═══ DIALOG: lista de motores por marca ═══ */}
+      <Dialog open={listOpen} onOpenChange={setListOpen}>
+        <DialogContent showCloseButton={false} className="sm:max-w-[860px] w-[calc(100vw-32px)] h-[min(720px,calc(100vh-48px))] z-[1100] rounded-2xl p-0 gap-0 overflow-hidden flex flex-col" overlayClassName="z-[1099]">
+          <div className="flex items-start gap-4 px-6 pt-6 pb-4">
+            <div className="w-11 h-11 rounded-xl bg-muted border border-border flex items-center justify-center shrink-0">
+              <List className="w-5 h-5 text-foreground/80" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="text-base font-extrabold uppercase tracking-wide text-foreground">Lista de Motores</DialogTitle>
+              <DialogDescription>{catalog.length} motor{catalog.length === 1 ? '' : 'es'} cadastrado{catalog.length === 1 ? '' : 's'}, por marca e modelo. Clique para usar na O.S.</DialogDescription>
+            </div>
+            <button type="button" title="Fechar" onClick={() => setListOpen(false)} className="w-9 h-9 -mr-2 -mt-1 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer shrink-0">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="px-6 pb-3 space-y-3 border-b border-border">
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Input
+                value={listQuery}
+                onChange={(e) => setListQuery(e.target.value)}
+                placeholder="Filtrar por motor, modelo ou veículo..."
+                className="h-11 pl-10 rounded-xl text-sm bg-card"
+              />
+            </div>
+            <div className="flex gap-1.5 overflow-x-auto pb-1">
+              <button
+                type="button"
+                onClick={() => setListBrand(null)}
+                className={cn('h-8 px-3 rounded-full border text-xs font-bold whitespace-nowrap transition-colors cursor-pointer', !listBrand ? 'bg-foreground text-background border-foreground' : 'bg-card border-border text-muted-foreground hover:text-foreground')}
+              >
+                Todas ({catalog.length})
+              </button>
+              {listGroups.brands.map(({ brand, count }) => (
+                <button
+                  key={brand}
+                  type="button"
+                  onClick={() => setListBrand(listBrand === brand ? null : brand)}
+                  className={cn('h-9 pl-1 pr-3 rounded-full border text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-colors cursor-pointer', listBrand === brand ? 'bg-foreground text-background border-foreground' : 'bg-card border-border text-muted-foreground hover:text-foreground')}
+                >
+                  <BrandLogo brand={brand === 'Outros' ? '' : brand} size={28} className="rounded-full" />
+                  {brand} ({count})
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-5">
+            {listGroups.total === 0 && (
+              <div className="py-10 text-center text-sm text-muted-foreground">
+                {catalog.length === 0 ? 'Nenhum motor cadastrado ainda. Use “Cadastrar Motor”.' : 'Nenhum motor encontrado com esse filtro.'}
+              </div>
+            )}
+            {listGroups.filtered.map(([brand, list]) => (
+              <div key={brand} className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <BrandLogo brand={brand === 'Outros' ? '' : brand} size={48} className="rounded-xl shadow-2xs" />
+                  <div className="min-w-0">
+                    <div className="text-base font-extrabold uppercase tracking-tight text-foreground leading-tight truncate">{brand}</div>
+                    <div className="text-xs text-muted-foreground">Marca · {list.length} motor{list.length === 1 ? '' : 'es'}</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {list.map((m) => (
+                    <div
+                      key={m.name}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => pickFromList(m)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickFromList(m); } }}
+                      className="group relative rounded-xl border border-border bg-card px-3.5 py-2.5 pr-16 cursor-pointer transition-colors hover:border-foreground/30 hover:bg-muted/40 outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                    >
+                      <div className="text-sm font-bold uppercase text-foreground truncate">{m.name}</div>
+                      {m.engineModels.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {m.engineModels.map((em) => (
+                            <span key={em} className="px-1.5 py-px rounded-md bg-muted border border-border text-[11px] font-semibold text-muted-foreground uppercase">{em}</span>
+                          ))}
+                        </div>
+                      )}
+                      {m.cars.length > 0 && (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1 truncate">
+                          <Car className="w-3 h-3 shrink-0" /> <span className="truncate">{m.cars.join(', ')}</span>
+                        </div>
+                      )}
+                      <div className="absolute top-2 right-2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button type="button" title="Editar motor do catálogo" onClick={(e) => { e.stopPropagation(); setListOpen(false); openCatalogDialog(m); }} className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background cursor-pointer">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button type="button" title="Excluir motor do catálogo" onClick={(e) => { e.stopPropagation(); onDeleteCatalogMotor(m.name); }} className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-danger hover:bg-danger/10 cursor-pointer">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ═══ DIALOG: cadastrar / editar motor no catálogo ═══ */}
       <Dialog open={catalogDialog !== null} onOpenChange={(o) => { if (!o) setCatalogDialog(null); }}>
