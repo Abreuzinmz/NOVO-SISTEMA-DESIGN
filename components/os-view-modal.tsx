@@ -810,31 +810,31 @@ export function OSViewModal({
   const getStatusBadge = (status: ServiceStatus) => {
     switch (status) {
       case 'Na Fila': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-secondary text-secondary-foreground border border-border">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border">
           <span className="w-1.5 h-1.5 rounded-full bg-secondary-foreground/60 shrink-0" />
           NA FILA
         </span>
       );
       case 'Em Andamento': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-info/10 text-info border border-info/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-info/10 text-info border border-info/20">
           <span className="w-1.5 h-1.5 rounded-full bg-info shrink-0" />
           EM ANDAMENTO
         </span>
       );
       case 'Aguardando Peça': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-warning/10 text-warning border border-warning/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-warning/10 text-warning border border-warning/20">
           <span className="w-1.5 h-1.5 rounded-full bg-warning shrink-0" />
           AGUARDANDO PEÇA
         </span>
       );
       case 'Pronto': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-success/10 text-success border border-success/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-success/10 text-success border border-success/20">
           <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
           PRONTO
         </span>
       );
       case 'Levou': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-danger/10 text-danger border border-danger/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-danger/10 text-danger border border-danger/20">
           <span className="w-1.5 h-1.5 rounded-full bg-danger shrink-0" />
           LEVOU
         </span>
@@ -880,22 +880,22 @@ export function OSViewModal({
   const getPaymentBadge = (status: string) => {
     switch (status) {
       case 'Não Pago': return (
-        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-danger/10 text-danger border border-danger/20">
+        <span className="inline-flex items-center justify-center px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-danger/10 text-danger border border-danger/20">
           NÃO PAGO
         </span>
       );
       case 'Entrada': return (
-        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-warning/10 text-warning border border-warning/20">
+        <span className="inline-flex items-center justify-center px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-warning/10 text-warning border border-warning/20">
           ENTRADA
         </span>
       );
       case 'Pago': return (
-        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-success/10 text-success border border-success/20">
+        <span className="inline-flex items-center justify-center px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-success/10 text-success border border-success/20">
           PAGO
         </span>
       );
       default: return (
-        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-secondary text-secondary-foreground border border-border">
+        <span className="inline-flex items-center justify-center px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border">
           {status.toUpperCase()}
         </span>
       );
@@ -1115,9 +1115,9 @@ export function OSViewModal({
                     <Button
                       onClick={() => setIsEditingStatus(true)}
                       variant="outline"
-                      className="h-8 px-3 rounded-lg border-border bg-background hover:bg-secondary text-foreground font-semibold text-sm gap-1.5 shadow-sm"
+                      className="h-8 px-3 rounded-lg border-border bg-background hover:bg-secondary text-foreground font-bold text-xs uppercase tracking-wider gap-1.5 shadow-sm"
                     >
-                      <Pencil className="w-3.5 h-3.5" /> Alterar status
+                      <Pencil className="w-3.5 h-3.5" /> Editar
                     </Button>
                     <div className="flex flex-col items-end gap-1.5">
                       <div className="flex items-center gap-2">
@@ -1340,7 +1340,7 @@ export function OSViewModal({
                 {/* Bottom Section: Services List */}
                 <div className="border border-border rounded-xl bg-background overflow-hidden shadow-sm">
                   <div className="bg-secondary/30 px-4 py-3 border-b border-border flex justify-between items-center">
-                    <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground dark:text-foreground/80">Serviços</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80">Serviços executados</span>
                     <span className="text-xs font-bold text-foreground/80 bg-secondary/60 px-2 py-0.5 rounded border border-border">
                       {isEditing ? editServices.length : order.services.length} itens
                     </span>
@@ -1415,19 +1415,23 @@ export function OSViewModal({
                       {(() => {
                         // Com 2+ motores, separa os serviços como no relatório: comuns, motor 1, motor 2...
                         const renderService = (s: ServiceItem) => (
-                          <div key={s.id} className="flex justify-between items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary/20 transition-colors">
+                          <div key={s.id} className="flex justify-between items-center gap-3 px-4 py-3 text-sm hover:bg-secondary/20 transition-colors">
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-xs font-semibold text-muted-foreground tabular-nums shrink-0 w-7">{s.quantity || 1}×</span>
                               <span className="font-bold uppercase text-foreground break-words">
                                 {s.id === 'eix-retificar' && s.measure ? `Retificar Eixo — ${s.measure}` : s.name}
                               </span>
+                              {(s.quantity || 1) > 1 && (
+                                <span className="inline-flex items-center h-5 px-1.5 rounded-md bg-secondary border border-border text-[11px] font-bold text-muted-foreground tabular-nums shrink-0">
+                                  ×{s.quantity}
+                                </span>
+                              )}
                               {s.measure && s.id !== 'eix-retificar' && (
                                 <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold uppercase bg-primary/10 text-primary border border-border">
                                   {s.measure}
                                 </span>
                               )}
                             </div>
-                            <span className="font-mono font-bold text-foreground shrink-0 tabular-nums">
+                            <span className="font-mono font-bold text-success shrink-0 tabular-nums">
                               {(s.value * (s.quantity || 1)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                             </span>
                           </div>
@@ -1667,8 +1671,8 @@ export function OSViewModal({
                       {/* ═══ NÃO PAGO ═══ */}
                       {order.paymentStatus === 'Não Pago' && (
                         <div className="space-y-2 text-center py-3">
-                          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 block">SITUAÇÃO</span>
-                          <span className="text-xs font-bold text-danger bg-danger/10 border border-danger/20 px-3 py-1 rounded-full inline-block">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 block">SITUAÇÃO</span>
+                          <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 dark:text-red-400 dark:bg-red-500/10 dark:border-red-500/30 px-3.5 py-1 rounded-full inline-block">
                             AGUARDANDO PAGAMENTO
                           </span>
                         </div>
@@ -1874,10 +1878,10 @@ export function OSViewModal({
                             discount: order.discount || 0,
                             showDiscount: true,
                           })}
-                          className="solid-btn w-full max-w-[240px] h-9 font-bold text-sm gap-1.5 shadow-sm rounded-lg cursor-pointer"
+                          className="w-full max-w-[240px] h-9 font-bold text-xs uppercase tracking-wider gap-1.5 shadow-sm rounded-lg cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white"
                         >
                           <DollarSign className="w-4 h-4 stroke-[2.5]" />
-                          Lançar pagamento
+                          Registrar pagamento
                         </Button>
                       )}
 
@@ -1890,10 +1894,10 @@ export function OSViewModal({
                             setIsGroupModalOpen(true);
                           }}
                           title="Agrupar com outras O.S. deste cliente para pagamento conjunto"
-                          className="w-full max-w-[240px] h-9 font-semibold text-sm gap-1.5 rounded-lg"
+                          className="w-full max-w-[240px] h-9 font-bold text-xs uppercase tracking-wider gap-1.5 rounded-lg border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100 hover:text-violet-800 dark:border-violet-500/40 dark:bg-violet-500/10 dark:text-violet-300"
                         >
                           <Layers className="w-4 h-4 shrink-0" />
-                          <span>Agrupar com outras O.S.</span>
+                          <span className="truncate">Agrupar pagamento conjunto</span>
                         </Button>
                       )}
                     </div>
@@ -1910,35 +1914,35 @@ export function OSViewModal({
                 variant="ghost"
                 size="sm"
                 disabled={isEditingStatus}
-                onClick={async () => {
-                  if (!order) return;
-                  if (groupedPayment) {
-                    setIsDeleteGroupedConfirmOpen(true);
-                  } else if (onDelete) {
-                    onDelete(order.id);
-                  } else {
-                    const ok = await confirmDialog.confirm({
-                      title: `Excluir O.S. #${order.osNumber || order.id}?`,
-                      description: "Esta ação não pode ser desfeita.",
-                    });
-                    if (!ok) return;
-                    deleteOrder(order.id);
-                    onClose();
-                  }
-                }}
-                className="h-9 px-3 rounded-lg text-danger hover:bg-danger/10 gap-2 text-sm font-semibold disabled:opacity-50"
+                onClick={() => setIsPreviewOpen(true)}
+                className="h-9 px-3 rounded-lg text-muted-foreground hover:text-foreground gap-2 text-xs font-bold uppercase tracking-wider disabled:opacity-50"
               >
-                <Trash2 className="w-4 h-4 stroke-[2]" /> Excluir O.S.
+                <Printer className="w-4 h-4 stroke-[2]" /> Imprimir relatório
               </Button>
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
                   disabled={isEditingStatus}
-                  onClick={() => setIsPreviewOpen(true)}
-                  className="h-9 px-3 rounded-lg text-foreground gap-2 text-sm font-semibold disabled:opacity-50"
+                  onClick={async () => {
+                    if (!order) return;
+                    if (groupedPayment) {
+                      setIsDeleteGroupedConfirmOpen(true);
+                    } else if (onDelete) {
+                      onDelete(order.id);
+                    } else {
+                      const ok = await confirmDialog.confirm({
+                        title: `Excluir O.S. #${order.osNumber || order.id}?`,
+                        description: "Esta ação não pode ser desfeita.",
+                      });
+                      if (!ok) return;
+                      deleteOrder(order.id);
+                      onClose();
+                    }
+                  }}
+                  className="h-9 px-3 rounded-lg text-danger hover:bg-danger/10 gap-2 text-xs font-bold uppercase tracking-wider disabled:opacity-50"
                 >
-                  <Printer className="w-4 h-4 stroke-[2]" /> Imprimir
+                  <Trash2 className="w-4 h-4 stroke-[2]" /> Excluir O.S.
                 </Button>
                 {onEdit && (
                   <Button
@@ -1946,7 +1950,7 @@ export function OSViewModal({
                     size="sm"
                     disabled={isEditingStatus}
                     onClick={() => order && onEdit?.(order)}
-                    className="h-9 px-3 rounded-lg border-border bg-background hover:bg-secondary text-foreground gap-2 text-sm font-semibold disabled:opacity-50"
+                    className="h-9 px-3.5 rounded-lg border-border bg-background hover:bg-secondary text-foreground gap-2 text-xs font-bold uppercase tracking-wider disabled:opacity-50"
                   >
                     <Edit className="w-4 h-4 stroke-[2]" /> Editar O.S.
                   </Button>
@@ -1955,7 +1959,7 @@ export function OSViewModal({
                   <Button
                     onClick={handleConcluir}
                     disabled={isEditingStatus}
-                    className="solid-btn h-9 px-4 rounded-lg font-bold text-sm gap-2 shadow-sm disabled:opacity-50"
+                    className="solid-btn h-9 px-4 rounded-lg font-bold text-xs uppercase tracking-wider gap-2 shadow-sm disabled:opacity-50"
                   >
                     <CheckCircle2 className="w-4 h-4 stroke-[2.5]" /> Finalizar O.S.
                   </Button>

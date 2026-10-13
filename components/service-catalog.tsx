@@ -1318,17 +1318,6 @@ export const ServiceCatalog = memo(({
               <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-foreground/80">Serviços na Ordem</h4>
             </div>
 
-            <div className="flex flex-wrap gap-1.5">
-              {selectedServices.map((svc) => (
-                <Badge key={svc.id} variant="secondary" className="h-6 pl-2.5 pr-1 text-xs font-bold uppercase tracking-wider bg-muted dark:bg-foreground/[0.03] text-foreground/60 rounded-lg gap-1.5 border border-border hover:bg-muted-foreground/10 transition-colors">
-                  {svc.name}
-                  <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemoveService(svc.id); }} className="w-4 h-4 flex items-center justify-center rounded hover:bg-danger/10 hover:text-danger transition-colors">
-                    <X className="w-3 h-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-
             <div className="rounded-xl border border-border bg-card overflow-hidden shadow-lg dark:shadow-2xl">
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-left border-collapse table-fixed">

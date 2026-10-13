@@ -409,12 +409,9 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
 
   return (
     <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-3 min-w-0">
-      <div className="flex flex-col gap-3">
-        <div className="min-w-0">
-          <h2 className="text-2xl font-extrabold tracking-tight text-foreground leading-tight">Clientes</h2>
-          <p className="text-sm text-muted-foreground">Cadastro de clientes, mecânicos e histórico de O.S.</p>
-        </div>
-        <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-2xl font-extrabold tracking-tight text-foreground leading-tight min-w-0 truncate">Base de Clientes</h2>
+        <div className="flex items-center justify-end gap-2 shrink-0">
           <span className="h-7 px-2.5 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground flex items-center tabular-nums whitespace-nowrap">{clients.length} Total</span>
           <Dialog open={isModalOpen} onOpenChange={(open) => { setIsModalOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger render={

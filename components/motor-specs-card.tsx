@@ -26,6 +26,7 @@ import {
   Zap,
   CheckCircle2,
   List,
+  SearchX,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { CatalogMotor } from '@/lib/motors';
@@ -114,7 +115,21 @@ const GaugeIcon = ({ className }: { className?: string }) => (
 
 // ═══ Logo da montadora ═══
 
-function BrandLogo({ brand, size = 40, className }: { brand?: string; size?: number; className?: string }) {
+// Distribui os quadros de especificação sem deixar sobra na última linha:
+// 1–3 itens numa linha só, 4 em 2×2, 5+ em linhas de 3 (a última linha se estica).
+// No celular, 2 por linha (um item sozinho ocupa a linha toda).
+const SM_SPAN: Record<number, string> = { 2: 'sm:col-span-2', 3: 'sm:col-span-3', 6: 'sm:col-span-6' };
+function tileSpanClass(index: number, count: number): string {
+  const perRow = count === 4 ? 2 : Math.min(count, 3);
+  const lastRowStart = Math.floor((count - 1) / perRow) * perRow;
+  const inLastRow = index >= lastRowStart;
+  const rowSize = inLastRow ? count - lastRowStart : perRow;
+  const sm = SM_SPAN[6 / rowSize] || 'sm:col-span-2';
+  const mobile = count % 2 === 1 && index === count - 1 ? 'col-span-2' : 'col-span-1';
+  return `${mobile} ${sm}`;
+}
+
+function BrandLogo({ brand, size = 40, fill = 78, className }: { brand?: string; size?: number; fill?: number; className?: string }) {
   const src = getBrandLogoSrc(brand);
   const [failed, setFailed] = useState(false);
   return (
@@ -125,7 +140,7 @@ function BrandLogo({ brand, size = 40, className }: { brand?: string; size?: num
     >
       {src && !failed ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt={brand} className="w-[78%] h-[78%] object-contain" onError={() => setFailed(true)} />
+        <img src={src} alt={brand} style={{ width: `${fill}%`, height: `${fill}%` }} className="object-contain" onError={() => setFailed(true)} />
       ) : (
         <Settings className="w-1/2 h-1/2 text-gray-400" />
       )}
@@ -314,7 +329,7 @@ export function MotorSpecsCard({
   // Listas personalizadas (válvulas / aspiração) guardadas neste computador
   const [customValves, setCustomValves] = useState<string[]>(() => loadCustomList('retifica_custom_valves'));
   const [customAspirations, setCustomAspirations] = useState<string[]>(() => loadCustomList('retifica_custom_aspirations'));
-  const [customTarget, setCustomTarget] = useState<null | 'valves' | 'aspiration' | 'displacement'>(null);
+  const [customTarget, setCustomTarget] = useState<null | 'valves' | 'aspiration' | 'displacement' | 'engineModel' | 'car'>(null);
   const [customValue, setCustomValue] = useState('');
 
   const showForm = !readOnly && (motors.length === 0 || editingIndex !== null || addingAnother);
@@ -349,6 +364,7 @@ export function MotorSpecsCard({
   // ── Busca de motor (autocomplete) ──
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   useClickOutside(searchRef, () => setSearchOpen(false), searchOpen);
   const tokens = form.model.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
@@ -529,10 +545,30 @@ export function MotorSpecsCard({
     setAddingAnother(false);
   };
 
-  // ── Cadastrar opção personalizada (válvulas / aspiração / cilindrada) ──
-  const submitCustom = () => {
+  // ── Cadastrar opção personalizada (válvulas / aspiração / cilindrada / modelo / veículo) ──
+  const submitCustom = async () => {
     const v = customValue.trim();
     if (!v) return;
+    if (customTarget === 'engineModel' || customTarget === 'car') {
+      const val = v.toUpperCase();
+      const key = customTarget === 'engineModel' ? 'engineModel' : 'cars';
+      // Se o motor está no catálogo, o modelo/veículo fica salvo nele para as próximas O.S.
+      if (selectedCatalog) {
+        const engineModels = customTarget === 'engineModel'
+          ? Array.from(new Set([...selectedCatalog.engineModels, val]))
+          : selectedCatalog.engineModels;
+        const cars = customTarget === 'car'
+          ? Array.from(new Set([...selectedCatalog.cars, val]))
+          : selectedCatalog.cars;
+        const brand = selectedCatalog.brand || form.brand || detectBrandFromName(`${selectedCatalog.name} ${cars.join(' ')}`);
+        const ok = await onSaveCatalogMotor({ name: selectedCatalog.name, brand, engineModels, cars }, selectedCatalog.name);
+        if (!ok) return;
+      }
+      set(key, val);
+      setCustomTarget(null);
+      setCustomValue('');
+      return;
+    }
     if (customTarget === 'valves') {
       const val = v.toUpperCase();
       const next = Array.from(new Set([...customValves, val]));
@@ -580,8 +616,35 @@ export function MotorSpecsCard({
           {/* Motor ou Veículo */}
           <FieldCard icon={<Car className="w-4 h-4 text-info" />} label="Motor ou Veículo" htmlFor="motor-spec-search">
             <div ref={searchRef} className="relative">
+              {form.model.trim() && showSpecs ? (() => {
+                const chipBrand = form.brand || detectBrandFromName(`${form.model} ${form.cars || ''}`);
+                const clearMotor = () => {
+                  setForm((f) => ({ ...f, model: '', brand: '' }));
+                  setMotorConfirmed(false);
+                  setTimeout(() => searchInputRef.current?.focus(), 0);
+                };
+                return (
+                  <div className="flex items-center gap-2 h-16 rounded-xl border border-border bg-card pl-2 pr-2">
+                    <div className="flex items-center gap-3 min-w-0 max-w-full h-12 rounded-xl border border-border bg-muted/50 pl-1.5 pr-4">
+                      <BrandLogo brand={chipBrand} size={56} fill={96} className="h-11! border-0 bg-transparent" />
+                      <span className="w-px h-7 bg-border shrink-0" aria-hidden />
+                      <div className="text-sm font-extrabold uppercase tracking-tight text-foreground truncate">{form.model}</div>
+                    </div>
+                    <div className="ml-auto flex items-center gap-1 shrink-0">
+                      <button type="button" title="Limpar" onClick={clearMotor} className="w-8 h-8 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer">
+                        <X className="w-4 h-4" />
+                      </button>
+                      <span className="w-px h-6 bg-border" aria-hidden />
+                      <button type="button" title="Buscar outro motor" onClick={clearMotor} className="w-8 h-8 rounded-md flex items-center justify-center text-info hover:bg-muted cursor-pointer">
+                        <Search className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })() : (
               <div className="relative">
                 <Input
+                  ref={searchInputRef}
                   id="motor-spec-search"
                   value={form.model}
                   autoComplete="off"
@@ -603,6 +666,7 @@ export function MotorSpecsCard({
                   <Search className="w-4 h-4 text-info mr-1.5" />
                 </div>
               </div>
+              )}
 
               {searchOpen && form.model.trim() && (
                 <div className="absolute z-50 left-0 right-0 mt-1.5 rounded-xl border border-border bg-popover shadow-xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-100">
@@ -682,6 +746,18 @@ export function MotorSpecsCard({
             </div>
           </FieldCard>
 
+          {!showSpecs && motors.length === 0 && (
+            <div className="flex flex-col items-center justify-center text-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/20 px-4 py-8 animate-in fade-in-0 duration-150">
+              <div className="w-11 h-11 rounded-xl bg-card border border-border flex items-center justify-center text-muted-foreground shadow-sm">
+                <SearchX className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-foreground">Nenhum motor selecionado</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Busque um motor ou veículo acima, ou use a Lista de Motores, para adicionar à O.S.</p>
+              </div>
+            </div>
+          )}
+
           {!showSpecs && motors.length > 0 && (
             <div className="flex justify-center">
               <Button type="button" variant="outline" onClick={resetForm} className="h-11 px-5 rounded-xl border-border text-sm font-semibold">
@@ -734,7 +810,9 @@ export function MotorSpecsCard({
                   }}
                   options={engineModelOptions}
                   placeholder={engineModelOptions.length ? 'Selecione o modelo...' : 'Sem modelos cadastrados'}
-                  emptyLabel="Cadastre modelos no motor (Cadastrar Motor)"
+                  emptyLabel="Nenhum modelo cadastrado para este motor"
+                  actionLabel="Cadastrar modelo..."
+                  onAction={() => { setCustomTarget('engineModel'); setCustomValue(''); }}
                 />
               </FieldCard>
               <FieldCard icon={<Car className="w-4 h-4 text-info" />} label="Veículos Compatíveis">
@@ -744,7 +822,9 @@ export function MotorSpecsCard({
                   options={carOptions}
                   formatOption={(v) => (v.includes(',') && (selectedCatalog?.cars.length || 0) > 1 && v === selectedCatalog?.cars.join(', ') ? `Todos (${v})` : v)}
                   placeholder={carOptions.length ? 'Selecione o veículo...' : 'Sem veículos cadastrados'}
-                  emptyLabel="Cadastre veículos no motor (Cadastrar Motor)"
+                  emptyLabel="Nenhum veículo cadastrado para este motor"
+                  actionLabel="Cadastrar veículo..."
+                  onAction={() => { setCustomTarget('car'); setCustomValue(''); }}
                 />
               </FieldCard>
               <FieldCard icon={<Zap className="w-4 h-4 text-orange-500" />} label="Aspiração">
@@ -815,13 +895,14 @@ export function MotorSpecsCard({
                       )}
                     </div>
                     {tiles.length > 0 && (
-                      <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
-                        {tiles.map((t) => (
+                      <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
+                        {tiles.map((t, ti) => (
                           <div
                             key={t.key}
                             title={`${t.label}: ${t.value}`}
                             className={cn(
                               'flex items-center gap-2 rounded-lg border px-2.5 py-2 min-w-0',
+                              tileSpanClass(ti, tiles.length),
                               t.orange ? 'bg-orange-50 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/30' : 'bg-muted/40 border-border'
                             )}
                           >
@@ -830,7 +911,7 @@ export function MotorSpecsCard({
                             </span>
                             <div className="min-w-0">
                               <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t.label}</div>
-                              <div className={cn('text-sm font-bold truncate', t.orange ? 'text-orange-600 dark:text-orange-400' : 'text-foreground')}>{t.value}</div>
+                              <div className={cn('text-sm font-bold leading-tight break-words line-clamp-2', t.orange ? 'text-orange-600 dark:text-orange-400' : 'text-foreground')}>{t.value}</div>
                             </div>
                           </div>
                         ))}
@@ -1030,15 +1111,30 @@ export function MotorSpecsCard({
         <DialogContent className="max-w-sm z-[1100] rounded-2xl p-6" overlayClassName="z-[1099]">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
-              {customTarget === 'valves' ? 'Cadastrar quantidade de válvulas' : customTarget === 'aspiration' ? 'Cadastrar tipo de aspiração' : 'Cadastrar cilindrada'}
+              {customTarget === 'valves' ? 'Cadastrar quantidade de válvulas'
+                : customTarget === 'aspiration' ? 'Cadastrar tipo de aspiração'
+                : customTarget === 'engineModel' ? 'Cadastrar modelo do motor'
+                : customTarget === 'car' ? 'Cadastrar veículo compatível'
+                : 'Cadastrar cilindrada'}
             </DialogTitle>
+            {(customTarget === 'engineModel' || customTarget === 'car') && (
+              <DialogDescription>
+                {selectedCatalog
+                  ? <>Fica salvo no motor <strong className="text-foreground">{selectedCatalog.name}</strong> para as próximas O.S.</>
+                  : 'Este motor não está no catálogo: o valor fica só nesta O.S.'}
+              </DialogDescription>
+            )}
           </DialogHeader>
           <Input
             autoFocus
             value={customValue}
             onChange={(e) => setCustomValue(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submitCustom(); } }}
-            placeholder={customTarget === 'valves' ? 'Ex.: 10V, 30V, 32V' : customTarget === 'aspiration' ? 'Ex.: Tri-turbo' : 'Ex.: 1.9'}
+            placeholder={customTarget === 'valves' ? 'Ex.: 10V, 30V, 32V'
+              : customTarget === 'aspiration' ? 'Ex.: Tri-turbo'
+              : customTarget === 'engineModel' ? 'Ex.: EA111 1.6 8V'
+              : customTarget === 'car' ? 'Ex.: GOL, SAVEIRO'
+              : 'Ex.: 1.9'}
             className="h-11 rounded-lg text-sm"
           />
           <DialogFooter className="gap-2 pt-2">

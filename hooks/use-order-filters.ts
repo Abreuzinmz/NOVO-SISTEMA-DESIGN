@@ -335,11 +335,14 @@ export function useOrderFilters({ storageKey, orders, clients, defaultSort }: Us
     }
 
     if (effectiveFilters.partsLeft) {
-      const q = (effectiveFilters.partsLeft || '').toUpperCase();
+      // Multiseleção ("BLOCO;EIXO"): a O.S. entra se tiver qualquer um dos materiais marcados
+      const wanted = new Set(
+        (effectiveFilters.partsLeft || '').split(';').map((x) => x.trim().toUpperCase()).filter(Boolean)
+      );
       result = result.filter((o) =>
         (o.partsLeft || []).some((p) => {
           const name = p.includes('|') ? p.split('|')[0] : p;
-          return name.trim().toUpperCase() === q;
+          return wanted.has(name.trim().toUpperCase());
         })
       );
     }

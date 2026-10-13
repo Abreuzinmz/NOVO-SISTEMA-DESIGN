@@ -64,9 +64,9 @@ import {
 const STATUS_ACCENT: Record<string, string> = {
   'Na Fila': 'border-l-gray-400',
   'Em Andamento': 'border-l-blue-500',
-  'Aguardando Peça': 'border-l-amber-500',
+  'Aguardando Peça': 'border-l-orange-400',
   'Pronto': 'border-l-green-500',
-  'Levou': 'border-l-violet-500',
+  'Levou': 'border-l-red-500',
 };
 
 const motorChip = 'inline-flex items-center h-5 px-1.5 rounded-md bg-gray-100 border border-gray-200 text-[11px] font-semibold text-gray-500 tabular-nums uppercase dark:bg-white/5 dark:border-white/10 dark:text-gray-300';
@@ -141,12 +141,15 @@ const DashboardOrderRow = React.memo(({
 
       {/* Cliente */}
       <div className="min-w-0" title={client?.nickname ? `${client.nickname} (${client.name || ''})` : client?.name}>
-        <div className="font-extrabold text-foreground text-sm uppercase leading-tight line-clamp-2 break-words">
+        <div className="font-extrabold text-foreground text-[13px] uppercase leading-tight line-clamp-2 break-words">
           {client?.nickname || client?.name || 'Cliente removido'}
         </div>
-        <div className="text-[11px] font-semibold uppercase text-muted-foreground truncate mt-0.5 tabular-nums">
-          {[client?.nickname ? client.name : '', client?.phone].filter(Boolean).join(' · ')}
-        </div>
+        {client?.nickname && client?.name && (
+          <div className="text-[11px] font-medium uppercase text-muted-foreground truncate mt-0.5">{client.name}</div>
+        )}
+        {client?.phone && (
+          <div className="text-[11px] font-semibold text-muted-foreground truncate tabular-nums">{client.phone}</div>
+        )}
         {mechanicLabel && (
           <div className="xl:hidden text-xs text-foreground/75 truncate">Mecânico: {mechanicLabel}</div>
         )}
@@ -162,7 +165,7 @@ const DashboardOrderRow = React.memo(({
         {parsedMotors.length > 0 ? (
           parsedMotors.map((pm, idx) => (
             <div key={idx} className="flex flex-wrap items-center gap-1.5 text-sm leading-tight py-0.5">
-              <span className="font-extrabold text-foreground uppercase">{pm.model}</span>
+              <span className="font-extrabold text-foreground text-[13px] uppercase">{pm.model}</span>
               {pm.disp && <span className={motorChip}>{pm.disp}</span>}
               {pm.cylinders && <span className={motorChip}>{pm.cylinders}</span>}
             </div>
@@ -212,10 +215,10 @@ const DashboardOrderRow = React.memo(({
           </SelectContent>
         </Select>
         {order.serviceStatus === 'Levou' && order.deliveryDate && (
-          <span className="text-xs text-muted-foreground tabular-nums">levou em {order.deliveryDate.split('-').reverse().join('/')}</span>
+          <span className="text-[11px] font-semibold text-red-600 dark:text-red-400 tabular-nums">{order.deliveryDate.split('-').reverse().join('/')}</span>
         )}
         {order.statusObservation && (
-          <span className="text-xs text-muted-foreground leading-tight line-clamp-2 break-words">
+          <span className="text-[11px] font-medium uppercase text-muted-foreground leading-tight line-clamp-2 break-words">
             {order.statusObservation}
           </span>
         )}
@@ -416,7 +419,7 @@ export function Dashboard({
               {motorText}
             </td>
             <td className="py-2 px-3 text-sm whitespace-nowrap">{daysAgoLabel(order.arrivalDate || order.createdAt)?.label || '—'}</td>
-            <td className="py-2 px-3"><ServiceStatusBadge status={order.serviceStatus} /></td>
+            <td className="py-2 px-3"><ServiceStatusBadge status={order.serviceStatus} neutral /></td>
             <td className="py-2 px-3">
               {(() => {
                 const group = getGroupedPaymentForOrder(order.id);
@@ -424,7 +427,6 @@ export function Dashboard({
                 return (
                   <div className="flex items-center gap-2 whitespace-nowrap">
                     <PaymentBadge situation={p.situation} grouped={!!group} />
-                    {p.situation !== 'pago' && <span className="text-xs font-semibold text-danger">falta {formatBRL(p.balance)}</span>}
                   </div>
                 );
               })()}
@@ -697,7 +699,7 @@ export function Dashboard({
           {/* ═══ TABLE ═══ */}
           <div className="w-full space-y-3">
             {/* Table Header (Grid matching row cols) */}
-            <div className="hidden md:grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_176px_104px_32px] xl:grid-cols-[88px_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.4fr)_100px_188px_108px_36px] gap-x-3 pl-[25px] pr-4 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+            <div className="hidden md:grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_176px_104px_32px] xl:grid-cols-[88px_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.4fr)_100px_188px_108px_36px] gap-x-3 pl-[25px] pr-4 py-1 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground/70">
               <div>Nº O.S.</div>
               <div>Cliente</div>
               <div className="hidden xl:block">Mec. responsável</div>

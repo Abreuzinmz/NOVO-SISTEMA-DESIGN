@@ -29,6 +29,16 @@ export const MOTOR_BRANDS = [
   'CAT / Caterpillar',
   'John Deere',
   'Yanmar',
+  'Toyama',
+  'Agrale',
+  'Branco',
+  'Tobata',
+  'JCB',
+  'Kia',
+  'Lifan',
+  'MAN',
+  'New Holland',
+  'DAF',
 ];
 
 const BRAND_LOGO_FILES: Record<string, string> = {
@@ -55,9 +65,18 @@ const BRAND_LOGO_FILES: Record<string, string> = {
   'Isuzu': 'isuzu.png',
   'Cummins': 'cummins.png',
   'Perkins': 'perkins.png',
+  'MWM': 'mwm.png',
   'CAT / Caterpillar': 'cat.png',
   'John Deere': 'john-deere.png',
   'Yanmar': 'yanmar.png',
+  'Toyama': 'toyama.png',
+  'Agrale': 'agrale.png',
+  'Branco': 'branco.png',
+  'JCB': 'jcb.png',
+  'Kia': 'kia.png',
+  'New Holland': 'new-holland.png',
+  'MAN': 'man.png',
+  'DAF': 'daf.png',
 };
 
 function findBrandKey(keys: string[], brandName: string): string | undefined {
@@ -80,7 +99,7 @@ export function getBrandLogoSrc(brand?: string): string | null {
 const BRAND_KEYWORDS: Array<[string, string[]]> = [
   ['Volkswagen', ['vw', 'volks', 'volkswagen', 'gol', 'amarok', 'amarock', 'power', 'ap', 'fusca', 'kombi', 'ea111', 'ea211', 'ea888', 'jetta', 'golf', 'saveiro', 'polo', 'fox', 'up', 'msi', 'mi', 'voyage', 'virtus', 'tcross', 't-cross']],
   ['Chevrolet / GM', ['gm', 'chev', 'chevrolet', 'onix', 'celta', 'corsa', 'astra', 's10', 'vectra', 'prisma', 'cruze', 'cruzes', 'tracker', 'spin', 'cobalt', 'montana', 'meriva', 'captiva', 'omega', 'chevett', 'chevette', 'kadet', 'kadett', 'sonic', 'classic', 'family', 'ecotec']],
-  ['Fiat', ['fiat', 'fire', 'fire evo', 'firefly', 'palio', 'uno', 'toro', 'strada', 'argo', 'mobi', 'siena', 'ducato', 'tempra', 'etorq', 'etork', 'sevel', 'fiat flay']],
+  ['Fiat', ['fiat', 'fire', 'fire evo', 'firefly', 'palio', 'uno', 'toro', 'strada', 'argo', 'mobi', 'siena', 'ducato', 'tempra', 'etorq', 'etork', 'etok', 'e torq', 'fiasa', 'sevel', 'fiat flay']],
   ['Ford', ['ford', 'rocam', 'zetec', 'duratec', 'sigma', 'ranger', 'ka', 'ford ka', 'fiesta', 'new fiesta', 'ecosport', 'focus', 'fusion', 'corsel', 'corcel', 'cht', 'transeti', 'transit', 'powerstroque', 'powerstroke']],
   ['Toyota', ['toyota', 'toyata', 'corolla', 'hilux', 'etios', 'yaris', 'sw4']],
   ['Honda', ['honda', 'civic', 'fit', 'hr-v', 'hrv', 'city']],
@@ -96,7 +115,7 @@ const BRAND_KEYWORDS: Array<[string, string[]]> = [
   ['Jeep', ['jeep', 'renegade', 'renegede', 'compass', 'commander', 'cherok', 'cherokee']],
   ['Chery', ['chery', 'cherry', 'tiggo', 'arrizo']],
   ['Volvo', ['volvo']],
-  ['Scania', ['scania']],
+  ['Scania', ['scania', 'ds11']],
   ['Iveco', ['iveco', 'daily']],
   ['Isuzu', ['isuzu', 'd-max']],
   ['Cummins', ['cummins', 'isb', 'isc']],
@@ -104,7 +123,17 @@ const BRAND_KEYWORDS: Array<[string, string[]]> = [
   ['MWM', ['mwm', 'maxxforce']],
   ['CAT / Caterpillar', ['cat', 'caterpillar', 'caterpilhar']],
   ['John Deere', ['john deere', 'jonh dere', 'deere']],
-  ['Yanmar', ['yanmar', 'yamma']],
+  ['Yanmar', ['yanmar', 'yamma', 'b8', 'b9', 'b13', 'ns11', 'ns18', 'ns50', 'ns75', 'ns90']],
+  ['Toyama', ['toyama']],
+  ['Agrale', ['agrale', 'm90']],
+  ['Branco', ['branco']],
+  ['Tobata', ['tobata', 'tobatta']],
+  ['JCB', ['jcb']],
+  ['Kia', ['kia']],
+  ['Lifan', ['lifan']],
+  ['MAN', ['man']],
+  ['New Holland', ['new holland']],
+  ['DAF', ['daf']],
 ];
 
 /** Tenta descobrir a montadora pelo nome do motor/veículo. Vazio se não reconhecer. */

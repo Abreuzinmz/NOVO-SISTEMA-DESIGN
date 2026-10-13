@@ -318,7 +318,8 @@ export const InstallmentsBox: React.FC<InstallmentsBoxProps> = ({
 
 interface PaymentMethodsGridProps {
   selectedMethod: PaymentMethodType | null;
-  onSelectMethod: (method: PaymentMethodType) => void;
+  /** null = desmarcou (clicar de novo na forma já selecionada) */
+  onSelectMethod: (method: PaymentMethodType | null) => void;
   creditoSubtitle?: string;
   is2x2?: boolean;
 }
@@ -344,13 +345,18 @@ export const PaymentMethodsGrid: React.FC<PaymentMethodsGridProps> = ({
           <label
             key={m.key}
             className={`payment-option-rf ${isSelected ? 'selected' : ''}`}
-            onClick={() => onSelectMethod(m.key)}
+            onClick={(e) => { e.preventDefault(); onSelectMethod(isSelected ? null : m.key); }}
+            tabIndex={0}
+            role="radio"
+            aria-checked={isSelected}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectMethod(isSelected ? null : m.key); } }}
           >
             <input
               type="radio"
               name="payment-method-group"
               checked={isSelected}
-              onChange={() => onSelectMethod(m.key)}
+              readOnly
+              tabIndex={-1}
               className="sr-only"
             />
             <div className="option-icon-rf">{m.icon}</div>
@@ -842,8 +848,18 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
   useEffect(() => {
     if (status === 'entrada') {
       const timer = setTimeout(() => {
-        entradaValInputRef.current?.focus();
-        entradaValInputRef.current?.select();
+        const input = entradaValInputRef.current;
+        if (!input) return;
+        // Não rouba o foco de quem está digitando em outro campo da O.S.
+        // (ex.: o preço de um serviço, que pode mudar o status sozinho)
+        const active = document.activeElement as HTMLElement | null;
+        const card = input.closest('.financial-card');
+        const typingElsewhere = !!active && active !== document.body && active !== input &&
+          (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable) &&
+          !(card && card.contains(active));
+        if (typingElsewhere) return;
+        input.focus();
+        input.select();
       }, 60);
       return () => clearTimeout(timer);
     }
@@ -858,7 +874,10 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
 
   const currentTypedVal = parseFloat(entradaVal.replace(/\./g, '').replace(',', '.')) || 0;
   const remainingValue = Math.max(0, totalValue - totalEntriesSum);
-  const dynamicRemainingWithInput = Math.max(0, totalValue - (totalEntriesSum + currentTypedVal));
+  // Ao editar uma entrada, o valor antigo dela sai da soma e entra o valor digitado
+  const editingItemVal = editingIndex !== null ? (Number(entries[editingIndex]?.amount) || 0) : 0;
+  const dynamicRemainingWithInput = Math.max(0, totalValue - (totalEntriesSum - editingItemVal + currentTypedVal));
+  const isTypingEntry = currentTypedVal > 0;
   const is100Quitado = remainingValue <= 0 && entries.length > 0;
   const isEntradaFormLocked = is100Quitado && editingIndex === null;
 
@@ -921,6 +940,18 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
     setEntradaMethod(null);
     setEntradaInstallment('À vista');
     setEntradaClientName('');
+  };
+
+  // "Adicionar nova entrada": limpa o formulário e já coloca o cursor no valor
+  const handleStartNewEntry = () => {
+    handleResetRightForm();
+    setTimeout(() => {
+      const input = entradaValInputRef.current;
+      if (!input) return;
+      input.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      input.focus();
+      input.select();
+    }, 80);
   };
 
   // Add / Save Entry Handler
@@ -1259,7 +1290,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                           <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
                         </div>
                         <span className="text-xs text-muted-foreground flex-1 min-w-0">Valor total pago</span>
-                        <span className="text-sm font-bold font-mono text-foreground shrink-0">{formatBRL(totalValue)}</span>
+                        <span className="text-sm font-bold font-mono text-foreground shrink-0">{formatBRL(totalEntriesSum > 0 ? totalEntriesSum : totalValue)}</span>
                       </div>
                       <div className="flex items-center gap-2.5 py-2.5">
                         <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center shrink-0">
@@ -1374,7 +1405,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                 {!is100Quitado && (
                   <div
                     className="add-entry-card-dashed-rf"
-                    onClick={() => handleResetRightForm()}
+                    onClick={handleStartNewEntry}
                   >
                     <span className="add-entry-text-rf">ADICIONAR NOVA ENTRADA</span>
                     <div className="add-entry-plus-rf">+</div>
@@ -1389,8 +1420,8 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                       onClick={handleSwitchToFinalizeMode}
                       title="Clique para preencher o saldo restante no formulário"
                     >
-                      <span>VALOR RESTANTE</span>
-                      <strong className="orange-text-rf font-mono">{formatBRL(remainingValue)}</strong>
+                      <span>{isTypingEntry ? 'RESTANTE APÓS ESTA ENTRADA' : 'VALOR RESTANTE'}</span>
+                      <strong className="orange-text-rf font-mono tabular-nums">{formatBRL(isTypingEntry ? dynamicRemainingWithInput : remainingValue)}</strong>
                     </div>
 
                     <button
@@ -1426,7 +1457,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                       <span className="text-muted-foreground font-extrabold mr-0.5">$</span>{' '}
                       {isFinalizeMode ? 'VALOR RESTANTE' : editingIndex !== null ? 'EDITAR ENTRADA' : 'VALOR DA ENTRADA'}
                     </label>
-                    <div className="flex items-center gap-1.5 h-[42px] px-3.5 rounded-xl border border-border bg-card focus-within:border-success focus-within:ring-2 focus-within:ring-success/20 transition-all">
+                    <div className="flex items-center gap-1.5 h-[42px] px-3.5 rounded-xl border border-border bg-card focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-500/20 transition-all">
                       <span className="text-xs font-bold text-muted-foreground shrink-0">R$</span>
                       <input
                         ref={entradaValInputRef}
@@ -1485,7 +1516,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                         value={entradaClientName}
                         onChange={e => setEntradaClientName(e.target.value.toUpperCase())}
                         placeholder="Nome de quem pagou"
-                        className="h-[38px] px-3 rounded-xl border border-border bg-card text-xs font-semibold uppercase placeholder:normal-case outline-none focus:border-success focus:ring-2 focus:ring-success/20 transition-all"
+                        className="h-[38px] px-3 rounded-xl border border-border bg-card text-xs font-semibold uppercase placeholder:normal-case outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
                       />
                     </div>
 
@@ -1535,10 +1566,11 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                     </button>
                   );
 
-                  if (editingIndex !== null) {
+                  // Cancelar sempre disponível: limpa o formulário (e sai da edição/finalização)
+                  {
                     return (
-                      <div className="flex gap-2">
-                        <div className="w-[120px] shrink-0">
+                      <div className="grid grid-cols-2 gap-2 items-stretch [&_button]:!h-[44px] [&_button]:!m-0 [&_button]:!text-xs">
+                        <div className="min-w-0">
                           <button
                             type="button"
                             disabled={isSaving}
@@ -1548,12 +1580,10 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                             <X size={16} /> CANCELAR
                           </button>
                         </div>
-                        <div className="flex-1">{submitButton}</div>
+                        <div className="min-w-0">{submitButton}</div>
                       </div>
                     );
                   }
-
-                  return submitButton;
                 })()}
                 </>
                 )}

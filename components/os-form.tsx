@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore, ServiceItem, Order, ServiceStatus, PaymentStatus, PaymentMethod, Client } from '@/lib/store';
-import { ResumoFinanceiro, PagoConfirmationData, PaymentEntryItem, PaymentStatusType } from './resumo-financeiro';
+import { ResumoFinanceiro, PagoConfirmationData, PaymentEntryItem, PaymentStatusType, formatBRL } from './resumo-financeiro';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,7 +54,9 @@ import {
   Copy,
   ExternalLink,
   UserX,
-  RotateCcw
+  RotateCcw,
+  Eye,
+  ChevronDown
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -1776,6 +1778,9 @@ function OSFormImpl({
     }
   }, [clientId, clients, order]);
 
+  // Perfil (somente visualização) de cliente/mecânico vinculado
+  const [profileClient, setProfileClient] = useState<Client | null>(null);
+
   const openEditClientModalFor = (found: Client) => {
     setTargetEditingClientId(found.id);
     setEditClientName(found.name || '');
@@ -2138,6 +2143,22 @@ function OSFormImpl({
   const sumOfEntries = entries.reduce((acc, entry) => acc + (parseFloat(entry.amount.toString()) || 0), 0);
   const balanceValue = paymentStatus === 'Pago' ? 0 : (paymentStatus === 'Entrada' ? Math.max(0, netValue - sumOfEntries) : netValue);
 
+  // O.S. já paga que ganhou serviço (ou perdeu desconto): o que foi pago vira entrada
+  // e o saldo novo fica em aberto. Se o total voltar a ficar coberto, volta para "Pago".
+  // Espera o usuário parar de digitar o valor do serviço antes de trocar o status.
+  useEffect(() => {
+    if (entries.length === 0 || netValue <= 0) return;
+    const timer = setTimeout(() => {
+      if (paymentStatus === 'Pago' && sumOfEntries < netValue - 0.009) {
+        setPaymentStatus('Entrada');
+        toast.info(`O valor da O.S. aumentou: o pagamento de ${formatBRL(sumOfEntries)} virou entrada. Falta ${formatBRL(netValue - sumOfEntries)}.`);
+      } else if (paymentStatus === 'Entrada' && sumOfEntries >= netValue - 0.009) {
+        setPaymentStatus('Pago');
+      }
+    }, 900);
+    return () => clearTimeout(timer);
+  }, [netValue, sumOfEntries, entries.length, paymentStatus]);
+
   const handleConfirmPago = (data: PagoConfirmationData) => {
     setPaymentStatus('Pago');
     const existing = entries[0];
@@ -2344,6 +2365,8 @@ function OSFormImpl({
 
   const [availableAdditionalParts, setAvailableAdditionalParts] = useState(initialAdditionalParts);
   const [partsModal, setPartsModal] = useState<PartsKind | null>(null);
+  // Peças adicionais ficam recolhidas; abrem sozinhas se a O.S. já tiver alguma
+  const [showAdditionalParts, setShowAdditionalParts] = useState(() => (order?.additionalParts?.length || 0) > 0);
 
   const handleAddAdditionalParts = (names: string[]) => {
     const list = names.map(n => n.trim().toUpperCase()).filter(Boolean);
@@ -2675,7 +2698,7 @@ function OSFormImpl({
                         serviceStatus === 'Em Andamento' && "bg-blue-500 ring-blue-300 dark:ring-blue-600",
                         serviceStatus === 'Aguardando Peça' && "bg-amber-500 ring-amber-300 dark:ring-amber-600",
                         serviceStatus === 'Pronto' && "bg-green-500 ring-green-300 dark:ring-green-600",
-                        serviceStatus === 'Levou' && "bg-violet-500 ring-violet-300 dark:ring-violet-600"
+                        serviceStatus === 'Levou' && "bg-red-500 ring-red-300 dark:ring-red-600"
                       )} />
                       <SelectValue className="font-semibold text-sm text-foreground" />
                     </div>
@@ -2686,7 +2709,7 @@ function OSFormImpl({
                       ['Em Andamento', 'bg-blue-500'],
                       ['Aguardando Peça', 'bg-amber-500'],
                       ['Pronto', 'bg-green-500'],
-                      ['Levou', 'bg-violet-500'],
+                      ['Levou', 'bg-red-500'],
                     ] as const).map(([value, dot]) => (
                       <SelectItem key={value} value={value} className="rounded-lg py-2 pl-3 pr-8 focus:bg-muted cursor-pointer transition-colors group">
                         <div className="flex items-center gap-2">
@@ -2728,7 +2751,6 @@ function OSFormImpl({
               </div>
             </div>
           </div>
-
           {/* SEÇÃO 2: INFORMAÇÕES DO CLIENTE */}
           <div className="financial-card os-card-rf space-y-5">
             {/* Cabeçalho */}
@@ -3080,7 +3102,7 @@ function OSFormImpl({
                         {/* 1. CPF / CNPJ */}
                         <div className={infoTile}>
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className={infoIcon}><CreditCard className="w-4 h-4 stroke-[2]" /></div>
+                            <div className={infoIcon}><FileText className="w-4 h-4 stroke-[2]" /></div>
                             <div className="flex flex-col min-w-0">
                               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{docLabel}</span>
                               <span className={value(!!selectedClient?.document)}>
@@ -3189,9 +3211,12 @@ function OSFormImpl({
                                 <span className="text-[11px] font-medium text-muted-foreground truncate">
                                   Apelido: {mechanic.nickname || 'Não informado'}
                                 </span>
-                                <strong className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight truncate mt-0.5">
-                                  {mechanic.name}
-                                </strong>
+                                <div className="flex items-baseline gap-1.5 min-w-0 mt-0.5">
+                                  <span className="text-[11px] font-medium text-muted-foreground shrink-0">Nome:</span>
+                                  <strong className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight truncate">
+                                    {mechanic.name}
+                                  </strong>
+                                </div>
                                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground font-medium">
                                   {mechanic.document && (
                                     <div className="flex items-center gap-1.5 font-mono text-xs">
@@ -3220,16 +3245,16 @@ function OSFormImpl({
                               </div>
                             </div>
 
-                            {!readOnly && (
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                <button
-                                  type="button"
-                                  onClick={() => openEditClientModalFor(mechanic)}
-                                  className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                                  title="Ver / editar cadastro do mecânico"
-                                >
-                                  <Pencil className="w-4 h-4" />
-                                </button>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => setProfileClient(mechanic)}
+                                className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                                title="Visualizar perfil do mecânico"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              {!readOnly && (
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -3241,8 +3266,8 @@ function OSFormImpl({
                                 >
                                   <X className="w-4 h-4 stroke-[2.2]" />
                                 </button>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
                         </div>
                       );
@@ -3355,7 +3380,7 @@ function OSFormImpl({
                                         </div>
                                       )}
                                     </div>
-                                    <span className="text-[10px] font-bold tracking-wider bg-muted text-foreground/80 border border-border rounded-lg px-2 py-0.5 uppercase shrink-0">
+                                    <span className="text-[10px] font-bold tracking-wider bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/30 rounded-lg px-2 py-0.5 uppercase shrink-0">
                                       MECÂNICO
                                     </span>
                                   </button>
@@ -3447,8 +3472,8 @@ function OSFormImpl({
               )}
             </div>
 
-            <div className="space-y-4 pt-1">
-              <div className="space-y-5">
+            <div className="pt-1">
+              <div className="grid grid-cols-1 gap-4">
                 {([
                   {
                     key: 'left',
@@ -3462,6 +3487,8 @@ function OSFormImpl({
                     modalKind: 'material' as PartsKind,
                     moreLabel: 'Mais material',
                     idPrefix: 'material',
+                    subtitle: 'Selecione os componentes do motor que foram deixados na oficina.',
+                    Icon: Package,
                   },
                   {
                     key: 'additional',
@@ -3475,35 +3502,56 @@ function OSFormImpl({
                     modalKind: 'peca' as PartsKind,
                     moreLabel: 'Mais peças',
                     idPrefix: 'additional',
+                    subtitle: 'Selecione as peças adicionais que serão utilizadas no serviço.',
+                    Icon: Settings,
                   },
                 ]).map((group) => (
-                  <div key={group.key} className={cn("space-y-3", group.key === 'additional' && "pt-5 border-t border-dashed border-border")}>
-                    <div className="flex flex-wrap items-center gap-x-8 gap-y-2 min-h-[36px]">
-                      <div className="flex items-center gap-2">
-                        <Label className="text-sm font-extrabold uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                          {group.label}
-                        </Label>
-                        {group.selected.length > 0 && (
-                          <span className="text-[10px] font-bold text-muted-foreground">
-                            ({group.selected.length})
-                          </span>
-                        )}
+                  <div key={group.key} className="rounded-2xl border border-border bg-muted/20 dark:bg-white/[0.02] p-3.5 space-y-3">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-xl bg-blue-50 text-slate-800 dark:bg-blue-500/10 dark:text-blue-200 flex items-center justify-center shrink-0">
+                          <group.Icon className="w-[18px] h-[18px] stroke-[1.75]" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-extrabold uppercase tracking-tight text-foreground">{group.label}</span>
+                            {group.selected.length > 0 && (
+                              <span className="h-5 px-2 rounded-full bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30 text-[11px] font-bold flex items-center tabular-nums">
+                                {group.selected.length}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">{group.subtitle}</p>
+                        </div>
                       </div>
 
                       {group.key === 'left' && !readOnly && (
                         <button
                           type="button"
                           onClick={handleSelectCompleteMotor}
-                          className="h-9 px-4 rounded-xl text-xs font-bold uppercase tracking-wider text-foreground/80 bg-muted hover:bg-accent border border-border flex items-center gap-2 transition-all cursor-pointer shadow-2xs"
+                          className="h-8 px-3 rounded-lg text-[11px] font-bold uppercase tracking-wider shrink-0 text-foreground/80 bg-muted hover:bg-accent border border-border flex items-center gap-2 transition-all cursor-pointer shadow-2xs"
                           title="Marcar Bloco, Cabeçote, Eixo e Pistões"
                         >
                           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                           <span>MOTOR COMPLETO</span>
                         </button>
                       )}
+
+                      {group.key === 'additional' && (
+                        <button
+                          type="button"
+                          onClick={() => setShowAdditionalParts(v => !v)}
+                          aria-expanded={showAdditionalParts}
+                          className="h-8 px-3 rounded-lg text-[11px] font-bold uppercase tracking-wider shrink-0 text-foreground/80 bg-card hover:bg-muted border border-border flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                        >
+                          {showAdditionalParts ? 'Ocultar' : 'Mostrar'}
+                          <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showAdditionalParts && "rotate-180")} />
+                        </button>
+                      )}
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {(group.key !== 'additional' || showAdditionalParts) && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                       {group.available.map(part => {
                         const normalizedPart = part.toUpperCase();
                         const entry = group.selected.find(p => p === normalizedPart || p.startsWith(normalizedPart + '|'));
@@ -3533,90 +3581,96 @@ function OSFormImpl({
                           <div
                             key={part}
                             onClick={togglePart}
+                            role="checkbox"
+                            aria-checked={isChecked}
                             className={cn(
-                              "@container/part group relative flex items-center justify-between min-h-[64px] px-3 @[220px]/part:px-3.5 py-2 rounded-xl border transition-all cursor-pointer select-none",
+                              "group relative flex flex-col items-center justify-between gap-1.5 min-h-[124px] px-3 pt-2.5 pb-2.5 rounded-xl border transition-all cursor-pointer select-none",
                               isChecked
-                                ? "bg-foreground/[0.04] border-foreground/30 shadow-2xs"
-                                : "bg-card border-border hover:border-foreground/20 hover:bg-muted/50"
+                                ? "bg-blue-50/70 border-blue-400 ring-1 ring-blue-400/30 dark:bg-blue-500/10 dark:border-blue-400/60"
+                                : "bg-card border-border hover:border-blue-300 hover:shadow-sm dark:hover:border-blue-400/40"
                             )}
                           >
-                            <div className="flex items-center gap-2.5 @[220px]/part:gap-3 min-w-0 flex-1 pr-1">
-                              <Checkbox
-                                id={partId}
-                                checked={isChecked}
-                                onCheckedChange={togglePart}
-                                className="w-5 h-5 rounded-full border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground transition-colors"
-                                disabled={readOnly}
-                              />
-                              <div className="w-10 h-9 @[220px]/part:w-12 @[220px]/part:h-10 shrink-0 flex items-center justify-center">
-                                {partImage && (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={partImage} alt="" draggable={false} className="max-w-full max-h-full object-contain drop-shadow-sm" />
-                                )}
-                              </div>
-                              <div className="flex flex-col items-start gap-1 min-w-0">
-                                <span className={cn(
-                                  "text-xs @[220px]/part:text-sm font-bold uppercase tracking-tight leading-snug transition-colors",
-                                  isChecked ? "text-foreground" : "text-muted-foreground"
-                                )}>
-                                  {part}
-                                </span>
-                                {isChecked && (
-                                  <div
-                                    className="flex items-center gap-0.5 shrink-0 bg-card rounded-lg p-0.5 border border-border shadow-2xs"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <button
-                                      type="button"
-                                      onClick={(e) => { e.stopPropagation(); setQty(qty - 1); }}
-                                      className="w-5 h-5 flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                      disabled={qty <= 1 || readOnly}
-                                      title="Diminuir"
-                                    >
-                                      <Minus className="w-2.5 h-2.5 stroke-[2.5]" />
-                                    </button>
-                                    <span className="min-w-[15px] text-center text-xs font-black font-mono text-foreground">
-                                      {qty}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={(e) => { e.stopPropagation(); setQty(qty + 1); }}
-                                      className="w-5 h-5 flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                      disabled={readOnly}
-                                      title="Aumentar"
-                                    >
-                                      <Plus className="w-2.5 h-2.5 stroke-[2.5]" />
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            {!isChecked && (
-                              !group.defaults.includes(part) && !readOnly && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); group.onRemoveAvailable(part); }}
-                                  className="text-muted-foreground hover:text-danger p-1 rounded-lg hover:bg-danger/10 transition-all shrink-0 opacity-70 group-hover:opacity-100"
-                                  title="Remover da lista"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              )
+                            {/* marcador redondo no canto */}
+                            <span
+                              id={partId}
+                              className={cn(
+                                "absolute top-2 right-2 w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center transition-colors",
+                                isChecked ? "border-blue-500 bg-card" : "border-border bg-card"
+                              )}
+                            >
+                              {isChecked && <span className="w-2 h-2 rounded-full bg-blue-500" />}
+                            </span>
+
+                            {!isChecked && !group.defaults.includes(part) && !readOnly && (
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); group.onRemoveAvailable(part); }}
+                                className="absolute top-2 left-2 text-muted-foreground hover:text-danger p-1 rounded-lg hover:bg-danger/10 transition-all opacity-0 group-hover:opacity-100"
+                                title="Remover da lista"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             )}
+
+                            <div className="w-full h-[72px] flex items-center justify-center px-4">
+                              {partImage ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={partImage} alt="" draggable={false} className="max-w-full max-h-full object-contain drop-shadow-md transition-transform duration-200 group-hover:scale-[1.03]" />
+                              ) : (
+                                <Package className="w-10 h-10 text-muted-foreground/40" />
+                              )}
+                            </div>
+
+                            <div className="flex flex-col items-center gap-1.5 w-full">
+                              <span className={cn(
+                                "text-xs font-extrabold uppercase tracking-tight leading-tight text-center transition-colors",
+                                isChecked ? "text-blue-900 dark:text-blue-100" : "text-slate-800 dark:text-foreground/85"
+                              )}>
+                                {part}
+                              </span>
+                              {isChecked && (
+                                <div
+                                  className="flex items-center gap-0.5 shrink-0 bg-card rounded-lg p-0.5 border border-border shadow-2xs"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setQty(qty - 1); }}
+                                    className="w-6 h-6 flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                    disabled={qty <= 1 || readOnly}
+                                    title="Diminuir"
+                                  >
+                                    <Minus className="w-3 h-3 stroke-[2.5]" />
+                                  </button>
+                                  <span className="min-w-[18px] text-center text-xs font-black font-mono text-foreground">
+                                    {qty}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setQty(qty + 1); }}
+                                    className="w-6 h-6 flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                    disabled={readOnly}
+                                    title="Aumentar"
+                                  >
+                                    <Plus className="w-3 h-3 stroke-[2.5]" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
+                      {!readOnly && (
+                        <button
+                          type="button"
+                          onClick={() => setPartsModal(group.modalKind)}
+                          className="min-h-[124px] rounded-xl border border-dashed border-foreground/25 bg-card/60 hover:bg-muted hover:border-foreground/40 text-foreground/70 hover:text-foreground flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer"
+                        >
+                          <span className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><Plus className="w-4 h-4 stroke-[2.5]" /></span>
+                          <span className="text-xs font-bold">{group.moreLabel}</span>
+                        </button>
+                      )}
                     </div>
-
-                    {!readOnly && (
-                      <button
-                        type="button"
-                        onClick={() => setPartsModal(group.modalKind)}
-                        className="h-10 px-4 rounded-xl text-sm font-bold text-foreground/80 bg-card hover:bg-muted border border-dashed border-foreground/25 hover:border-foreground/40 flex items-center gap-2 transition-all cursor-pointer"
-                      >
-                        <Plus className="w-4 h-4 stroke-[2.5]" />
-                        <span>{group.moreLabel}</span>
-                      </button>
                     )}
                   </div>
                 ))}
@@ -4085,6 +4139,98 @@ function OSFormImpl({
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Modal: Perfil do mecânico (visualização) */}
+      <Dialog open={!!profileClient} onOpenChange={(open) => { if (!open) setProfileClient(null); }}>
+        <DialogContent className="sm:max-w-[460px] rounded-2xl bg-popover border-border p-0 gap-0 overflow-hidden">
+          {profileClient && (() => {
+            const pc = clients.find(c => c.id === profileClient.id) || profileClient;
+            const isMech = pc.clientType === 'mechanic';
+            const related = orders.filter(o => o.mechanicId === pc.id || o.clientId === pc.id);
+            const openCount = related.filter(o => !o.finished).length;
+            const docDigits = normalizeNumber(pc.document || '');
+            const rows: { icon: React.ElementType; label: string; value?: string }[] = [
+              { icon: FileText, label: docDigits.length > 11 ? 'CNPJ' : 'CPF', value: pc.document ? maskCPFCNPJ(pc.document) : '' },
+              { icon: Phone, label: 'Telefone 1', value: pc.phone ? maskPhone(pc.phone) : '' },
+              { icon: Smartphone, label: 'Telefone 2', value: pc.phone2 ? maskPhone(pc.phone2) : '' },
+              { icon: MessageCircle, label: 'WhatsApp', value: pc.whatsapp ? maskPhone(pc.whatsapp) : '' },
+              { icon: MapPin, label: 'Cidade', value: pc.city || '' },
+            ];
+            return (
+              <>
+                <div className="flex items-center gap-3.5 p-5 border-b border-border">
+                  <div className="w-12 h-12 rounded-xl bg-slate-800 text-white flex items-center justify-center shrink-0 shadow-sm">
+                    {isMech ? <Wrench className="w-5 h-5 stroke-[2]" /> : <User className="w-5 h-5 stroke-[2]" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <DialogTitle className="sr-only">Perfil de {pc.name}</DialogTitle>
+                    <p className="text-[11px] font-medium text-muted-foreground truncate">Apelido: {pc.nickname || 'Não informado'}</p>
+                    <div className="flex items-center gap-2 min-w-0 mt-0.5">
+                      <strong className="text-base font-black text-foreground uppercase tracking-tight truncate">{pc.name}</strong>
+                      {isMech ? (
+                        <span className="text-[10px] font-bold tracking-wider bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/30 rounded-lg px-2 py-0.5 uppercase shrink-0">MECÂNICO</span>
+                      ) : (
+                        <span className="text-[10px] font-bold tracking-wider bg-muted text-muted-foreground border border-border rounded-lg px-2 py-0.5 uppercase shrink-0">CLIENTE</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-5 space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-xl border border-border bg-card px-3.5 py-3">
+                      <p className="text-xs text-muted-foreground">Total de O.S.</p>
+                      <p className="text-lg font-extrabold text-foreground tabular-nums">{related.length}</p>
+                    </div>
+                    <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 px-3.5 py-3">
+                      <p className="text-xs text-muted-foreground">O.S. abertas</p>
+                      <p className="text-lg font-extrabold text-orange-500 tabular-nums">{openCount}</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-border divide-y divide-border">
+                    {rows.map(({ icon: Icon, label, value }) => (
+                      <div key={label} className="flex items-center gap-3 px-3.5 py-2.5">
+                        <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground w-24 shrink-0">{label}</span>
+                        <span className={cn('text-sm truncate', value ? 'font-semibold text-foreground font-mono' : 'text-muted-foreground/60 italic')}>
+                          {value || 'Não informado'}
+                        </span>
+                        {label === 'WhatsApp' && (pc.whatsapp || pc.phone) && value && (
+                          <a
+                            href={getWhatsAppUrl(pc.whatsapp || pc.phone, pc.nickname || pc.name, osNumber)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-auto w-6 h-6 rounded-md bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0"
+                            title="Abrir WhatsApp"
+                          >
+                            <WhatsAppIcon className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 px-5 py-3.5 border-t border-border bg-muted/30">
+                  <Button type="button" variant="outline" onClick={() => setProfileClient(null)} className="h-9 rounded-xl">
+                    Fechar
+                  </Button>
+                  {!readOnly && (
+                    <Button
+                      type="button"
+                      onClick={() => { setProfileClient(null); openEditClientModalFor(pc); }}
+                      className="solid-btn h-9 rounded-xl gap-1.5 font-semibold"
+                    >
+                      <Pencil className="w-4 h-4" /> Editar cadastro
+                    </Button>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
 
       {/* Modal: Editar Cliente / Mecânico (mesmo formulário da tela Clientes) */}
       {!readOnly && (

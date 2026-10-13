@@ -129,7 +129,7 @@
     --danger-foreground: #FFFFFF;
     --info: #0EA5E9;
     --info-foreground: #FFFFFF;
-    --levou: #7C3AED;
+    --levou: #DC2626;
     --placeholder: #6B7280;
 }
 
@@ -201,7 +201,7 @@
     --danger-foreground: #111111;
     --info: #38BDF8;
     --info-foreground: #111111;
-    --levou: #A78BFA;
+    --levou: #F87171;
     --placeholder: #71717A;
 }
 
@@ -1933,14 +1933,16 @@ input[type="number"] {
 }
 
 .btn-add-entrada-action-rf:hover {
-  background: #0f172a;
+  background: #f97316;
+  border-color: #f97316;
   color: #ffffff;
   transform: translateY(-1px);
 }
 
 .dark .btn-add-entrada-action-rf:hover {
-  background: #e4e4e7;
-  color: #0f172a;
+  background: #f97316;
+  border-color: #f97316;
+  color: #ffffff;
 }
 
 .pago-confirmed-container-rf {

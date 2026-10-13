@@ -195,6 +195,8 @@ export function History() {
             partsLeft={allPartsLeft}
             sort={sort}
             onSortChange={setSort}
+            showServiceStatus={false}
+            inlineFilters={true}
             showServiceType={true}
             showValues={true}
             showSearch={true}

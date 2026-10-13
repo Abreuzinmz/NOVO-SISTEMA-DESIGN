@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { runMotorsMigration } from '@/lib/motors';
+import { runMotorCatalogCleanup } from '@/lib/motor-catalog-cleanup';
 import { getLocalDateString, getOrderNetValue } from './utils';
 
 
@@ -463,7 +464,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Garante motores/modelos padrão no primeiro uso e migra motores para modelos
-      runMotorsMigration().catch(err => console.error('Motors migration on startup failed:', err));
+      await runMotorsMigration().catch(err => console.error('Motors migration on startup failed:', err));
+      // Corrige nomes/duplicados do catálogo de motores e preenche as marcas
+      await runMotorCatalogCleanup(db);
 
       try {
         const sqliteClients = await db.dbQuery("SELECT * FROM clientes");
