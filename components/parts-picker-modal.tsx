@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { searchFieldClass, searchFieldIconClass } from '@/lib/search-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -23,7 +24,7 @@ const CONFIG: Record<PartsKind, { storageKey: string; builtIn: string[]; title: 
   },
   peca: {
     storageKey: 'retifica_catalogo_pecas',
-    builtIn: ['SENSOR'],
+    builtIn: ['SENSOR', 'TUCHOS', 'TAMPA DE ÓLEO', 'CÁRTER', 'BALANCIM', 'PARAFUSOS'],
     title: 'Mais peças',
     description: 'Selecione peças cadastradas ou cadastre uma nova',
     newPlaceholder: 'Nome da peça',
@@ -154,12 +155,12 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, onConfirm }
         {/* Busca */}
         <div className="px-6 pb-4 border-b border-border">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Search className={searchFieldIconClass} />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar..."
-              className="h-11 pl-11 pr-4 rounded-xl text-sm bg-card"
+              className={searchFieldClass}
             />
           </div>
         </div>
@@ -181,7 +182,7 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, onConfirm }
                   onClick={() => !already && togglePick(name)}
                   onKeyDown={(e) => { if (!already && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); togglePick(name); } }}
                   className={cn(
-                    'group relative flex items-center gap-3 min-h-[64px] px-4 py-2 rounded-xl border transition-all select-none outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                    'group relative flex items-center gap-3 min-h-[76px] px-4 py-2 rounded-xl border transition-all select-none outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
                     already
                       ? 'bg-muted/40 border-border opacity-60 cursor-not-allowed'
                       : isPicked
@@ -198,7 +199,7 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, onConfirm }
                     {(isPicked || already) && <Check className="w-3 h-3 stroke-[3]" />}
                   </span>
                   {image && (
-                    <div className="w-12 h-10 shrink-0 flex items-center justify-center">
+                    <div className="w-20 h-14 shrink-0 flex items-center justify-center">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={image} alt="" draggable={false} className="max-w-full max-h-full object-contain drop-shadow-sm" />
                     </div>
@@ -223,7 +224,7 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, onConfirm }
 
             {/* Cadastrar novo */}
             {adding ? (
-              <div className="flex items-center gap-2 min-h-[64px] px-2 py-1.5 rounded-xl border-2 border-dashed border-foreground/30 bg-muted/30">
+              <div className="flex items-center gap-2 min-h-[76px] px-2 py-1.5 rounded-xl border-2 border-dashed border-foreground/30 bg-muted/30">
                 <Input
                   ref={newInputRef}
                   value={newName}
@@ -246,7 +247,7 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, onConfirm }
               <button
                 type="button"
                 onClick={startAdding}
-                className="flex items-center justify-center gap-2 min-h-[64px] px-4 rounded-xl border-2 border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-muted/30 transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-2 min-h-[76px] px-4 rounded-xl border-2 border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-muted/30 transition-colors cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-[0.1em]">Cadastrar novo</span>

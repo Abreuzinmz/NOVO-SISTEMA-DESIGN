@@ -20,6 +20,14 @@ const PART_IMAGES: Record<string, string> = {
   'JETCOOLER': '/parts/jetcooler.webp',
   'COMANDO DE VALVULA': '/parts/comando.webp',
   'SENSOR': '/parts/sensor.webp',
+  'TUCHOS': '/parts/tuchos.webp',
+  'TUCHO': '/parts/tuchos.webp',
+  'TAMPA DE OLEO': '/parts/tampa-oleo.webp',
+  'CARTER': '/parts/carter.webp',
+  'BALANCIM': '/parts/balancim.webp',
+  'BALANCINS': '/parts/balancim.webp',
+  'PARAFUSOS': '/parts/parafusos.webp',
+  'PARAFUSO': '/parts/parafusos.webp',
 };
 
 export function getPartImage(name: string): string | undefined {
