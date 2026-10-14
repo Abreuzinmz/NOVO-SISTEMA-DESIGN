@@ -56,7 +56,9 @@ import {
   UserX,
   RotateCcw,
   Eye,
-  ChevronDown
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -86,6 +88,7 @@ import { cn, formatMotorDisplay, getLocalDateString } from '@/lib/utils';
 import { fetchMotors, fetchModels, addMotor as addMotorToDb, addModel as addModelToDb, deleteMotor as deleteMotorFromDb, deleteModel as deleteModelFromDb, updateModel as updateModelInDb, fetchMotorCatalog, saveCatalogMotor, type CatalogMotor } from '@/lib/motors';
 import { PartsPickerModal, type PartsKind } from '@/components/parts-picker-modal';
 import { getPartImage } from '@/lib/part-images';
+import { useOsFormMode } from '@/lib/os-form-mode';
 import { searchFieldClass, searchFieldIconClass } from '@/lib/search-field';
 import { MotorSpecsCard } from '@/components/motor-specs-card';
 import { PrintPreviewModal } from './print-preview-modal';
@@ -121,6 +124,13 @@ const getInitials = (name?: string): string => {
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
+
+// Etapas da Nova O.S.
+const OS_STEPS: { title: string; subtitle: string; icon: React.ElementType }[] = [
+  { title: 'Detalhes e Cliente', subtitle: 'Dados da O.S. e informações do cliente', icon: User },
+  { title: 'Materiais e Motor', subtitle: 'Materiais, peças e especificações do motor', icon: Package },
+  { title: 'Serviços e Pagamento', subtitle: 'Catálogo de serviços, resumo financeiro e observações', icon: Wrench },
+];
 
 const formatCurrencyInputDisplay = (value: any): string => {
   if (value === '' || value === null || value === undefined) return '';
@@ -192,6 +202,25 @@ function OSFormImpl({
   // Form State
   const [osNumber, setOsNumber] = useState(order?.id?.toString() || '');
   const [clientId, setClientId] = useState(order?.clientId || initialClientId || '');
+
+  // ── Etapas da O.S. (modo "Por etapas"; no modo "Contínua" tudo aparece numa página só) ──
+  const [osFormMode] = useOsFormMode();
+  const stepped = osFormMode === 'etapas' && !readOnly;
+  const [step, setStep] = useState(0);
+  const stepperRef = useRef<HTMLDivElement>(null);
+  const goToStep = (next: number) => {
+    if (next === step || next < 0 || next >= OS_STEPS.length) return;
+    setStep(next);
+    // Volta ao topo da O.S. (título incluído) sem descer a tela
+    setTimeout(() => {
+      let el: HTMLElement | null = stepperRef.current?.parentElement || null;
+      while (el && !(el.scrollHeight > el.clientHeight && /(auto|scroll)/.test(getComputedStyle(el).overflowY))) {
+        el = el.parentElement;
+      }
+      if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 30);
+  };
   const [clientError, setClientError] = useState('');
   useEffect(() => { if (clientId) setClientError(''); }, [clientId]);
   const [mechanicId, setMechanicId] = useState(order?.mechanicId || '');
@@ -2412,8 +2441,11 @@ function OSFormImpl({
     const trimmedClientId = (clientId || '').toString().trim();
     if (!trimmedClientId || trimmedClientId === 'undefined' || trimmedClientId === 'null') {
       setClientError('Escolha o cliente desta O.S. (busque pelo nome, telefone ou CPF/CNPJ).');
-      clientTriggerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      clientTriggerRef.current?.focus();
+      setStep(0);
+      setTimeout(() => {
+        clientTriggerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        clientTriggerRef.current?.focus();
+      }, 50);
       return;
     }
 
@@ -2572,10 +2604,10 @@ function OSFormImpl({
 
   return (
     <>
-      <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className={cn("space-y-4 max-w-[850px] mx-auto pb-10 print:p-0 print:m-0 print:max-w-none", readOnly && "opacity-100")}>
+      <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className={cn("@container/osform space-y-4 w-full pb-10 print:p-0 print:m-0 print:max-w-none", readOnly && "opacity-100")}>
 
         {/* ═══ TOPBAR / HEADER ═══ */}
-        <div className="flex items-center justify-between print:hidden mb-2">
+        <div className={cn("flex items-center justify-between print:hidden mb-2 max-w-[980px] mx-auto", stepped && "@[1000px]/osform:max-w-[900px]")}>
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-foreground">
               {readOnly ? "Visualizar O.S." : order ? "Editar Ordem de Serviço" : "Nova Ordem de Serviço"}
@@ -2605,8 +2637,114 @@ function OSFormImpl({
           </div>
         </div>
 
-        {/* ═══ SINGLE-COLUMN LAYOUT CONTAINER ═══ */}
-        <div className={cn("space-y-6 w-full", readOnly && "pointer-events-none")}>
+        {/* ═══ ETAPAS DA O.S.: lateral vertical em telas largas, faixa horizontal nas estreitas ═══ */}
+        <div ref={stepperRef} className={cn("w-full max-w-[980px] mx-auto scroll-mt-4", stepped && "@[1000px]/osform:max-w-none @[1000px]/osform:grid @[1000px]/osform:grid-cols-[230px_minmax(0,1fr)_230px] @[1000px]/osform:gap-6 @[1000px]/osform:items-start")}>
+        {stepped && (
+        <aside className="hidden @[1000px]/osform:block sticky top-4 print:hidden">
+          <div className="financial-card os-card-rf max-w-none! p-5! flex flex-col bg-gradient-to-b from-card to-blue-50/40 dark:to-blue-500/5">
+            <ol className="flex flex-col">
+              {OS_STEPS.map((st, idx) => {
+                const state = idx < step ? 'done' : idx === step ? 'current' : 'pending';
+                const StepIcon = st.icon;
+                const isLast = idx === OS_STEPS.length - 1;
+                return (
+                  <li key={st.title} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => goToStep(idx)}
+                      className="w-full flex items-start gap-3.5 text-left cursor-pointer group"
+                      aria-current={state === 'current' ? 'step' : undefined}
+                    >
+                      <span className="flex flex-col items-center self-stretch">
+                        <span className={cn(
+                          "w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all",
+                          state === 'done' && "bg-emerald-500 text-white shadow-sm",
+                          state === 'current' && "bg-indigo-600 text-white ring-4 ring-indigo-600/15 outline outline-2 outline-offset-2 outline-indigo-600",
+                          state === 'pending' && "border-2 border-border text-muted-foreground bg-card"
+                        )}>
+                          {state === 'done' ? <Check className="w-4 h-4 stroke-[3]" /> : <StepIcon className="w-4 h-4" />}
+                        </span>
+                        {!isLast && (
+                          <span className={cn("w-[3px] flex-1 min-h-[34px] my-1.5 rounded-full", state === 'done' ? "bg-emerald-500" : "bg-border")} />
+                        )}
+                      </span>
+                      <span className={cn("min-w-0 pt-0.5", !isLast && "pb-4")}>
+                        <span className="block text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Etapa {idx + 1}</span>
+                        <span className={cn(
+                          "block text-sm font-bold leading-tight transition-colors",
+                          state === 'pending' ? "text-muted-foreground" : "text-foreground",
+                          "group-hover:text-indigo-600"
+                        )}>{st.title}</span>
+                        <span className="block text-[11px] text-muted-foreground leading-snug mt-0.5">{st.subtitle}</span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        </aside>
+        )}
+
+        <div className="min-w-0 space-y-4 w-full @[1000px]/osform:max-w-[900px] @[1000px]/osform:mx-auto">
+          {stepped && (
+          <div className="@[1000px]/osform:hidden financial-card os-card-rf max-w-none! py-4! print:hidden">
+            <ol className="grid grid-cols-3 gap-3">
+              {OS_STEPS.map((st, idx) => {
+                const state = idx < step ? 'done' : idx === step ? 'current' : 'pending';
+                return (
+                  <li key={st.title} className="min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => goToStep(idx)}
+                      className="w-full text-left cursor-pointer group"
+                      aria-current={state === 'current' ? 'step' : undefined}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors",
+                          state === 'done' && "bg-emerald-600 text-white",
+                          state === 'current' && "border-2 border-blue-600 bg-card",
+                          state === 'pending' && "bg-blue-200 dark:bg-blue-500/25"
+                        )}>
+                          {state === 'done' && <Check className="w-4 h-4 stroke-[3]" />}
+                          {state === 'current' && <span className="w-[18px] h-[18px] rounded-full bg-blue-600" />}
+                        </span>
+                        {idx < OS_STEPS.length - 1 && (
+                          <span className="flex-1 h-[3px] rounded-full overflow-hidden bg-blue-200 dark:bg-blue-500/25">
+                            <span className={cn(
+                              "block h-full rounded-full transition-all duration-300",
+                              state === 'done' ? "w-full bg-emerald-600" : state === 'current' ? "w-1/2 bg-blue-600" : "w-0"
+                            )} />
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-2.5">
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Etapa {idx + 1}</div>
+                        <div className="text-sm sm:text-base font-bold text-foreground leading-tight group-hover:text-blue-600 transition-colors">{st.title}</div>
+                        <div className="hidden sm:block text-[11px] text-muted-foreground leading-snug mt-0.5">{st.subtitle}</div>
+                        <div className={cn(
+                          "text-[11px] font-semibold mt-1",
+                          state === 'done' && "text-emerald-600",
+                          state === 'current' && "text-blue-600",
+                          state === 'pending' && "text-muted-foreground"
+                        )}>
+                          {state === 'done' ? 'Concluída' : state === 'current' ? 'Em andamento' : 'Pendente'}
+                        </div>
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+          )}
+
+        {/* As três etapas ficam montadas (nada se perde ao trocar); só a atual aparece.
+            Na visualização/impressão aparecem todas. */}
+        <div className={cn("w-full", readOnly && "pointer-events-none")}>
+          {/* ETAPA 1: Detalhes da O.S. e Informações do Cliente */}
+          <div className={cn("space-y-4", stepped && step !== 0 && "hidden print:block")}>
           {/* SEÇÃO 1: DETALHES DA O.S. */}
           <div className="financial-card os-card-rf space-y-4">
             {/* Cabeçalho */}
@@ -3441,6 +3579,10 @@ function OSFormImpl({
             )}
           </div>
 
+          </div>
+
+          {/* ETAPA 2: Materiais e Peças e Especificações do Motor */}
+          <div className={cn("space-y-4", stepped && step !== 1 && "hidden print:block", !stepped && "mt-4")}>
           {/* CARD 2: MATERIAIS E PEÇAS */}
           <div className="financial-card os-card-rf space-y-4">
             <div className="card-header-rf os-card-header-rf flex-wrap">
@@ -3713,6 +3855,10 @@ function OSFormImpl({
             onDeleteCatalogMotor={handleStartDeleteMotor}
           />
 
+          </div>
+
+          {/* ETAPA 3: Catálogo de Serviços, Resumo Financeiro e Observações */}
+          <div className={cn("space-y-4", stepped && step !== 2 && "hidden print:block", !stepped && "mt-4")}>
           {/* CARD 4: CATÁLOGO DE SERVIÇOS */}
           <div className="financial-card os-card-rf space-y-4">
             <div className="card-header-rf os-card-header-rf">
@@ -3781,8 +3927,8 @@ function OSFormImpl({
             </div>
           </div>
 
-          {/* CARD 7: FINALIZADO E ENTREGUE (só ao editar) */}
-          {order && (
+          {/* CARD 7: FINALIZADO E ENTREGUE (na nova O.S. e ao editar) */}
+          {(order || !readOnly) && (
           <div className="flex justify-end w-full">
             <div className="bg-card border border-border rounded-xl p-5 shadow-sm flex flex-col gap-4 select-none hover:border-foreground/10 transition-all w-full max-w-[320px]">
               <div
@@ -3834,24 +3980,43 @@ function OSFormImpl({
           </div>
           )}
 
-          {/* Barra de ações fixa no rodapé: salvar sempre à vista */}
-          <div className="sticky bottom-0 z-30 -mx-2 px-2 py-3 flex items-center justify-between gap-3 bg-background/95 backdrop-blur border-t border-border pointer-events-auto print:hidden">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsPreviewOpen(true)}
-              className="h-10 px-4 rounded-lg text-sm font-semibold gap-2 cursor-pointer"
-            >
-              <Printer className="w-4 h-4" />
-              Imprimir
-            </Button>
-            {!readOnly && (
-              <Button type="submit" className="solid-btn font-bold h-10 px-6 rounded-lg text-sm shadow-sm cursor-pointer">
-                {order ? "Salvar Alterações" : "Gerar Ordem de Serviço"}
-              </Button>
-            )}
           </div>
+        </div>
+        </div>
+        </div>
 
+
+        {/* Barra de ações fixa no rodapé: salvar sempre à vista */}
+        <div className={cn("sticky bottom-0 z-30 max-w-[980px] mx-auto px-2 py-3 flex items-center justify-between gap-3 bg-background/95 backdrop-blur border-t border-border pointer-events-auto print:hidden", stepped && "@[1000px]/osform:max-w-[900px]")}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsPreviewOpen(true)}
+            className="h-10 px-4 rounded-lg text-sm font-semibold gap-2 cursor-pointer"
+          >
+            <Printer className="w-4 h-4" />
+            Imprimir
+          </Button>
+          {!readOnly && (
+            <div className="flex items-center gap-2">
+              {stepped && step > 0 && (
+                <Button key="prev-step" type="button" variant="outline" onClick={(e) => { e.preventDefault(); goToStep(step - 1); }} className="h-10 px-4 rounded-lg text-sm font-semibold gap-1.5 cursor-pointer">
+                  <ChevronLeft className="w-4 h-4" /> Voltar
+                </Button>
+              )}
+              {/* chaves diferentes: o botão "Próximo" nunca vira o de salvar no meio do clique
+                  (senão o clique que leva à etapa 3 já enviava o formulário) */}
+              {stepped && step < OS_STEPS.length - 1 ? (
+                <Button key="next-step" type="button" onClick={(e) => { e.preventDefault(); goToStep(step + 1); }} className="solid-btn font-bold h-10 px-6 rounded-lg text-sm shadow-sm gap-1.5 cursor-pointer">
+                  Próximo: {OS_STEPS[step + 1].title} <ChevronRight className="w-4 h-4" />
+                </Button>
+              ) : (
+                <Button key="submit-os" type="submit" className="solid-btn font-bold h-10 px-6 rounded-lg text-sm shadow-sm cursor-pointer">
+                  {order ? "Salvar Alterações" : "Gerar Ordem de Serviço"}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </form>
 

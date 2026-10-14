@@ -28,6 +28,9 @@ const PART_IMAGES: Record<string, string> = {
   'BALANCINS': '/parts/balancim.webp',
   'PARAFUSOS': '/parts/parafusos.webp',
   'PARAFUSO': '/parts/parafusos.webp',
+  'VELAS': '/parts/velas.webp',
+  'VELA': '/parts/velas.webp',
+  'MANCAIS DO CABECOTE': '/parts/mancais-cabecote.webp',
 };
 
 export function getPartImage(name: string): string | undefined {

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useStore } from '@/lib/store';
+import { useOsFormMode } from '@/lib/os-form-mode';
 import {
   Dialog,
   DialogContent,
@@ -25,7 +26,8 @@ import {
   HardDrive,
   DollarSign,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ListOrdered
 } from 'lucide-react';
 
 export type View = 'dashboard' | 'clients' | 'history' | 'new-os' | 'prices';
@@ -38,6 +40,7 @@ interface SidebarProps {
 export function Sidebar({ currentView, onViewChange }: SidebarProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { fontSize, setFontSize } = useStore();
+  const [osFormMode, setOsFormMode] = useOsFormMode();
 
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -235,6 +238,40 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
             Ajuste a aparência e preferências de exibição do sistema.
           </DialogDescription>
         </DialogHeader>
+
+        {/* Section: Nova O.S. */}
+        <div className="pt-4 space-y-2.5">
+          <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+            <ListOrdered className="w-4 h-4 text-muted-foreground" />
+            <span>Modo da Nova O.S.</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Modo da Nova O.S.">
+            {([
+              ['etapas', 'Por etapas', 'Detalhes e cliente → materiais e motor → serviços e pagamento'],
+              ['continua', 'Contínua', 'Todas as seções em uma página só, rolando para baixo'],
+            ] as const).map(([value, label, desc]) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={osFormMode === value}
+                onClick={() => setOsFormMode(value)}
+                className={cn(
+                  "text-left rounded-lg border p-3 transition-colors cursor-pointer",
+                  osFormMode === value ? "border-foreground bg-secondary/60" : "border-border hover:bg-secondary/30"
+                )}
+              >
+                <span className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-foreground">{label}</span>
+                  <span className={cn("w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center", osFormMode === value ? "border-foreground" : "border-border")}>
+                    {osFormMode === value && <span className="w-1.5 h-1.5 rounded-full bg-foreground" />}
+                  </span>
+                </span>
+                <span className="block text-[11px] text-muted-foreground leading-snug mt-1">{desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Section: Typography */}
         <div className="py-4 space-y-4">

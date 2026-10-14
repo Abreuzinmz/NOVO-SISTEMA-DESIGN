@@ -185,8 +185,8 @@ const ServiceItemRow = memo(({
         )}
       </div>
     </td>
-    <td className="px-3 py-2">
-      <div className="flex items-center justify-center gap-1.5 bg-muted dark:bg-background/20 rounded-lg border border-border p-1 w-fit mx-auto">
+    <td className="px-1 py-2">
+      <div className="flex items-center justify-center gap-0.5 bg-muted dark:bg-background/20 rounded-lg border border-border p-0.5 w-fit mx-auto">
         <Button
           type="button"
           variant="ghost"
@@ -210,9 +210,9 @@ const ServiceItemRow = memo(({
         </Button>
       </div>
     </td>
-    <td className="px-3 py-2">
-      <div className="relative ml-auto w-32 group">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-primary/60 group-focus-within:text-primary">R$</span>
+    <td className="px-2 py-2">
+      <div className="relative ml-auto w-full max-w-[104px] group">
+        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-primary/60 group-focus-within:text-primary">R$</span>
         <Input
           type="number"
           step="0.01"
@@ -240,18 +240,18 @@ const ServiceItemRow = memo(({
             if (e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault();
           }}
           onWheel={(e) => e.currentTarget.blur()}
-          className="service-value-input pl-9 h-7 text-right font-mono text-xs font-bold bg-input border-border focus-visible:ring-1 focus-visible:ring-primary/20 rounded-lg transition-all [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield]"
+          className="service-value-input pl-8 h-7 text-right font-mono text-xs font-bold bg-input border-border focus-visible:ring-1 focus-visible:ring-primary/20 rounded-lg transition-all [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield]"
           placeholder="0,00"
           disabled={readOnly}
         />
       </div>
     </td>
-    <td className="px-3 py-2 text-right">
-      <span className="text-xs font-bold font-mono text-foreground/90">
+    <td className="px-2 py-2 text-right">
+      <span className="text-xs font-bold font-mono text-foreground/90 whitespace-nowrap">
         {formatCurrency(svc.value * svc.quantity)}
       </span>
     </td>
-    <td className="px-3 py-2 text-center w-28">
+    <td className="px-1 py-2 text-center w-16">
       <div className="flex items-center justify-center gap-1.5">
         {motorsList && motorsList.length >= 2 && !readOnly && (
           <Button
@@ -962,6 +962,7 @@ export const ServiceCatalog = memo(({
               <div className="flex flex-col items-center gap-3 py-8 px-4">
                 <p className="text-muted-foreground italic text-xs">Nenhum serviço encontrado</p>
                 <Button
+                  type="button"
                   ref={highlightedServiceRef}
                   size="sm"
                   className={cn(
@@ -1321,12 +1322,12 @@ export const ServiceCatalog = memo(({
                 <table className="w-full text-left border-collapse table-fixed">
                   <thead>
                     <tr className="bg-muted dark:bg-foreground/[0.02] border-b border-border">
-                      <th className="w-10 px-2 py-2.5"></th>
-                      <th className="px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 w-[40%]">Serviço</th>
-                      <th className="px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-center w-28">Quantidade</th>
-                      <th className="px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-right w-36">Vlr. Unitário</th>
-                      <th className="px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-right w-36">Total Item</th>
-                      <th className="px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-center w-28">Ações</th>
+                      <th className="w-8 px-1 py-2.5"></th>
+                      <th className="px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60">Serviço</th>
+                      <th className="px-2 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-center w-24">Qtd.</th>
+                      <th className="px-2 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-right w-28">Vlr. Unit.</th>
+                      <th className="px-2 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-right w-24">Total</th>
+                      <th className="px-1 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-center w-16">Ações</th>
                     </tr>
                   </thead>
                   <tbody>

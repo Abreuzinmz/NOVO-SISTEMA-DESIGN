@@ -947,9 +947,9 @@ input[type="number"] {
 /* Cabeçalho dos outros cards da O.S. no mesmo estilo (linha embutida) */
 .os-card-header-rf {
   gap: 12px;
-  padding-bottom: 12px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #eaecf0;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .dark .os-card-header-rf {
@@ -960,6 +960,9 @@ input[type="number"] {
    só o cabeçalho usa a fonte do Resumo Financeiro */
 .financial-card.os-card-rf {
   font-family: var(--font-sora), 'Sora', system-ui, sans-serif;
+  /* versão compacta dos cartões da O.S. */
+  padding: 20px 22px;
+  border-radius: 22px;
 }
 
 .os-card-rf .header-title-rf,
