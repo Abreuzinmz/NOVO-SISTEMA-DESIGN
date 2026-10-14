@@ -86,6 +86,7 @@ import { cn, formatMotorDisplay, getLocalDateString } from '@/lib/utils';
 import { fetchMotors, fetchModels, addMotor as addMotorToDb, addModel as addModelToDb, deleteMotor as deleteMotorFromDb, deleteModel as deleteModelFromDb, updateModel as updateModelInDb, fetchMotorCatalog, saveCatalogMotor, type CatalogMotor } from '@/lib/motors';
 import { PartsPickerModal, type PartsKind } from '@/components/parts-picker-modal';
 import { getPartImage } from '@/lib/part-images';
+import { searchFieldClass, searchFieldIconClass } from '@/lib/search-field';
 import { MotorSpecsCard } from '@/components/motor-specs-card';
 import { PrintPreviewModal } from './print-preview-modal';
 import { FormSection, FieldLabel, IconField, ClientTypeToggle, ClientDialogHeader, ClientDialogFooter, iconInputClass, clientDialogClass } from '@/components/client-form';
@@ -2816,7 +2817,7 @@ function OSFormImpl({
               <div className="space-y-4">
                 {/* Linha de Busca Full-Width */}
                 <div className="relative w-full">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
+                  <Search className={searchFieldIconClass} />
                   <Input
                     ref={clientTriggerRef}
                     type="text"
@@ -2845,7 +2846,7 @@ function OSFormImpl({
                     onKeyDown={handleInputKeyDown}
                     aria-invalid={!!clientError}
                     className={cn(
-                      "w-full h-11 rounded-xl border border-border bg-muted/50 pl-10 text-[15px] font-medium text-foreground focus:bg-card focus:border-foreground/30 transition-all shadow-none",
+                      searchFieldClass, "w-full font-medium text-foreground transition-all",
                       clientSearchText ? "pr-10" : "pr-4",
                       clientError && "border-danger ring-2 ring-danger/20"
                     )}
@@ -3303,7 +3304,7 @@ function OSFormImpl({
 
                       <div ref={osMechContainerRef} className="relative w-full">
                         <div className="relative">
-                          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
+                          <Search className={searchFieldIconClass} />
                           <Input
                             type="text"
                             disabled={readOnly}
@@ -3317,7 +3318,7 @@ function OSFormImpl({
                               if (!readOnly) setIsMechanicSelectorOpen(true);
                             }}
                             className={cn(
-                              "w-full h-11 rounded-xl border border-border bg-card pl-10 text-[13.5px] font-medium text-foreground focus:border-foreground/30 transition-all shadow-none",
+                              searchFieldClass, "w-full font-medium text-foreground transition-all",
                               mechanicSearchText ? "pr-10" : "pr-4"
                             )}
                           />
@@ -3783,7 +3784,7 @@ function OSFormImpl({
           {/* CARD 7: FINALIZADO E ENTREGUE (só ao editar) */}
           {order && (
           <div className="flex justify-end w-full">
-            <div className="financial-card os-card-rf flex flex-col gap-4 select-none hover:border-foreground/10 transition-all w-full max-w-[320px]">
+            <div className="bg-card border border-border rounded-xl p-5 shadow-sm flex flex-col gap-4 select-none hover:border-foreground/10 transition-all w-full max-w-[320px]">
               <div
                 className="flex items-center space-x-3 cursor-pointer"
                 onClick={() => {

@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useCallback, memo, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { searchFieldClass, searchFieldIconClass } from '@/lib/search-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -944,17 +945,14 @@ export const ServiceCatalog = memo(({
 
       {/* Barra de Pesquisa Premium */}
       <div className="relative group max-w-2xl mx-auto w-full transition-all duration-300">
-        <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none z-10">
-          <SearchIcon className="w-4 h-4 text-primary/40 group-focus-within:text-primary transition-colors" />
-        </div>
+        <SearchIcon className={searchFieldIconClass} />
         <Input
           placeholder="Pesquisar serviços no catálogo..."
           value={globalSearch}
           onChange={(e) => setGlobalSearch(e.target.value)}
           onKeyDown={handleSearchInputKeyDown}
-          className="pl-10 h-11 text-xs ref-light-input rounded-xl focus-visible:ring-1 focus-visible:ring-primary/20 transition-all"
+          className={searchFieldClass}
         />
-        <div className="absolute inset-0 bg-primary/5 blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
       </div>
 
       <AnimatePresence mode="wait">

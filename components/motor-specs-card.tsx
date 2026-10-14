@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { searchFieldClass, searchFieldIconClass } from '@/lib/search-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -643,6 +644,7 @@ export function MotorSpecsCard({
                 );
               })() : (
               <div className="relative">
+                <Search className={searchFieldIconClass} />
                 <Input
                   ref={searchInputRef}
                   id="motor-spec-search"
@@ -655,7 +657,7 @@ export function MotorSpecsCard({
                     if (e.key === 'Escape') setSearchOpen(false);
                     if (e.key === 'Enter') { e.preventDefault(); setSearchOpen(false); if (form.model.trim()) setMotorConfirmed(true); }
                   }}
-                  className="h-11 pl-3 pr-16 rounded-lg text-sm font-semibold uppercase placeholder:normal-case bg-card"
+                  className={cn(searchFieldClass, 'pr-12 font-semibold uppercase placeholder:normal-case placeholder:font-normal')}
                 />
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                   {form.model && (
@@ -663,7 +665,6 @@ export function MotorSpecsCard({
                       <X className="w-4 h-4" />
                     </button>
                   )}
-                  <Search className="w-4 h-4 text-info mr-1.5" />
                 </div>
               </div>
               )}
@@ -956,12 +957,12 @@ export function MotorSpecsCard({
 
           <div className="px-6 pb-3 space-y-3 border-b border-border">
             <div className="relative">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none z-10" />
+              <Search className={searchFieldIconClass} />
               <Input
                 value={listQuery}
                 onChange={(e) => setListQuery(e.target.value)}
                 placeholder="Filtrar por motor, modelo ou veículo..."
-                className="h-12 pl-14 pr-4 rounded-2xl text-[15px] bg-muted/30 border-border/70 shadow-2xs placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:border-foreground/30"
+                className={searchFieldClass}
               />
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1.5">
