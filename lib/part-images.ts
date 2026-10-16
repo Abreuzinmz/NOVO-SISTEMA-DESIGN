@@ -31,6 +31,11 @@ const PART_IMAGES: Record<string, string> = {
   'VELAS': '/parts/velas.webp',
   'VELA': '/parts/velas.webp',
   'MANCAIS DO CABECOTE': '/parts/mancais-cabecote.webp',
+  'SUPORTE TERMOSTATICA': '/parts/suporte-termostatica.webp',
+  'SUPORTE TERMOSTATICO': '/parts/suporte-termostatica.webp',
+  'CEBOLINHA OLEO': '/parts/cebolinha-oleo.webp',
+  'CEBOLINHA DE OLEO': '/parts/cebolinha-oleo.webp',
+  'CEBOLINHA': '/parts/cebolinha-oleo.webp',
 };
 
 export function getPartImage(name: string): string | undefined {

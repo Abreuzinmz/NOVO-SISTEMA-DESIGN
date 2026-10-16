@@ -53,6 +53,58 @@ import { cn, formatMotorDisplay, formatMotorModelAndCylinders, getLocalDateStrin
 import { PrintPreviewModal } from './print-preview-modal';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PaymentEntryModal, PaymentEntryItem } from './resumo-financeiro';
+import { getPartImage } from '@/lib/part-images';
+import { detectBrandFromName, getBrandLogoSrc } from '@/lib/motor-brands';
+import { Package, Settings as SettingsIcon, Gauge } from 'lucide-react';
+
+// ── Blocos visuais do modo de visualização ──
+
+/** Cabeçalho de cada cartão: ícone, título e contador */
+function ViewCardHeader({ icon: Icon, title, count, right }: { icon: React.ElementType; title: string; count?: number; right?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-2 mb-2.5">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 flex items-center justify-center shrink-0">
+          <Icon className="w-4 h-4" />
+        </span>
+        <span className="text-xs font-extrabold uppercase tracking-wide text-foreground truncate">{title}</span>
+      </div>
+      {right ?? (count !== undefined && (
+        <span className="h-5 px-2 rounded-md bg-muted text-[11px] font-semibold text-muted-foreground flex items-center tabular-nums shrink-0">
+          {count} {count === 1 ? 'item' : 'itens'}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** Peças em linhas compactas: foto pequena, nome e quantidade */
+function PartTiles({ parts }: { parts: string[] }) {
+  return (
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-1.5">
+      {parts.map((p, i) => {
+        const [name, qtyStr] = p.includes('|') ? p.split('|') : [p, '1'];
+        const qty = parseInt(qtyStr) || 1;
+        const img = getPartImage(name);
+        return (
+          <div key={i} className="rounded-lg border border-border bg-card pl-1.5 pr-2 py-1.5 flex items-center gap-2 min-w-0">
+            <span className="w-10 h-8 flex items-center justify-center shrink-0">
+              {img ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={img} alt="" draggable={false} className="max-w-full max-h-full object-contain" />
+              ) : (
+                <Package className="w-5 h-5 text-muted-foreground/40" />
+              )}
+            </span>
+            <span className="flex-1 min-w-0 text-[11px] font-bold uppercase leading-tight text-foreground line-clamp-2">{name}</span>
+            <span className="min-w-[22px] h-5 px-1.5 rounded-md bg-muted text-[11px] font-bold text-foreground flex items-center justify-center tabular-nums shrink-0">{qty}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 
 const getStatusBorderColor = (status: string) => {
   switch (status?.toLowerCase()) {
@@ -947,7 +999,7 @@ export function OSViewModal({
       <DialogContent
         showCloseButton={false}
         useFlexLayout={true}
-        className="print-friendly-modal w-[min(1100px,calc(100vw-48px))] max-h-[calc(100vh-48px)] p-0 border border-border bg-card rounded-xl overflow-hidden shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08),_0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] outline-none flex flex-col gap-0 print:block print:!static print:!w-full print:!max-w-none print:!h-auto print:border-none print:shadow-none print:bg-card print:overflow-visible"
+        className="print-friendly-modal w-[min(980px,calc(100vw-48px))] max-h-[calc(100vh-48px)] p-0 border border-border bg-card rounded-xl overflow-hidden shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08),_0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] outline-none flex flex-col gap-0 print:block print:!static print:!w-full print:!max-w-none print:!h-auto print:border-none print:shadow-none print:bg-card print:overflow-visible"
         style={{ transform: 'none' }}
         finalFocus={false}
       >
@@ -995,83 +1047,65 @@ export function OSViewModal({
         <div className="flex flex-col flex-1 min-h-0 print:hidden">
 
           {/* ═══ HEADER ═══ */}
-          <div className="shrink-0 border-b border-border bg-card p-5 flex items-start justify-between print:px-0 print:bg-card">
-            <div className="flex items-start gap-4">
-              <div
-                className="py-[11px] px-[16px] rounded-lg border border-border border-l-[4px] bg-card flex flex-col items-center justify-center shadow-sm overflow-hidden shrink-0 select-none"
-                style={{ borderLeftColor: getStatusBorderColor(isEditingStatus ? editServiceStatus : order.serviceStatus) }}
-              >
-                <span className="font-bold text-xl tracking-tighter text-info">
-                  #{String(order.osNumber || order.id).padStart(4, '0')}
-                </span>
-                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground mt-1">
-                  O.S. Nº
-                </span>
-              </div>
-              <div className="pt-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-bold text-foreground uppercase tracking-tight flex items-baseline gap-1.5 flex-wrap">
-                    <span>{client?.name || 'CLIENTE REMOVIDO'}</span>
-                    {client?.nickname && (
-                      <span className="text-xs font-bold text-info normal-case shrink-0">
-                        ({client.nickname.toUpperCase()})
-                      </span>
-                    )}
-                  </h2>
+          <div className="shrink-0 border-b border-border bg-card p-4 flex items-stretch gap-3 print:px-0 print:bg-card">
+            {/* Nº da O.S. e abertura */}
+            <div
+              className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 border-l-4 px-4 py-2.5 flex flex-col justify-center shrink-0 select-none"
+              style={{ borderLeftColor: getStatusBorderColor(isEditingStatus ? editServiceStatus : order.serviceStatus) }}
+            >
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700/80 dark:text-blue-300/80">O.S. Nº</span>
+              <span className="font-extrabold text-3xl leading-none tracking-tight text-blue-600 dark:text-blue-400 tabular-nums mt-0.5">
+                #{String(order.osNumber || order.id).padStart(4, '0')}
+              </span>
+              <span className="flex items-center gap-1 text-[11px] text-muted-foreground mt-1.5 whitespace-nowrap">
+                <Calendar className="w-3.5 h-3.5" />
+                Abertura: <strong className="text-foreground font-semibold">{order.arrivalDate ? new Date(order.arrivalDate + 'T12:00:00').toLocaleDateString('pt-BR') : new Date(order.createdAt).toLocaleDateString('pt-BR')}</strong>
+              </span>
+            </div>
+
+            {/* Cliente */}
+            <div className="flex-1 min-w-0 rounded-xl border border-border bg-card px-4 py-2.5 flex items-center gap-4">
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <User className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm font-extrabold uppercase tracking-tight text-foreground truncate">{client?.name || 'CLIENTE REMOVIDO'}</span>
+                  {client?.nickname && (
+                    <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-md px-1.5 py-0.5 uppercase shrink-0">{client.nickname}</span>
+                  )}
                   {client && (
                     <span className={cn(
-                      "inline-flex items-center px-1.5 py-0.5 text-xs font-extrabold tracking-wider uppercase rounded border",
-                      client.clientType === 'mechanic'
-                        ? "bg-info/10 text-info border-info/20"
-                        : "bg-secondary text-secondary-foreground border-border"
+                      "text-[10px] font-extrabold tracking-wider uppercase rounded-md border px-1.5 py-0.5 shrink-0",
+                      client.clientType === 'mechanic' ? "bg-info/10 text-info border-info/20" : "bg-secondary text-secondary-foreground border-border"
                     )}>
                       {client.clientType === 'mechanic' ? 'MECÂNICO' : 'CLIENTE'}
                     </span>
                   )}
                 </div>
-                <div className="flex flex-col gap-1.5 mt-2">
-                  {(client?.phone || client?.document?.trim()) && (
-                    <div className="flex items-center gap-4">
-                      {client?.phone && (
-                        <div className="text-sm font-bold text-foreground/80 flex items-center gap-1.5">
-                          <Phone className="w-4 h-4 stroke-[2.5] shrink-0 text-muted-foreground" />
-                          <span>{client.phone}</span>
-                        </div>
-                      )}
-                      {client?.document?.trim() && (
-                        <div className="text-sm font-bold text-foreground/80 flex items-center gap-1.5">
-                          <FileText className="w-4 h-4 stroke-[2.5] shrink-0 text-muted-foreground" />
-                          <span>CPF/CNPJ: {client.document}</span>
-                        </div>
-                      )}
-                    </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-foreground/80">
+                  {client?.phone && (
+                    <span className="flex items-center gap-1.5 font-semibold"><Phone className="w-3.5 h-3.5 text-muted-foreground" />{client.phone}</span>
+                  )}
+                  {client?.document?.trim() && (
+                    <span className="flex items-center gap-1.5 font-semibold"><FileText className="w-3.5 h-3.5 text-muted-foreground" />CPF/CNPJ: {client.document}</span>
                   )}
                   {client?.city?.trim() && (
-                    <div className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 stroke-[2] shrink-0" />
-                      <span>Cidade: {client.city}</span>
-                    </div>
-                  )}
-                  {order.mechanicId && (
-                    (() => {
-                      const m = clients.find(c => c.id === order.mechanicId);
-                      const nickname = m?.nickname || order.mechanicNickname;
-                      const name = m?.name || order.mechanicName;
-                      const displayName = nickname ? nickname.toUpperCase() : name;
-                      return displayName ? (
-                        <div className="text-xs font-bold text-foreground/80 flex items-center gap-1.5 mt-0.5">
-                          <User className="w-4 h-4 stroke-[2.5] shrink-0 text-muted-foreground" />
-                          <span>Mecânico: {displayName}</span>
-                        </div>
-                      ) : null;
-                    })()
+                    <span className="flex items-center gap-1.5 text-muted-foreground"><MapPin className="w-3.5 h-3.5" />{client.city}</span>
                   )}
                 </div>
+                {order.mechanicId && (() => {
+                  const m = clients.find(c => c.id === order.mechanicId);
+                  const nickname = m?.nickname || order.mechanicNickname;
+                  const name = m?.name || order.mechanicName;
+                  const displayName = nickname ? nickname.toUpperCase() : name;
+                  return displayName ? (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Wrench className="w-3.5 h-3.5" /> Mecânico: <span className="font-semibold text-foreground/80">{displayName}</span>
+                    </div>
+                  ) : null;
+                })()}
               </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="text-right flex flex-col items-end gap-2 print:hidden">
+              <span className="hidden sm:block w-px self-stretch bg-border" aria-hidden />
+              <div className="text-right flex flex-col items-end justify-center gap-2 shrink-0 print:hidden">
                 {isEditingStatus ? (
                   <>
                     <div className="flex items-center gap-2">
@@ -1130,13 +1164,9 @@ export function OSViewModal({
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-foreground">
-                        Abertura: {order.arrivalDate ? new Date(order.arrivalDate + 'T12:00:00').toLocaleDateString('pt-BR') : new Date(order.createdAt).toLocaleDateString('pt-BR')}
-                      </span>
+                    <div className="flex items-center gap-2 empty:hidden">
                       {!order.finished && order.serviceStatus !== 'Levou' && order.deliveryDate && (
                         <>
-                          <span className="text-xs font-bold text-muted-foreground/40">•</span>
                           <span className="text-xs font-bold text-foreground">
                             Previsão: {new Date(order.deliveryDate + 'T12:00:00').toLocaleDateString('pt-BR')}
                           </span>
@@ -1144,7 +1174,6 @@ export function OSViewModal({
                       )}
                       {order.finished && (order.finishedAt || order.deliveryDate) && (
                         <>
-                          <span className="text-xs font-bold text-muted-foreground/40">•</span>
                           <span className="text-xs font-bold text-success">
                             Finalizado em: {new Date(order.finishedAt || (order.deliveryDate as string) + 'T12:00:00').toLocaleDateString('pt-BR')}
                           </span>
@@ -1154,28 +1183,34 @@ export function OSViewModal({
                   </>
                 )}
               </div>
-              <DialogClose render={
-                <Button variant="outline" size="icon" className="w-8 h-8 rounded-lg border-border bg-background hover:bg-secondary shrink-0 print:hidden">
-                  <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-                </Button>
-              } />
             </div>
+            <DialogClose render={
+              <Button variant="outline" size="icon" className="w-8 h-8 rounded-lg border-border bg-background hover:bg-secondary shrink-0 self-start print:hidden">
+                <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+              </Button>
+            } />
           </div>
 
           {/* ═══ BODY ═══ */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
             {/* Top Section: Motor + Cards + Financial */}
-            <div className="flex flex-col md:flex-row p-5 gap-5 min-w-0">
+            <div className="flex flex-col md:flex-row p-4 gap-4 min-w-0">
               {/* Left Column: Motor & Materials */}
-              <div className="flex-1 min-w-0 space-y-5">
+              <div className="flex-1 min-w-0 space-y-4">
                 {/* Top Row: Material Deixado / Peças Adicionais (left) + Motor (right) */}
                 <div className={cn(
                   "grid gap-4 items-stretch",
-                  showPartsLeft ? "grid-cols-1 sm:grid-cols-[1.6fr_1fr]" : "grid-cols-1"
+                  isEditing
+                    ? (showPartsLeft ? "grid-cols-1 sm:grid-cols-[1.6fr_1fr]" : "grid-cols-1")
+                    : (showPartsLeft && showAdditionalParts ? "grid-cols-1 lg:grid-cols-[1.4fr_1fr]" : "grid-cols-1")
                 )}>
                     {showPartsLeft && (
-                      <div className="border border-border rounded-xl bg-background p-4 shadow-sm min-w-0">
-                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80 block mb-3">MATERIAL DEIXADO</span>
+                      <div className="border border-border rounded-xl bg-background p-3 shadow-sm min-w-0">
+                        {isEditing ? (
+                          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80 block mb-3">MATERIAL DEIXADO</span>
+                        ) : (
+                          <ViewCardHeader icon={Package} title="Material deixado" count={order.partsLeft?.length || 0} />
+                        )}
                         {isEditing ? (
                           <div className="flex flex-col gap-2">
                             {editPartsLeft.map((p, idx) => {
@@ -1218,32 +1253,21 @@ export function OSViewModal({
                             </Button>
                           </div>
                         ) : (
-                          <div className="flex flex-wrap gap-2">
-                            {order.partsLeft && order.partsLeft.map((p, i) => {
-                              const [name, qtyStr] = p.includes('|') ? p.split('|') : [p, '1'];
-                              const qty = parseInt(qtyStr) || 1;
-                              return (
-                                <div
-                                  key={i}
-                                  className="flex items-center gap-1.5 border border-border bg-secondary/50 px-3 py-1.5 rounded-lg transition-all hover:bg-secondary/60"
-                                >
-                                  {qty > 1 && (
-                                    <span className="text-xs font-bold text-foreground shrink-0">
-                                      ({qty})
-                                    </span>
-                                  )}
-                                  <span className="text-xs font-bold uppercase tracking-tight text-foreground">
-                                    {name}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
+                          <PartTiles parts={order.partsLeft || []} />
                         )}
                       </div>
                     )}
 
-                  {/* Motor */}
+                  {/* Peças adicionais ao lado do material (visualização) */}
+                  {!isEditing && showAdditionalParts && (
+                    <div className="border border-border rounded-xl bg-background p-3 shadow-sm min-w-0">
+                      <ViewCardHeader icon={SettingsIcon} title="Peças adicionais" count={order.additionalParts?.length || 0} />
+                      <PartTiles parts={order.additionalParts || []} />
+                    </div>
+                  )}
+
+                  {/* Motor (na visualização fica na coluna da direita) */}
+                  {isEditing && (
                   <div className="border border-border rounded-xl bg-background p-4 shadow-sm min-w-0">
                     <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80 block mb-3">MOTOR</span>
                     <div className="space-y-2">
@@ -1266,10 +1290,11 @@ export function OSViewModal({
                       ))}
                     </div>
                   </div>
+                  )}
                 </div>
 
-                {/* Peças Adicionais: full-width row so chips can stay on a single line */}
-                {showAdditionalParts && (
+                {/* Peças Adicionais (edição) */}
+                {isEditing && showAdditionalParts && (
                   <div className="border border-border rounded-xl bg-background p-4 shadow-sm">
                     <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80 block mb-3">PEÇAS ADICIONAIS</span>
                     {isEditing ? (
@@ -1339,8 +1364,11 @@ export function OSViewModal({
 
                 {/* Bottom Section: Services List */}
                 <div className="border border-border rounded-xl bg-background overflow-hidden shadow-sm">
-                  <div className="bg-secondary/30 px-4 py-3 border-b border-border flex justify-between items-center">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80">Serviços executados</span>
+                  <div className="px-3 py-2.5 border-b border-border flex justify-between items-center">
+                    <span className="flex items-center gap-2">
+                      <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 flex items-center justify-center shrink-0"><Wrench className="w-4 h-4" /></span>
+                      <span className="text-xs font-extrabold uppercase tracking-wide text-foreground">Serviços executados</span>
+                    </span>
                     <span className="text-xs font-bold text-foreground/80 bg-secondary/60 px-2 py-0.5 rounded border border-border">
                       {isEditing ? editServices.length : order.services.length} itens
                     </span>
@@ -1415,9 +1443,12 @@ export function OSViewModal({
                       {(() => {
                         // Com 2+ motores, separa os serviços como no relatório: comuns, motor 1, motor 2...
                         const renderService = (s: ServiceItem) => (
-                          <div key={s.id} className="flex justify-between items-center gap-3 px-4 py-3 text-sm hover:bg-secondary/20 transition-colors">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="font-bold uppercase text-foreground break-words">
+                          <div key={s.id} className="flex justify-between items-center gap-3 px-3 py-1.5 text-[13px] hover:bg-secondary/20 transition-colors">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="w-6 h-6 rounded-full bg-muted text-xs font-bold text-foreground/80 flex items-center justify-center shrink-0 tabular-nums">
+                                {order.services.indexOf(s) + 1}
+                              </span>
+                              <span className="font-semibold uppercase text-foreground break-words">
                                 {s.id === 'eix-retificar' && s.measure ? `Retificar Eixo — ${s.measure}` : s.name}
                               </span>
                               {(s.quantity || 1) > 1 && (
@@ -1462,6 +1493,14 @@ export function OSViewModal({
                           Nenhum serviço registrado
                         </div>
                       )}
+                      {order.services.length > 0 && (
+                        <div className="m-2 rounded-lg bg-blue-50/70 dark:bg-blue-500/10 px-3 py-2 flex items-center justify-between">
+                          <span className="text-[13px] font-bold text-foreground">Total dos serviços</span>
+                          <span className="text-base font-extrabold font-mono text-foreground tabular-nums">
+                            {order.services.reduce((acc, sv) => acc + sv.value * (sv.quantity || 1), 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1490,8 +1529,58 @@ export function OSViewModal({
                 )}
               </div>
 
-              {/* Right Column: Financial Card */}
-              <div className="w-full md:w-[320px] shrink-0 min-w-0 border border-border rounded-xl bg-secondary/20 p-4 shadow-sm flex flex-col">
+              {/* Right Column: Motor + Pagamento */}
+              <div className="w-full md:w-[300px] shrink-0 min-w-0 space-y-4">
+                {!isEditing && motors.length > 0 && (
+                  <div className="border border-border rounded-xl bg-background p-3 shadow-sm">
+                    <ViewCardHeader icon={Gauge} title={motors.length > 1 ? `Motores (${motors.length})` : 'Motor'} right={<span />} />
+                    <div className="space-y-3">
+                      {motors.map((m, idx) => {
+                        const spec = order.motorSpecs?.[idx];
+                        const brand = spec?.brand || detectBrandFromName(m.model);
+                        const logo = getBrandLogoSrc(brand);
+                        const tiles = [
+                          { label: 'Cilindrada', value: m.displacement || '-' },
+                          { label: 'Cilindros', value: m.cylinders || '-' },
+                          { label: 'Válvulas', value: spec?.valves ? spec.valves.replace(/V$/i, '') + ' VAL' : '-' },
+                        ];
+                        return (
+                          <div key={idx} className="space-y-1.5">
+                            <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-2.5 py-1.5">
+                              <span className="w-11 h-8 flex items-center justify-center shrink-0">
+                                {logo ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={logo} alt={brand} className="max-w-full max-h-full object-contain" draggable={false} />
+                                ) : (
+                                  <Gauge className="w-6 h-6 text-muted-foreground/50" />
+                                )}
+                              </span>
+                              <div className="min-w-0">
+                                <div className="text-sm font-extrabold uppercase text-foreground truncate">{m.model || 'MOTOR NÃO INFORMADO'}</div>
+                                <div className="text-xs font-semibold uppercase text-muted-foreground truncate">
+                                  {[brand, m.cylinders].filter(Boolean).join(' · ') || '—'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {tiles.map((t) => (
+                                <div key={t.label} className="rounded-lg border border-border bg-card px-2 py-1.5 min-w-0">
+                                  <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground truncate">{t.label}</div>
+                                  <div className="text-[13px] font-bold text-foreground truncate">{t.value}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+              <div className="border border-border rounded-xl bg-background p-3 shadow-sm flex flex-col">
+                {!isEditing && (
+                  <ViewCardHeader icon={CreditCard} title="Pagamento" right={getPaymentBadge(order.paymentStatus)} />
+                )}
                 <div className="space-y-3 flex-1">
                   {groupedPayment ? (
                     /* ═══ REFORMULADO: CARD DE PAGAMENTO AGRUPADO ═══ */
@@ -1903,6 +1992,7 @@ export function OSViewModal({
                     </div>
                   </div>
                 )}
+              </div>
               </div>
             </div>
           </div>

@@ -24,7 +24,7 @@ const CONFIG: Record<PartsKind, { storageKey: string; builtIn: string[]; title: 
   },
   peca: {
     storageKey: 'retifica_catalogo_pecas',
-    builtIn: ['SENSOR', 'TUCHOS', 'TAMPA DE ÓLEO', 'CÁRTER', 'BALANCIM', 'PARAFUSOS', 'VELAS', 'MANCAIS DO CABEÇOTE'],
+    builtIn: ['SENSOR', 'TUCHOS', 'TAMPA DE ÓLEO', 'CÁRTER', 'BALANCIM', 'PARAFUSOS', 'VELAS', 'MANCAIS DO CABEÇOTE', 'SUPORTE TERMOSTÁTICA', 'CEBOLINHA ÓLEO'],
     title: 'Mais peças',
     description: 'Selecione peças cadastradas ou cadastre uma nova',
     newPlaceholder: 'Nome da peça',

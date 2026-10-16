@@ -35,6 +35,7 @@ import {
   Tag,
   FileText,
   Users,
+  Wallet,
   Wrench,
   Layers,
   ListFilter,
@@ -56,6 +57,21 @@ import { toast } from 'sonner';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { FormSection, FieldLabel, IconField, ClientTypeToggle, ClientDialogHeader, ClientDialogFooter, iconInputClass, clientDialogClass } from '@/components/client-form';
 import { OSViewModal } from '@/components/os-view-modal';
+import { fetchMotorCatalog } from '@/lib/motors';
+import { detectBrandFromName, getBrandLogoSrc } from '@/lib/motor-brands';
+
+// Logo da montadora do (primeiro) motor da O.S.; espaço vazio quando não há logo
+function MotorBrandLogo({ brand }: { brand: string }) {
+  const src = getBrandLogoSrc(brand);
+  return (
+    <span className="w-9 h-6 shrink-0 flex items-center justify-center" title={brand || undefined}>
+      {src && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt={brand} className="max-w-full max-h-full object-contain" draggable={false} />
+      )}
+    </span>
+  );
+}
 import { FilterDropdown } from '@/components/filter-bar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
@@ -597,12 +613,39 @@ const ClientDetailsContent = React.memo(({
     return clientOrders.filter(o => !o.finished).length;
   }, [clientOrders]);
 
+  const { getGroupedPaymentForOrder } = useStore();
+
+  // Quanto falta receber nas O.S. deste cadastro (não pagas ou com entrada)
+  const { pendingAmount, pendingCount } = useMemo(() => {
+    let amount = 0;
+    let count = 0;
+    for (const o of clientOrders) {
+      const p = getOrderPaymentSummary(o, getGroupedPaymentForOrder(o.id));
+      if (p.situation !== 'pago' && p.balance > 0) { amount += p.balance; count += 1; }
+    }
+    return { pendingAmount: amount, pendingCount: count };
+  }, [clientOrders, getGroupedPaymentForOrder]);
+
   const totalInvestment = useMemo(() => {
     return clientOrders.reduce((acc, o) => acc + o.netValue, 0);
   }, [clientOrders]);
 
 
-  const { getGroupedPaymentForOrder } = useStore();
+
+  // ═══ MARCA DO MOTOR (para o logo na lista de O.S.) ═══
+  const [catalogBrands, setCatalogBrands] = useState<Map<string, string>>(new Map());
+  useEffect(() => {
+    let alive = true;
+    fetchMotorCatalog()
+      .then((list) => { if (alive) setCatalogBrands(new Map(list.filter(m => m.brand).map(m => [m.name.toUpperCase(), m.brand]))); })
+      .catch(() => { });
+    return () => { alive = false; };
+  }, []);
+  const brandOfOrder = (o: Order) => {
+    const first = (o.motorModel || '').split(',')[0].replace(/\s*\(.*\)/, '').trim().toUpperCase();
+    if (!first) return '';
+    return catalogBrands.get(first) || detectBrandFromName(first);
+  };
 
   // ═══ BUSCA / FILTRO / ORDEM DO HISTÓRICO ═══
   const [orderSearch, setOrderSearch] = useState('');
@@ -610,16 +653,45 @@ const ClientDetailsContent = React.memo(({
   const [orderPaymentFilter, setOrderPaymentFilter] = useState('');
   const [orderSort, setOrderSort] = useState<OrderSort>('recent');
   const orderFilterCount = (orderStatusFilter ? 1 : 0) + (orderPaymentFilter ? 1 : 0);
+  // Filtro rápido (chips acima da tabela)
+  const [quickFilter, setQuickFilter] = useState<string>('');
 
   useEffect(() => {
     setOrderSearch('');
     setOrderStatusFilter('');
     setOrderPaymentFilter('');
+    setQuickFilter('');
   }, [selectedClientId]);
+
+  const matchesQuick = useCallback((o: Order, key: string) => {
+    if (!key) return true;
+    if (key === 'finalizada') return !!o.finished;
+    if (key === 'pendente') return getOrderPaymentSummary(o, getGroupedPaymentForOrder(o.id)).situation !== 'pago';
+    return !o.finished && o.serviceStatus === key;
+  }, [getGroupedPaymentForOrder]);
+
+  const quickChips = useMemo(() => {
+    // Ordem do fluxo da oficina; só "Pagamento pendente" tem cor
+    const neutral = 'bg-card text-foreground/80 border-border';
+    const neutralActive = 'bg-foreground! text-background! border-foreground!';
+    const defs: { key: string; label: string; cls: string; activeCls: string }[] = [
+      { key: 'Na Fila', label: 'Na fila', cls: neutral, activeCls: neutralActive },
+      { key: 'Aguardando Peça', label: 'Aguardando peça', cls: neutral, activeCls: neutralActive },
+      { key: 'Em Andamento', label: 'Em andamento', cls: neutral, activeCls: neutralActive },
+      { key: 'Pronto', label: 'Prontas', cls: neutral, activeCls: neutralActive },
+      { key: 'Levou', label: 'Levou', cls: neutral, activeCls: neutralActive },
+      { key: 'finalizada', label: 'Finalizadas', cls: neutral, activeCls: neutralActive },
+      { key: 'pendente', label: 'Pagamento pendente', cls: 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30', activeCls: 'bg-red-600! text-white! border-red-600!' },
+    ];
+    return defs
+      .map((d) => ({ ...d, count: clientOrders.filter((o) => matchesQuick(o, d.key)).length }))
+      .filter((d) => d.count > 0);
+  }, [clientOrders, matchesQuick]);
 
   const visibleOrders = useMemo(() => {
     const q = orderSearch.trim().toLowerCase();
     const list = clientOrders.filter((o) => {
+      if (!matchesQuick(o, quickFilter)) return false;
       if (orderStatusFilter === 'finalizada' ? !o.finished : orderStatusFilter && (o.finished || o.serviceStatus !== orderStatusFilter)) return false;
       if (orderPaymentFilter && getOrderPaymentSummary(o, getGroupedPaymentForOrder(o.id)).situation !== orderPaymentFilter) return false;
       if (!q) return true;
@@ -642,7 +714,7 @@ const ClientDetailsContent = React.memo(({
         default: return dateOf(b).localeCompare(dateOf(a)) || numOf(b) - numOf(a);
       }
     });
-  }, [clientOrders, orderSearch, orderStatusFilter, orderPaymentFilter, orderSort, clients, getGroupedPaymentForOrder]);
+  }, [clientOrders, orderSearch, orderStatusFilter, orderPaymentFilter, orderSort, clients, getGroupedPaymentForOrder, quickFilter, matchesQuick]);
 
   // ═══ 4. STATES & REFS ═══
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -850,7 +922,7 @@ const ClientDetailsContent = React.memo(({
       </div>
 
       {/* Indicadores */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
         <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card shadow-sm">
           <div className="w-11 h-11 rounded-xl border border-border bg-muted/50 flex items-center justify-center shrink-0">
             <FileText className="w-5 h-5 text-muted-foreground stroke-[1.5]" />
@@ -876,6 +948,16 @@ const ClientDetailsContent = React.memo(({
           <div className="min-w-0">
             <p className="text-sm text-muted-foreground">O.S. abertas</p>
             <p className="text-xl font-extrabold text-orange-500 tabular-nums">{activeOrdersCount}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 p-4 rounded-xl border border-red-500/20 bg-red-500/5 shadow-sm">
+          <div className="w-11 h-11 rounded-xl bg-red-500/15 flex items-center justify-center shrink-0">
+            <Wallet className="w-5 h-5 text-red-600 dark:text-red-400 stroke-[2]" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm text-muted-foreground">A receber</p>
+            <p className="text-xl font-extrabold text-red-600 dark:text-red-400 tabular-nums truncate">{formatBRL(pendingAmount)}</p>
+            {pendingCount > 0 && <p className="text-[11px] text-muted-foreground">{pendingCount} O.S. com pagamento pendente</p>}
           </div>
         </div>
       </div>
@@ -967,6 +1049,38 @@ const ClientDetailsContent = React.memo(({
             />
           </div>
         </div>
+        {clientOrders.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-border" role="group" aria-label="Filtro rápido das O.S.">
+            <button
+              type="button"
+              onClick={() => setQuickFilter('')}
+              aria-pressed={quickFilter === ''}
+              className={cn(
+                "h-8 pl-3.5 pr-1.5 rounded-xl border text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer",
+                quickFilter === '' ? "bg-foreground text-background border-foreground" : "bg-card text-foreground border-border hover:bg-muted"
+              )}
+            >
+              Todas
+              <span className={cn("min-w-[22px] h-[22px] px-1.5 rounded-full text-xs font-bold flex items-center justify-center tabular-nums", quickFilter === '' ? "bg-background/20" : "bg-muted")}>{clientOrders.length}</span>
+            </button>
+            {quickChips.map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                onClick={() => setQuickFilter(quickFilter === c.key ? '' : c.key)}
+                aria-pressed={quickFilter === c.key}
+                className={cn(
+                  "h-8 pl-3.5 pr-1.5 rounded-xl border text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer hover:brightness-95",
+                  c.cls,
+                  quickFilter === c.key && c.activeCls
+                )}
+              >
+                {c.label}
+                <span className={cn("min-w-[22px] h-[22px] px-1.5 rounded-full text-xs font-bold flex items-center justify-center tabular-nums", quickFilter === c.key ? "bg-white/20" : c.key === 'pendente' ? "bg-white/70 dark:bg-white/10" : "bg-muted")}>{c.count}</span>
+              </button>
+            ))}
+          </div>
+        )}
         <div>
           <Table>
             <TableHeader className="bg-secondary/10">
@@ -1003,6 +1117,9 @@ const ClientDetailsContent = React.memo(({
                     <TableCell className="font-mono font-bold text-foreground text-sm">#{order.osNumber || order.id}</TableCell>
                     {selectedClient?.clientType === 'mechanic' ? (
                       <TableCell className="text-xs text-foreground/80 font-semibold">
+                        <div className="flex items-center gap-3 min-w-0">
+                        <MotorBrandLogo brand={brandOfOrder(order)} />
+                        <div className="min-w-0">
                         {order.clientId !== selectedClientId ? (
                           <>
                             <div className="font-extrabold text-foreground text-xs uppercase tracking-wide truncate">
@@ -1035,9 +1152,14 @@ const ClientDetailsContent = React.memo(({
                             )}
                           </>
                         )}
+                        </div>
+                        </div>
                       </TableCell>
                     ) : (
                       <TableCell className="text-sm text-foreground/90 font-semibold whitespace-normal">
+                        <div className="flex items-center gap-3 min-w-0">
+                        <MotorBrandLogo brand={brandOfOrder(order)} />
+                        <div className="min-w-0">
                         <div>
                           {formatMotorModelAndCylinders(order.motorModel)}
                           {order.displacement && order.displacement.trim() && (
@@ -1050,6 +1172,8 @@ const ClientDetailsContent = React.memo(({
                           const label = mech ? (mech.nickname || mech.name) : (order.mechanicNickname || order.mechanicName);
                           return label ? <div className="text-xs text-muted-foreground font-normal">Mecânico: {label}</div> : null;
                         })()}
+                        </div>
+                        </div>
                       </TableCell>
                     )}
                     <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{(order.arrivalDate || order.createdAt.slice(0, 10)).split('-').reverse().join('/')}</TableCell>
