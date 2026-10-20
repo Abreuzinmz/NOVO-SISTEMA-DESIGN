@@ -48,14 +48,52 @@ import {
   Unlink,
   CreditCard,
   DollarSign,
-  Coins,
-  Diamond,
-  Banknote,
 } from 'lucide-react';
 import { cn, formatMotorDisplay, formatMotorModelAndCylinders, getLocalDateString, getOrderNetValue } from '@/lib/utils';
 import { PrintPreviewModal } from './print-preview-modal';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
-import { PaymentEntryModal, PaymentEntryItem } from './resumo-financeiro';
+import { PaymentEntryModal, PaymentEntryItem, PixIcon, DinheiroIcon, DebitoIcon, CreditoIcon, normalizeMethodValue } from './resumo-financeiro';
+import { ChevronRight } from 'lucide-react';
+
+/** Forma de pagamento: ícone e texto curto ("Crédito" à vista, "Crédito 3x" parcelado) */
+function paymentMethodInfo(method?: string) {
+  const { methodKey, methodLabel, installments } = normalizeMethodValue(method);
+  const icon = methodKey === 'pix' ? <PixIcon size={20} className="text-success" />
+    : methodKey === 'dinheiro' ? <DinheiroIcon size={22} />
+    : methodKey === 'debito' ? <DebitoIcon size={24} />
+    : <CreditoIcon size={24} />;
+  const label = methodKey === 'credito' && installments && installments !== 'À vista' ? `${methodLabel} ${installments}` : methodLabel;
+  const full = methodKey === 'credito' ? `${methodLabel} ${installments || 'À vista'}` : methodLabel;
+  return { icon, label, full };
+}
+
+const formatEntryDate = (d?: string) => (d ? new Date(String(d).slice(0, 10) + 'T12:00:00').toLocaleDateString('pt-BR') : '');
+
+/** Linha do histórico de pagamentos: ícone da forma, valor, data e, embaixo, o pagador */
+function PaymentHistoryRow({ entry, onOpen }: { entry: any; onOpen: () => void }) {
+  const amount = parseFloat(entry.amount) || 0;
+  const { icon, label } = paymentMethodInfo(entry.method);
+  const payer = entry.payer && String(entry.payer).trim();
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      title="Ver lançamento"
+      className="w-full text-left flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-50 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15 pl-2 pr-1.5 py-2 transition-colors cursor-pointer"
+    >
+      <span className="w-9 h-9 rounded-lg bg-white dark:bg-white/10 border border-emerald-100 dark:border-emerald-500/20 flex items-center justify-center shrink-0">{icon}</span>
+      <span className="flex-1 min-w-0">
+        <span className="flex items-baseline gap-1.5 min-w-0">
+          <span className="text-sm font-extrabold text-foreground tabular-nums whitespace-nowrap">{amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+          <span className="text-[11px] font-semibold uppercase text-muted-foreground whitespace-nowrap truncate">{label}</span>
+        </span>
+        {entry.date && <span className="block text-[11px] text-muted-foreground">{formatEntryDate(entry.date)}</span>}
+        {payer && <span className="block text-[11px] font-semibold uppercase text-foreground/75 truncate" title={payer}>{payer}</span>}
+      </span>
+      <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+    </button>
+  );
+}
 import { getPartImage } from '@/lib/part-images';
 import { detectBrandFromName, getBrandLogoSrc } from '@/lib/motor-brands';
 import { Package, Settings as SettingsIcon, Gauge } from 'lucide-react';
@@ -65,15 +103,15 @@ import { Package, Settings as SettingsIcon, Gauge } from 'lucide-react';
 /** Cabeçalho de cada cartão: ícone, título e contador */
 function ViewCardHeader({ icon: Icon, title, count, right }: { icon: React.ElementType; title: string; count?: number; right?: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-2 mb-3">
-      <div className="flex items-center gap-2.5 min-w-0">
-        <span className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300 flex items-center justify-center shrink-0">
-          <Icon className="w-[18px] h-[18px]" />
+    <div className="flex items-center justify-between gap-2 mb-2.5">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 flex items-center justify-center shrink-0">
+          <Icon className="w-4 h-4" />
         </span>
-        <span className="text-sm font-extrabold uppercase tracking-wide text-foreground truncate">{title}</span>
+        <span className="text-xs font-extrabold uppercase tracking-wide text-foreground truncate">{title}</span>
       </div>
       {right ?? (count !== undefined && (
-        <span className="h-7 px-3 rounded-full bg-muted text-xs font-semibold text-muted-foreground flex items-center tabular-nums shrink-0">
+        <span className="h-5 px-2 rounded-md bg-muted text-[11px] font-semibold text-muted-foreground flex items-center tabular-nums shrink-0">
           {count} {count === 1 ? 'item' : 'itens'}
         </span>
       ))}
@@ -81,88 +119,26 @@ function ViewCardHeader({ icon: Icon, title, count, right }: { icon: React.Eleme
   );
 }
 
-/** Peças com foto, nome e quantidade. `stacked`: quantidade embaixo (coluna estreita) */
-function PartTiles({ parts, stacked }: { parts: string[]; stacked?: boolean }) {
+/** Peças em quadrinhos (2 colunas): foto, nome embaixo e quantidade no canto superior direito */
+function PartTiles({ parts }: { parts: string[] }) {
   return (
-    <div className={cn('grid gap-2.5', stacked ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3')}>
+    <div className="grid grid-cols-2 gap-1.5">
       {parts.map((p, i) => {
         const [name, qtyStr] = p.includes('|') ? p.split('|') : [p, '1'];
         const qty = parseInt(qtyStr) || 1;
         const img = getPartImage(name);
-        const photo = (
-          <span className={cn('flex items-center justify-center shrink-0', stacked ? 'w-11 h-9' : 'w-16 h-12')}>
-            {img ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={img} alt="" draggable={false} className="max-w-full max-h-full object-contain drop-shadow-sm" />
-            ) : (
-              <Package className="w-6 h-6 text-muted-foreground/40" />
-            )}
-          </span>
-        );
-        const qtyBadge = (
-          <span className="min-w-[26px] h-6 px-1.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 text-xs font-bold flex items-center justify-center tabular-nums shrink-0">{qty}</span>
-        );
-        return stacked ? (
-          <div key={i} className="rounded-xl border border-border bg-card p-2.5 flex flex-col gap-1.5 min-w-0 shadow-2xs">
-            <div className="flex items-center gap-2 min-w-0">
-              {photo}
-              <span className="flex-1 min-w-0 text-[11px] font-bold uppercase leading-tight text-foreground line-clamp-3 break-words">{name}</span>
-            </div>
-            <div className="flex justify-end">{qtyBadge}</div>
-          </div>
-        ) : (
-          <div key={i} className="rounded-xl border border-border bg-card pl-2 pr-2.5 py-2 flex items-center gap-2.5 min-w-0 shadow-2xs">
-            {photo}
-            <span className="flex-1 min-w-0 text-[13px] font-bold uppercase leading-tight text-foreground line-clamp-2">{name}</span>
-            {qtyBadge}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/** Linha do motor: rótulo, logo da marca + modelo e especificações */
-function MotorRows({ motors, specs }: { motors: { model: string; cylinders: string; displacement: string }[]; specs?: Order['motorSpecs'] }) {
-  return (
-    <div className="space-y-2.5">
-      {motors.map((m, idx) => {
-        const spec = specs?.[idx];
-        const brand = spec?.brand || detectBrandFromName(m.model);
-        const logo = getBrandLogoSrc(brand);
-        const tiles = [
-          { label: 'Cilindrada', value: m.displacement || '-' },
-          { label: 'Cilindros', value: m.cylinders || '-' },
-          { label: 'Válvulas', value: spec?.valves ? spec.valves.replace(/V$/i, '') + ' VAL' : '-' },
-        ];
         return (
-          <div key={idx} className="rounded-xl border border-border bg-muted/20 p-2.5 flex flex-wrap md:flex-nowrap items-stretch gap-2">
-            <div className="flex items-center gap-2 pl-0.5 pr-1 shrink-0">
-              <span className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300 flex items-center justify-center shrink-0">
-                <Gauge className="w-[18px] h-[18px]" />
-              </span>
-              <span className="text-sm font-extrabold uppercase tracking-wide text-foreground">{motors.length > 1 ? `Motor ${idx + 1}` : 'Motor'}</span>
+          <div key={i} className="relative rounded-lg border border-border bg-card p-1.5 flex flex-col items-center gap-1 min-w-0">
+            <span className="absolute top-1 right-1 min-w-[20px] h-[18px] px-1 rounded-md bg-muted text-[11px] font-bold text-foreground flex items-center justify-center tabular-nums">{qty}</span>
+            <div className="h-11 w-full flex items-center justify-center px-5">
+              {img ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={img} alt="" draggable={false} className="max-w-full max-h-full object-contain" />
+              ) : (
+                <Package className="w-7 h-7 text-muted-foreground/40" />
+              )}
             </div>
-            <div className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-2.5 py-2 min-w-0 flex-[1.6] shadow-2xs">
-              <span className="w-12 h-9 flex items-center justify-center shrink-0">
-                {logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={logo} alt={brand} className="max-w-full max-h-full object-contain" draggable={false} />
-                ) : (
-                  <Gauge className="w-6 h-6 text-muted-foreground/50" />
-                )}
-              </span>
-              <div className="min-w-0">
-                <div className="text-[15px] font-extrabold uppercase text-foreground truncate">{m.model || 'MOTOR NÃO INFORMADO'}</div>
-                <div className="text-xs font-semibold uppercase text-muted-foreground truncate">{[brand, m.cylinders].filter(Boolean).join(' - ') || '—'}</div>
-              </div>
-            </div>
-            {tiles.map((t) => (
-              <div key={t.label} className="rounded-xl border border-border bg-card px-2.5 py-2 min-w-[76px] flex-1 shadow-2xs">
-                <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t.label}</div>
-                <div className="text-[15px] font-bold text-foreground">{t.value}</div>
-              </div>
-            ))}
+            <span className="w-full text-center text-[11px] font-bold uppercase leading-tight text-foreground line-clamp-2 break-words" title={name}>{name}</span>
           </div>
         );
       })}
@@ -227,6 +203,8 @@ export function OSViewModal({
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
   // Compact "Finalizar/Editar Pagamento" modal: null = closed, otherwise carries
   // which lançamento (if any) is being edited and the values to weigh it against.
+  // Lançamento aberto em visualização (com Editar / Excluir)
+  const [viewEntry, setViewEntry] = useState<{ entry: any; index: number } | null>(null);
   const [paymentEntryModal, setPaymentEntryModal] = useState<{
     mode: 'add' | 'edit';
     entry?: PaymentEntryItem;
@@ -927,31 +905,31 @@ export function OSViewModal({
   const getStatusBadge = (status: ServiceStatus) => {
     switch (status) {
       case 'Na Fila': return (
-        <span className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border">
           <span className="w-1.5 h-1.5 rounded-full bg-secondary-foreground/60 shrink-0" />
           NA FILA
         </span>
       );
       case 'Em Andamento': return (
-        <span className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-extrabold tracking-wider bg-info/10 text-info border border-info/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-info/10 text-info border border-info/20">
           <span className="w-1.5 h-1.5 rounded-full bg-info shrink-0" />
           EM ANDAMENTO
         </span>
       );
       case 'Aguardando Peça': return (
-        <span className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-extrabold tracking-wider bg-warning/10 text-warning border border-warning/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-warning/10 text-warning border border-warning/20">
           <span className="w-1.5 h-1.5 rounded-full bg-warning shrink-0" />
           AGUARDANDO PEÇA
         </span>
       );
       case 'Pronto': return (
-        <span className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-extrabold tracking-wider bg-success/10 text-success border border-success/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-success/10 text-success border border-success/20">
           <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
           PRONTO
         </span>
       );
       case 'Levou': return (
-        <span className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-extrabold tracking-wider bg-danger/10 text-danger border border-danger/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-danger/10 text-danger border border-danger/20">
           <span className="w-1.5 h-1.5 rounded-full bg-danger shrink-0" />
           LEVOU
         </span>
@@ -997,82 +975,26 @@ export function OSViewModal({
   const getPaymentBadge = (status: string) => {
     switch (status) {
       case 'Não Pago': return (
-        <span className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-xs font-extrabold tracking-wider bg-danger/10 text-danger border border-danger/20">
+        <span className="inline-flex items-center justify-center px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-danger/10 text-danger border border-danger/20">
           NÃO PAGO
         </span>
       );
       case 'Entrada': return (
-        <span className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-xs font-extrabold tracking-wider bg-warning/10 text-warning border border-warning/20">
+        <span className="inline-flex items-center justify-center px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-warning/10 text-warning border border-warning/20">
           ENTRADA
         </span>
       );
       case 'Pago': return (
-        <span className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-xs font-extrabold tracking-wider bg-success/10 text-success border border-success/20">
+        <span className="inline-flex items-center justify-center px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-success/10 text-success border border-success/20">
           PAGO
         </span>
       );
       default: return (
-        <span className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-xs font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border">
+        <span className="inline-flex items-center justify-center px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border">
           {status.toUpperCase()}
         </span>
       );
     }
-  };
-
-  /** Linha compacta do histórico de pagamentos: ícone do método, valor, data/pagador e ações */
-  const renderEntryRow = (entry: any, index: number) => {
-    const methodRaw = String(entry.method || 'PIX');
-    const methodText = methodRaw
-      .replace(/pix/i, 'PIX')
-      .replace(/dinheiro/i, 'DINHEIRO')
-      .replace(/débito|debito/i, 'DÉBITO')
-      .replace(/crédito|credito/i, 'CRÉDITO')
-      .toUpperCase();
-    const MethodIcon = /pix/i.test(methodRaw) ? Diamond : /dinheiro/i.test(methodRaw) ? Banknote : CreditCard;
-    const entryAmount = parseFloat(entry.amount) || 0;
-    const details = [entry.date ? formatDate(entry.date) : '', entry.payer?.trim() || ''].filter(Boolean).join(' - ');
-    return (
-      <div key={entry.id || index} className="rounded-xl border border-success/30 bg-success/5 dark:bg-success/10 px-3 py-2.5 flex items-center gap-3">
-        <span className="w-9 h-9 rounded-full bg-success/15 text-success flex items-center justify-center shrink-0">
-          <MethodIcon className="w-[18px] h-[18px]" />
-        </span>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2 min-w-0">
-            <span className="text-sm font-extrabold text-foreground tabular-nums">
-              {entryAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-            </span>
-            <span className="text-[11px] font-bold uppercase text-muted-foreground truncate">{methodText}</span>
-          </div>
-          {details && <div className="text-xs text-muted-foreground truncate" title={details}>{details}</div>}
-        </div>
-        <div className="flex items-center gap-0.5 shrink-0">
-          <button
-            type="button"
-            title="Editar lançamento"
-            onClick={() => setPaymentEntryModal({
-              mode: 'edit',
-              entry: { id: entry.id, amount: entryAmount, method: entry.method, date: entry.date, payer: entry.payer },
-              index,
-              totalValue: order.totalValue,
-              paidElsewhere: Math.max(0, getEntries().reduce((s: number, c: any) => s + (parseFloat(c.amount) || 0), 0) - entryAmount),
-              discount: order.discount || 0,
-              showDiscount: true,
-            })}
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-colors"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            title="Remover lançamento"
-            onClick={() => handleIndividualDeleteEntrada(entry.id, index)}
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-danger/70 hover:text-danger hover:bg-danger/10 transition-colors"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-    );
   };
 
   const motorModels = order.motorModel ? order.motorModel.split(', ') : [];
@@ -1120,7 +1042,7 @@ export function OSViewModal({
       <DialogContent
         showCloseButton={false}
         useFlexLayout={true}
-        className="print-friendly-modal w-[min(1060px,calc(100vw-48px))] max-h-[calc(100vh-48px)] p-0 border border-border bg-card rounded-xl overflow-hidden shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08),_0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] outline-none flex flex-col gap-0 print:block print:!static print:!w-full print:!max-w-none print:!h-auto print:border-none print:shadow-none print:bg-card print:overflow-visible"
+        className="print-friendly-modal w-[min(980px,calc(100vw-48px))] max-h-[calc(100vh-48px)] p-0 border border-border bg-card rounded-xl overflow-hidden shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08),_0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] outline-none flex flex-col gap-0 print:block print:!static print:!w-full print:!max-w-none print:!h-auto print:border-none print:shadow-none print:bg-card print:overflow-visible"
         style={{ transform: 'none' }}
         finalFocus={false}
       >
@@ -1171,41 +1093,38 @@ export function OSViewModal({
           <div className="shrink-0 border-b border-border bg-card p-4 flex items-stretch gap-3 print:px-0 print:bg-card">
             {/* Nº da O.S. e abertura */}
             <div
-              className="rounded-2xl bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 border-l-[5px] px-5 py-3 flex flex-col justify-center shrink-0 select-none"
+              className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 border-l-4 px-4 py-2.5 flex flex-col justify-center shrink-0 select-none"
               style={{ borderLeftColor: getStatusBorderColor(isEditingStatus ? editServiceStatus : order.serviceStatus) }}
             >
-              <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-700/80 dark:text-blue-300/80">
-                <span className="w-7 h-7 rounded-lg bg-blue-500 text-white flex items-center justify-center shrink-0"><FileText className="w-4 h-4" /></span>
-                O.S. Nº
-              </span>
-              <span className="font-extrabold text-4xl leading-none tracking-tight text-blue-600 dark:text-blue-400 tabular-nums mt-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700/80 dark:text-blue-300/80">O.S. Nº</span>
+              <span className="font-extrabold text-3xl leading-none tracking-tight text-blue-600 dark:text-blue-400 tabular-nums mt-0.5">
                 #{String(order.osNumber || order.id).padStart(4, '0')}
               </span>
-              <span className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2 whitespace-nowrap">
-                <Calendar className="w-4 h-4" />
+              <span className="flex items-center gap-1 text-[11px] text-muted-foreground mt-1.5 whitespace-nowrap">
+                <Calendar className="w-3.5 h-3.5" />
                 Abertura: <strong className="text-foreground font-semibold">{order.arrivalDate ? new Date(order.arrivalDate + 'T12:00:00').toLocaleDateString('pt-BR') : new Date(order.createdAt).toLocaleDateString('pt-BR')}</strong>
               </span>
             </div>
 
             {/* Cliente */}
-            <div className="flex-1 min-w-0 rounded-2xl border border-border bg-card px-5 py-3 flex items-center gap-4 shadow-2xs">
-              <div className="flex-1 min-w-0 space-y-1.5">
+            <div className="flex-1 min-w-0 rounded-xl border border-border bg-card px-4 py-2.5 flex items-center gap-4">
+              <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex items-center gap-2 min-w-0">
-                  <User className="w-5 h-5 text-muted-foreground shrink-0" />
-                  <span className="text-base font-extrabold uppercase tracking-tight text-foreground truncate">{client?.name || 'CLIENTE REMOVIDO'}</span>
+                  <User className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm font-extrabold uppercase tracking-tight text-foreground truncate">{client?.name || 'CLIENTE REMOVIDO'}</span>
                   {client?.nickname && (
-                    <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-full px-2.5 py-0.5 uppercase shrink-0">{client.nickname}</span>
+                    <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-md px-1.5 py-0.5 uppercase shrink-0">{client.nickname}</span>
                   )}
                   {client && (
                     <span className={cn(
-                      "text-[10px] font-extrabold tracking-wider uppercase rounded-full border px-2.5 py-0.5 shrink-0",
+                      "text-[10px] font-extrabold tracking-wider uppercase rounded-md border px-1.5 py-0.5 shrink-0",
                       client.clientType === 'mechanic' ? "bg-info/10 text-info border-info/20" : "bg-secondary text-secondary-foreground border-border"
                     )}>
                       {client.clientType === 'mechanic' ? 'MECÂNICO' : 'CLIENTE'}
                     </span>
                   )}
                 </div>
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[13px] text-foreground/80">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-foreground/80">
                   {client?.phone && (
                     <span className="flex items-center gap-1.5 font-semibold"><Phone className="w-3.5 h-3.5 text-muted-foreground" />{client.phone}</span>
                   )}
@@ -1222,7 +1141,7 @@ export function OSViewModal({
                   const name = m?.name || order.mechanicName;
                   const displayName = nickname ? nickname.toUpperCase() : name;
                   return displayName ? (
-                    <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Wrench className="w-3.5 h-3.5" /> Mecânico: <span className="font-semibold text-foreground/80">{displayName}</span>
                     </div>
                   ) : null;
@@ -1273,7 +1192,7 @@ export function OSViewModal({
                     <Button
                       onClick={() => setIsEditingStatus(true)}
                       variant="outline"
-                      className="h-9 px-4 rounded-xl border-border bg-background hover:bg-secondary text-foreground font-bold text-xs uppercase tracking-wider gap-1.5 shadow-sm"
+                      className="h-8 px-3 rounded-lg border-border bg-background hover:bg-secondary text-foreground font-bold text-xs uppercase tracking-wider gap-1.5 shadow-sm"
                     >
                       <Pencil className="w-3.5 h-3.5" /> Editar
                     </Button>
@@ -1309,41 +1228,30 @@ export function OSViewModal({
               </div>
             </div>
             <DialogClose render={
-              <Button variant="outline" size="icon" className="w-10 h-10 rounded-xl border-border bg-background hover:bg-secondary shrink-0 self-start print:hidden">
+              <Button variant="outline" size="icon" className="w-8 h-8 rounded-lg border-border bg-background hover:bg-secondary shrink-0 self-start print:hidden">
                 <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
               </Button>
             } />
           </div>
 
           {/* ═══ BODY ═══ */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 bg-muted/30">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
             {/* Top Section: Motor + Cards + Financial */}
-            <div className="flex flex-col md:flex-row p-4 gap-4 min-w-0">
-              {/* Left Column: Motor & Materials */}
-              <div className="flex-1 min-w-0 space-y-4">
-                {/* Material deixado + motor (visualização) */}
-                {!isEditing && (showPartsLeft || motors.length > 0) && (
-                  <div className="border border-border rounded-2xl bg-card p-4 shadow-sm min-w-0 space-y-3">
-                    {showPartsLeft && (
-                      <div>
-                        <ViewCardHeader icon={Package} title="Material deixado" count={order.partsLeft?.length || 0} />
-                        <PartTiles parts={order.partsLeft || []} />
-                      </div>
-                    )}
-                    {motors.length > 0 && <MotorRows motors={motors} specs={order.motorSpecs} />}
-                  </div>
-                )}
-
+            <div className={cn(
+              "flex flex-col p-4 gap-4 min-w-0",
+              isEditing ? "md:flex-row" : "md:grid md:grid-cols-[minmax(0,1fr)_300px] md:grid-rows-[auto_auto_1fr]"
+            )}>
+              {/* Left Column: Motor & Materials (na visualização vira parte da grade) */}
+              <div className={isEditing ? "flex-1 min-w-0 space-y-4" : "contents"}>
                 {/* Top Row: Material Deixado / Peças Adicionais (left) + Motor (right) */}
-                {isEditing && (
                 <div className={cn(
-                  "grid gap-4 items-stretch",
+                  "grid gap-4 items-stretch min-w-0 md:col-start-1 md:row-start-1",
                   isEditing
                     ? (showPartsLeft ? "grid-cols-1 sm:grid-cols-[1.6fr_1fr]" : "grid-cols-1")
-                    : (showPartsLeft && showAdditionalParts ? "grid-cols-1 lg:grid-cols-[1.4fr_1fr]" : "grid-cols-1")
+                    : (showPartsLeft && showAdditionalParts ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1")
                 )}>
                     {showPartsLeft && (
-                      <div className="border border-border rounded-xl bg-background p-3 shadow-sm min-w-0">
+                      <div className={cn("border border-border rounded-xl bg-background p-3 shadow-sm min-w-0", !isEditing && "flex flex-col")}>
                         {isEditing ? (
                           <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80 block mb-3">MATERIAL DEIXADO</span>
                         ) : (
@@ -1398,7 +1306,7 @@ export function OSViewModal({
 
                   {/* Peças adicionais ao lado do material (visualização) */}
                   {!isEditing && showAdditionalParts && (
-                    <div className="border border-border rounded-xl bg-background p-3 shadow-sm min-w-0">
+                    <div className="border border-border rounded-xl bg-background p-3 shadow-sm min-w-0 flex flex-col">
                       <ViewCardHeader icon={SettingsIcon} title="Peças adicionais" count={order.additionalParts?.length || 0} />
                       <PartTiles parts={order.additionalParts || []} />
                     </div>
@@ -1430,7 +1338,6 @@ export function OSViewModal({
                   </div>
                   )}
                 </div>
-                )}
 
                 {/* Peças Adicionais (edição) */}
                 {isEditing && showAdditionalParts && (
@@ -1502,9 +1409,15 @@ export function OSViewModal({
                 )}
 
                 {/* Bottom Section: Services List */}
-                <div className="border border-border rounded-2xl bg-card overflow-hidden shadow-sm">
-                  <div className="px-4 pt-4">
-                    <ViewCardHeader icon={Wrench} title="Serviços executados" count={isEditing ? editServices.length : order.services.length} />
+                <div className="border border-border rounded-xl bg-background overflow-hidden shadow-sm min-w-0 md:col-start-1 md:row-start-2 self-start w-full">
+                  <div className="px-3 py-2.5 border-b border-border flex justify-between items-center">
+                    <span className="flex items-center gap-2">
+                      <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 flex items-center justify-center shrink-0"><Wrench className="w-4 h-4" /></span>
+                      <span className="text-xs font-extrabold uppercase tracking-wide text-foreground">Serviços executados</span>
+                    </span>
+                    <span className="text-xs font-bold text-foreground/80 bg-secondary/60 px-2 py-0.5 rounded border border-border">
+                      {isEditing ? editServices.length : order.services.length} itens
+                    </span>
                   </div>
                   {isEditing ? (
                     <div className="divide-y divide-border">
@@ -1572,13 +1485,13 @@ export function OSViewModal({
                       </div>
                     </div>
                   ) : (
-                    <div className="mx-4 mb-4 rounded-xl border border-border overflow-hidden divide-y divide-border dark:divide-border/80">
+                    <div className="divide-y divide-border dark:divide-border/80">
                       {(() => {
                         // Com 2+ motores, separa os serviços como no relatório: comuns, motor 1, motor 2...
                         const renderService = (s: ServiceItem) => (
-                          <div key={s.id} className="flex justify-between items-center gap-3 px-4 py-3 text-sm hover:bg-secondary/20 transition-colors">
+                          <div key={s.id} className="flex justify-between items-center gap-3 px-3 py-1.5 text-[13px] hover:bg-secondary/20 transition-colors">
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <span className="w-7 h-7 rounded-full bg-muted text-[13px] font-bold text-foreground/80 flex items-center justify-center shrink-0 tabular-nums">
+                              <span className="w-6 h-6 rounded-full bg-muted text-xs font-bold text-foreground/80 flex items-center justify-center shrink-0 tabular-nums">
                                 {order.services.indexOf(s) + 1}
                               </span>
                               <span className="font-semibold uppercase text-foreground break-words">
@@ -1595,7 +1508,7 @@ export function OSViewModal({
                                 </span>
                               )}
                             </div>
-                            <span className="text-[15px] font-extrabold text-success shrink-0 tabular-nums">
+                            <span className="font-mono font-bold text-success shrink-0 tabular-nums">
                               {(s.value * (s.quantity || 1)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                             </span>
                           </div>
@@ -1627,9 +1540,9 @@ export function OSViewModal({
                         </div>
                       )}
                       {order.services.length > 0 && (
-                        <div className="bg-blue-50/60 dark:bg-blue-500/10 px-4 py-3.5 flex items-center justify-between">
-                          <span className="flex items-center gap-2.5 text-[15px] font-bold text-foreground"><Coins className="w-5 h-5 text-muted-foreground" />Total dos serviços</span>
-                          <span className="text-xl font-extrabold text-foreground tabular-nums">
+                        <div className="m-2 rounded-lg bg-blue-50/70 dark:bg-blue-500/10 px-3 py-2 flex items-center justify-between">
+                          <span className="text-[13px] font-bold text-foreground">Total dos serviços</span>
+                          <span className="text-base font-extrabold font-mono text-foreground tabular-nums">
                             {order.services.reduce((acc, sv) => acc + sv.value * (sv.quantity || 1), 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                           </span>
                         </div>
@@ -1640,7 +1553,7 @@ export function OSViewModal({
 
                 {/* Card de Observações */}
                 {(((order.observations && order.observations.replace(/\[ENTRADAS_JSON:\[[\s\S]*?\]\]/i, "").trim().length > 0)) || isEditing) && (
-                  <div className="border border-border rounded-xl bg-background overflow-hidden shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="border border-border rounded-xl bg-background overflow-hidden shadow-sm animate-in fade-in slide-in-from-top-1 duration-200 min-w-0 md:col-start-1 md:row-start-3 self-start w-full">
                     <div className="bg-secondary/30 px-4 py-3 border-b border-border flex justify-between items-center">
                       <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80">OBSERVAÇÕES</span>
                     </div>
@@ -1663,15 +1576,77 @@ export function OSViewModal({
               </div>
 
               {/* Right Column: Motor + Pagamento */}
-              <div className="w-full md:w-[350px] shrink-0 min-w-0 space-y-4">
-                {!isEditing && showAdditionalParts && (
-                  <div className="border border-border rounded-2xl bg-card p-4 shadow-sm">
-                    <ViewCardHeader icon={SettingsIcon} title="Peças adicionais" count={order.additionalParts?.length || 0} />
-                    <PartTiles parts={order.additionalParts || []} stacked />
+              <div className={isEditing ? "w-full md:w-[300px] shrink-0 min-w-0 flex flex-col gap-4" : "contents"}>
+                {!isEditing && motors.length > 0 && (
+                  <div className="border border-border rounded-xl bg-background p-3 shadow-sm min-w-0 md:col-start-2 md:row-start-1">
+                    <ViewCardHeader icon={Gauge} title={motors.length > 1 ? `Motores (${motors.length})` : 'Motor'} right={<span />} />
+                    <div className="space-y-3">
+                      {motors.map((m, idx) => {
+                        const spec = order.motorSpecs?.[idx];
+                        const brand = spec?.brand || detectBrandFromName(m.model);
+                        const logo = getBrandLogoSrc(brand);
+                        const tiles = [
+                          { label: 'Cilindrada', value: m.displacement || '-' },
+                          { label: 'Cilindros', value: m.cylinders || '-' },
+                          { label: 'Válvulas', value: spec?.valves ? spec.valves.replace(/V$/i, '') + ' VAL' : '-' },
+                        ];
+                        // Demais dados do motor (quando informados na O.S.)
+                        const extras: { label: string; value: string; orange?: boolean }[] = [];
+                        if (spec?.engineModel) extras.push({ label: 'Modelo', value: spec.engineModel.toUpperCase() });
+                        if (spec?.cars) extras.push({ label: 'Veículo', value: spec.cars.toUpperCase() });
+                        if (spec?.aspiration) extras.push({ label: 'Aspiração', value: spec.aspiration.toUpperCase(), orange: true });
+                        return (
+                          <div key={idx} className="space-y-1.5">
+                            <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-2.5 py-1.5">
+                              <span className="w-11 h-8 flex items-center justify-center shrink-0">
+                                {logo ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={logo} alt={brand} className="max-w-full max-h-full object-contain" draggable={false} />
+                                ) : (
+                                  <Gauge className="w-6 h-6 text-muted-foreground/50" />
+                                )}
+                              </span>
+                              <div className="min-w-0">
+                                <div className="text-sm font-extrabold uppercase text-foreground truncate">{m.model || 'MOTOR NÃO INFORMADO'}</div>
+                                <div className="text-xs font-semibold uppercase text-muted-foreground truncate">
+                                  {[brand, m.cylinders].filter(Boolean).join(' · ') || '—'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {tiles.map((t) => (
+                                <div key={t.label} className="rounded-lg border border-border bg-card px-2 py-1.5 min-w-0">
+                                  <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground truncate">{t.label}</div>
+                                  <div className="text-[13px] font-bold text-foreground truncate">{t.value}</div>
+                                </div>
+                              ))}
+                            </div>
+                            {extras.length > 0 && (
+                              <div className={cn("grid gap-1.5", extras.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
+                                {extras.map((t, ti) => (
+                                  <div
+                                    key={t.label}
+                                    title={`${t.label}: ${t.value}`}
+                                    className={cn(
+                                      "rounded-lg border px-2 py-1.5 min-w-0",
+                                      t.orange ? "bg-orange-50 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/30" : "bg-card border-border",
+                                      extras.length === 3 && ti === 2 && "col-span-2"
+                                    )}
+                                  >
+                                    <div className={cn("text-[10px] font-semibold uppercase tracking-wide truncate", t.orange ? "text-orange-600/80 dark:text-orange-300/80" : "text-muted-foreground")}>{t.label}</div>
+                                    <div className={cn("text-[13px] font-bold leading-tight break-words line-clamp-2", t.orange ? "text-orange-600 dark:text-orange-400" : "text-foreground")}>{t.value}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
-              <div className="border border-border rounded-2xl bg-card p-4 shadow-sm flex flex-col">
+              <div className={cn("border border-border rounded-xl bg-background p-3 shadow-sm flex flex-col flex-1 min-w-0", !isEditing && "md:col-start-2 md:row-start-2 md:row-span-2")}>
                 {!isEditing && (
                   <ViewCardHeader icon={CreditCard} title="Pagamento" right={getPaymentBadge(order.paymentStatus)} />
                 )}
@@ -1864,12 +1839,19 @@ export function OSViewModal({
                       {/* ═══ ENTRADA / PAGO: histórico de pagamentos ═══ */}
                       {(order.paymentStatus === 'Entrada' || order.paymentStatus === 'Pago') && getEntries().length > 0 && (
                         <div className="space-y-2 animate-in fade-in duration-200">
-                          <span className="block text-[13px] font-semibold text-muted-foreground">
-                            Histórico de pagamentos <span className="text-muted-foreground/70">- {getEntries().length}</span>
-                          </span>
-                          <div className="space-y-2">
-                            {getEntries().map((entry: any, index: number) => renderEntryRow(entry, index))}
+                          <div className="text-xs font-semibold text-muted-foreground">
+                            Histórico de pagamentos - {getEntries().length}
                           </div>
+                          {getEntries().map((entry: any, index: number) => {
+                            const entryAmount = parseFloat(entry.amount) || 0;
+                            return (
+                              <PaymentHistoryRow
+                                key={entry.id || index}
+                                entry={entry}
+                                onOpen={() => setViewEntry({ entry: { ...entry, amount: entryAmount }, index })}
+                              />
+                            );
+                          })}
                         </div>
                       )}
                     </>
@@ -1877,8 +1859,8 @@ export function OSViewModal({
                 </div>
 
                 {!groupedPayment && (
-                  <div className="mt-3 rounded-xl border border-border/60 bg-muted/40 dark:bg-muted/20 p-3.5 flex flex-col gap-2">
-                    <div className="flex justify-between items-center text-[13px] font-semibold text-muted-foreground">
+                  <div className="pt-3 mt-3 flex flex-col gap-1.5">
+                    <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground">
                       <span>Valor Total</span>
                       <span className="font-mono">
                         {isEditing ? editTotalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : order.totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
@@ -1894,8 +1876,8 @@ export function OSViewModal({
                     ) : null}
                     <hr className="border-border my-0.5" />
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-extrabold uppercase tracking-wider text-foreground">TOTAL FINAL</span>
-                      <span className="text-3xl font-extrabold text-foreground tracking-tight tabular-nums">
+                      <span className="text-sm font-bold uppercase tracking-wider text-foreground">TOTAL FINAL</span>
+                      <span className="text-2xl font-bold font-mono text-foreground tracking-tight">
                         {isEditing ? editNetValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : order.netValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                       </span>
                     </div>
@@ -1919,9 +1901,9 @@ export function OSViewModal({
                             discount: order.discount || 0,
                             showDiscount: true,
                           })}
-                          className="w-full h-11 font-bold text-sm uppercase tracking-wide gap-2 shadow-sm rounded-xl cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white"
+                          className="w-full max-w-[240px] h-9 font-bold text-xs uppercase tracking-wider gap-1.5 shadow-sm rounded-lg cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white"
                         >
-                          <span className="w-6 h-6 rounded-full bg-white/90 text-emerald-700 flex items-center justify-center shrink-0"><DollarSign className="w-4 h-4 stroke-[2.5]" /></span>
+                          <DollarSign className="w-4 h-4 stroke-[2.5]" />
                           Registrar pagamento
                         </Button>
                       )}
@@ -1935,7 +1917,7 @@ export function OSViewModal({
                             setIsGroupModalOpen(true);
                           }}
                           title="Agrupar com outras O.S. deste cliente para pagamento conjunto"
-                          className="w-full h-10 font-bold text-xs uppercase tracking-wider gap-1.5 rounded-xl border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100 hover:text-violet-800 dark:border-violet-500/40 dark:bg-violet-500/10 dark:text-violet-300"
+                          className="w-full max-w-[240px] h-9 font-bold text-xs uppercase tracking-wider gap-1.5 rounded-lg border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100 hover:text-violet-800 dark:border-violet-500/40 dark:bg-violet-500/10 dark:text-violet-300"
                         >
                           <Layers className="w-4 h-4 shrink-0" />
                           <span className="truncate">Agrupar pagamento conjunto</span>
@@ -1950,19 +1932,18 @@ export function OSViewModal({
           </div>
 
           {/* ═══ FOOTER ═══ */}
-          <div className="shrink-0 p-4 border-t border-border bg-muted/30 print:hidden">
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-sm">
+          <div className="shrink-0 p-5 border-t border-border bg-card print:hidden">
+            <div className="flex items-center justify-between">
               <Button
                 variant="ghost"
                 size="sm"
                 disabled={isEditingStatus}
                 onClick={() => setIsPreviewOpen(true)}
-                className="h-10 px-3 rounded-xl text-foreground/80 hover:text-foreground gap-2.5 text-sm font-bold uppercase tracking-wide disabled:opacity-50"
+                className="h-9 px-3 rounded-lg text-muted-foreground hover:text-foreground gap-2 text-xs font-bold uppercase tracking-wider disabled:opacity-50"
               >
-                <Printer className="w-5 h-5 stroke-[2]" /> Imprimir relatório
+                <Printer className="w-4 h-4 stroke-[2]" /> Imprimir relatório
               </Button>
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="hidden sm:block w-px h-9 bg-border mr-1" aria-hidden />
+              <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -1983,7 +1964,7 @@ export function OSViewModal({
                       onClose();
                     }
                   }}
-                  className="h-11 px-4 rounded-xl text-danger hover:bg-danger/10 gap-2 text-sm font-bold uppercase tracking-wide disabled:opacity-50"
+                  className="h-9 px-3 rounded-lg text-danger hover:bg-danger/10 gap-2 text-xs font-bold uppercase tracking-wider disabled:opacity-50"
                 >
                   <Trash2 className="w-4 h-4 stroke-[2]" /> Excluir O.S.
                 </Button>
@@ -1993,7 +1974,7 @@ export function OSViewModal({
                     size="sm"
                     disabled={isEditingStatus}
                     onClick={() => order && onEdit?.(order)}
-                    className="h-11 px-5 rounded-xl border-border bg-background hover:bg-secondary text-foreground gap-2 text-sm font-bold uppercase tracking-wide disabled:opacity-50"
+                    className="h-9 px-3.5 rounded-lg border-border bg-background hover:bg-secondary text-foreground gap-2 text-xs font-bold uppercase tracking-wider disabled:opacity-50"
                   >
                     <Edit className="w-4 h-4 stroke-[2]" /> Editar O.S.
                   </Button>
@@ -2002,9 +1983,9 @@ export function OSViewModal({
                   <Button
                     onClick={handleConcluir}
                     disabled={isEditingStatus}
-                    className="solid-btn h-11 px-5 rounded-xl font-bold text-sm uppercase tracking-wide gap-2 shadow-sm disabled:opacity-50"
+                    className="solid-btn h-9 px-4 rounded-lg font-bold text-xs uppercase tracking-wider gap-2 shadow-sm disabled:opacity-50"
                   >
-                    <CheckCircle2 className="w-5 h-5 stroke-[2.5]" /> Finalizar O.S.
+                    <CheckCircle2 className="w-4 h-4 stroke-[2.5]" /> Finalizar O.S.
                   </Button>
                 )}
               </div>
@@ -2282,6 +2263,73 @@ export function OSViewModal({
             </DialogContent>
           </Dialog>
         )}
+
+        {/* ═══ VISUALIZAÇÃO DE UM LANÇAMENTO (com Editar / Excluir) ═══ */}
+        <Dialog open={!!viewEntry} onOpenChange={(o) => { if (!o) setViewEntry(null); }}>
+          <DialogContent showCloseButton={false} className="sm:max-w-[400px] rounded-2xl bg-popover border-border p-0 gap-0 overflow-hidden">
+            {viewEntry && (() => {
+              const e = viewEntry.entry;
+              const amount = parseFloat(e.amount) || 0;
+              const { icon, full } = paymentMethodInfo(e.method);
+              const rows: { label: string; value: string }[] = [
+                { label: 'Forma de pagamento', value: full },
+                { label: 'Data', value: formatEntryDate(e.date) || '—' },
+                { label: 'Pagador', value: (e.payer && String(e.payer).trim()) ? String(e.payer).toUpperCase() : '—' },
+              ];
+              return (
+                <>
+                  <div className="flex items-center gap-3 p-5 border-b border-border">
+                    <span className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/25 flex items-center justify-center shrink-0">{icon}</span>
+                    <div className="min-w-0 flex-1">
+                      <DialogTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lançamento {viewEntry.index + 1}</DialogTitle>
+                      <div className="text-2xl font-extrabold text-foreground tabular-nums">{amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+                    </div>
+                    <DialogClose render={
+                      <Button variant="outline" size="icon" className="w-8 h-8 rounded-lg border-border shrink-0"><X className="w-4 h-4 text-muted-foreground" /></Button>
+                    } />
+                  </div>
+                  <div className="p-5 space-y-2.5">
+                    {rows.map((r) => (
+                      <div key={r.label} className="flex items-center justify-between gap-3 text-sm">
+                        <span className="text-muted-foreground">{r.label}</span>
+                        <span className="font-semibold text-foreground text-right break-words">{r.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between gap-2 px-5 py-3.5 border-t border-border bg-muted/30">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => { const v = viewEntry; setViewEntry(null); handleIndividualDeleteEntrada(v.entry.id, v.index); }}
+                      className="h-9 px-3 rounded-lg text-danger hover:bg-danger/10 gap-1.5 text-xs font-bold uppercase tracking-wider"
+                    >
+                      <Trash2 className="w-4 h-4" /> Excluir
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        const v = viewEntry;
+                        setViewEntry(null);
+                        setPaymentEntryModal({
+                          mode: 'edit',
+                          entry: { id: v.entry.id, amount: parseFloat(v.entry.amount) || 0, method: v.entry.method, date: v.entry.date, payer: v.entry.payer },
+                          index: v.index,
+                          totalValue: order.totalValue,
+                          paidElsewhere: Math.max(0, getEntries().reduce((sum: number, c: any) => sum + (parseFloat(c.amount) || 0), 0) - (parseFloat(v.entry.amount) || 0)),
+                          discount: order.discount || 0,
+                          showDiscount: true,
+                        });
+                      }}
+                      className="solid-btn h-9 px-4 rounded-lg gap-1.5 text-xs font-bold uppercase tracking-wider"
+                    >
+                      <Pencil className="w-4 h-4" /> Editar pagamento
+                    </Button>
+                  </div>
+                </>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
 
         {/* ═══ MODAL COMPACTO DE LANÇAMENTO (FINALIZAR / REGISTRAR / EDITAR PAGAMENTO) ═══ */}
         {paymentEntryModal && order && (
