@@ -1492,16 +1492,11 @@ export function OSViewModal({
                           <div key={s.id} className="flex justify-between items-center gap-3 px-3 py-1.5 text-[13px] hover:bg-secondary/20 transition-colors">
                             <div className="flex items-center gap-2.5 min-w-0">
                               <span className="w-6 h-6 rounded-full bg-muted text-xs font-bold text-foreground/80 flex items-center justify-center shrink-0 tabular-nums">
-                                {order.services.indexOf(s) + 1}
+                                {s.quantity || 1}
                               </span>
                               <span className="font-semibold uppercase text-foreground break-words">
                                 {s.id === 'eix-retificar' && s.measure ? `Retificar Eixo — ${s.measure}` : s.name}
                               </span>
-                              {(s.quantity || 1) > 1 && (
-                                <span className="inline-flex items-center h-5 px-1.5 rounded-md bg-secondary border border-border text-[11px] font-bold text-muted-foreground tabular-nums shrink-0">
-                                  ×{s.quantity}
-                                </span>
-                              )}
                               {s.measure && s.id !== 'eix-retificar' && (
                                 <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold uppercase bg-primary/10 text-primary border border-border">
                                   {s.measure}
@@ -1609,7 +1604,7 @@ export function OSViewModal({
                               <div className="min-w-0">
                                 <div className="text-sm font-extrabold uppercase text-foreground truncate">{m.model || 'MOTOR NÃO INFORMADO'}</div>
                                 <div className="text-xs font-semibold uppercase text-muted-foreground truncate">
-                                  {[brand, m.cylinders].filter(Boolean).join(' · ') || '—'}
+                                  {brand || '—'}
                                 </div>
                               </div>
                             </div>
