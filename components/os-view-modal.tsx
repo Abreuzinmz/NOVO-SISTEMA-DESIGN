@@ -120,17 +120,24 @@ function ViewCardHeader({ icon: Icon, title, count, right }: { icon: React.Eleme
 }
 
 /** Peças em quadrinhos (2 colunas): foto, nome embaixo e quantidade no canto superior direito */
-function PartTiles({ parts }: { parts: string[] }) {
+// classes completas (o Tailwind precisa encontrá-las escritas no código)
+const TILE_COLS: Record<number, string> = { 1: 'sm:grid-cols-1', 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3', 4: 'sm:grid-cols-4' };
+
+/** wide = cartão na largura toda: os itens se dividem em uma linha (até 4 por linha) */
+function PartTiles({ parts, wide }: { parts: string[]; wide?: boolean }) {
+  const cols = wide ? Math.min(Math.max(parts.length, 1), 4) : 2;
+  // Com poucos itens (até 2), eles crescem para ocupar o cartão; com mais, ficam no tamanho normal
+  const few = parts.length <= 2;
   return (
-    <div className="grid grid-cols-2 gap-1.5">
+    <div className={cn("grid gap-1.5 grid-cols-2", wide && TILE_COLS[cols], few && "flex-1 auto-rows-fr")}>
       {parts.map((p, i) => {
         const [name, qtyStr] = p.includes('|') ? p.split('|') : [p, '1'];
         const qty = parseInt(qtyStr) || 1;
         const img = getPartImage(name);
         return (
-          <div key={i} className="relative rounded-lg border border-border bg-card p-1.5 flex flex-col items-center gap-1 min-w-0">
+          <div key={i} className={cn("relative rounded-lg border border-border bg-card flex flex-col items-center min-w-0", few ? "p-2 justify-center gap-1.5" : "p-1.5 gap-1")}>
             <span className="absolute top-1 right-1 min-w-[20px] h-[18px] px-1 rounded-md bg-muted text-[11px] font-bold text-foreground flex items-center justify-center tabular-nums">{qty}</span>
-            <div className="h-11 w-full flex items-center justify-center px-5">
+            <div className={cn("w-full flex items-center justify-center", few ? "flex-1 min-h-11 max-h-16 px-6" : "h-11 px-5")}>
               {img ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={img} alt="" draggable={false} className="max-w-full max-h-full object-contain" />
@@ -138,7 +145,7 @@ function PartTiles({ parts }: { parts: string[] }) {
                 <Package className="w-7 h-7 text-muted-foreground/40" />
               )}
             </div>
-            <span className="w-full text-center text-[11px] font-bold uppercase leading-tight text-foreground line-clamp-2 break-words" title={name}>{name}</span>
+            <span className={cn("w-full text-center font-bold uppercase leading-tight text-foreground line-clamp-2 break-words", few ? "text-xs" : "text-[11px]")} title={name}>{name}</span>
           </div>
         );
       })}
@@ -1042,7 +1049,7 @@ export function OSViewModal({
       <DialogContent
         showCloseButton={false}
         useFlexLayout={true}
-        className="print-friendly-modal w-[min(980px,calc(100vw-48px))] max-h-[calc(100vh-48px)] p-0 border border-border bg-card rounded-xl overflow-hidden shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08),_0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] outline-none flex flex-col gap-0 print:block print:!static print:!w-full print:!max-w-none print:!h-auto print:border-none print:shadow-none print:bg-card print:overflow-visible"
+        className="print-friendly-modal w-[min(1000px,calc(100vw-48px))] max-h-[calc(100vh-48px)] p-0 border border-border bg-card rounded-xl overflow-hidden shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08),_0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] outline-none flex flex-col gap-0 print:block print:!static print:!w-full print:!max-w-none print:!h-auto print:border-none print:shadow-none print:bg-card print:overflow-visible"
         style={{ transform: 'none' }}
         finalFocus={false}
       >
@@ -1299,7 +1306,7 @@ export function OSViewModal({
                             </Button>
                           </div>
                         ) : (
-                          <PartTiles parts={order.partsLeft || []} />
+                          <PartTiles parts={order.partsLeft || []} wide={!showAdditionalParts} />
                         )}
                       </div>
                     )}
@@ -1308,7 +1315,7 @@ export function OSViewModal({
                   {!isEditing && showAdditionalParts && (
                     <div className="border border-border rounded-xl bg-background p-3 shadow-sm min-w-0 flex flex-col">
                       <ViewCardHeader icon={SettingsIcon} title="Peças adicionais" count={order.additionalParts?.length || 0} />
-                      <PartTiles parts={order.additionalParts || []} />
+                      <PartTiles parts={order.additionalParts || []} wide={!showPartsLeft} />
                     </div>
                   )}
 
