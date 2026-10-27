@@ -49,12 +49,15 @@ function DialogContent({
   style,
   useFlexLayout = true,
   zIndex,
+  forceOverlay = false,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
   overlayClassName?: string
   useFlexLayout?: boolean
   zIndex?: number
+  /** Desenha o fundo escuro mesmo quando o modal abre dentro de outro modal */
+  forceOverlay?: boolean
 }) {
   let parsedZIndex = zIndex;
   if (parsedZIndex === undefined && typeof className === 'string') {
@@ -98,7 +101,7 @@ function DialogContent({
   if (useFlexLayout) {
     return (
       <DialogPortal>
-        <DialogOverlay className={overlayClassName} style={{ zIndex: finalOverlayZIndex }} />
+        <DialogOverlay className={overlayClassName} style={{ zIndex: finalOverlayZIndex }} forceRender={forceOverlay} />
         <div
           className="fixed inset-0 flex items-center justify-center p-6 overflow-hidden pointer-events-none"
           style={{ zIndex: finalZIndex }}
@@ -142,7 +145,7 @@ function DialogContent({
 
   return (
     <DialogPortal>
-      <DialogOverlay className={overlayClassName} style={{ zIndex: finalOverlayZIndex }} />
+      <DialogOverlay className={overlayClassName} style={{ zIndex: finalOverlayZIndex }} forceRender={forceOverlay} />
       <DialogPrimitive.Popup
         ref={contentRef}
         data-slot="dialog-content"

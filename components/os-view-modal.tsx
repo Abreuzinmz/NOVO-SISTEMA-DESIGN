@@ -32,7 +32,6 @@ import {
   Trash2,
   CheckCircle2,
   FileText,
-  User,
   Wrench,
   Calendar,
   X,
@@ -69,8 +68,8 @@ function paymentMethodInfo(method?: string) {
 
 const formatEntryDate = (d?: string) => (d ? new Date(String(d).slice(0, 10) + 'T12:00:00').toLocaleDateString('pt-BR') : '');
 
-/** Linha do histórico de pagamentos: ícone da forma, valor, data e, embaixo, o pagador */
-function PaymentHistoryRow({ entry, onOpen }: { entry: any; onOpen: () => void }) {
+/** Linha do histórico de pagamentos: nº da entrada, ícone da forma, valor, data e, embaixo, o pagador */
+function PaymentHistoryRow({ entry, onOpen, number }: { entry: any; onOpen: () => void; number?: number }) {
   const amount = parseFloat(entry.amount) || 0;
   const { icon, label } = paymentMethodInfo(entry.method);
   const payer = entry.payer && String(entry.payer).trim();
@@ -81,8 +80,19 @@ function PaymentHistoryRow({ entry, onOpen }: { entry: any; onOpen: () => void }
       title="Ver lançamento"
       className="w-full text-left flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-50 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15 pl-2 pr-1.5 py-2 transition-colors cursor-pointer"
     >
+      {number !== undefined && (
+        <span className="w-6 h-6 rounded-full bg-emerald-600 text-white text-[11px] font-extrabold flex items-center justify-center shrink-0 tabular-nums">{number}</span>
+      )}
       <span className="w-9 h-9 rounded-lg bg-white dark:bg-white/10 border border-emerald-100 dark:border-emerald-500/20 flex items-center justify-center shrink-0">{icon}</span>
       <span className="flex-1 min-w-0">
+        {number !== undefined && (
+          <span className={cn(
+            "inline-block mb-0.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded px-1.5 py-px",
+            number === 1 ? "bg-emerald-600 text-white" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+          )}>
+            {number}ª entrada{number === 1 ? ' · primeira' : ''}
+          </span>
+        )}
         <span className="flex items-baseline gap-1.5 min-w-0">
           <span className="text-sm font-extrabold text-foreground tabular-nums whitespace-nowrap">{amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
           <span className="text-[11px] font-semibold uppercase text-muted-foreground whitespace-nowrap truncate">{label}</span>
@@ -494,6 +504,7 @@ export function OSViewModal({
 
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingStatus, setIsEditingStatus] = useState(false);
+  const [showPaidHistory, setShowPaidHistory] = useState(false);
   const [editPartsLeft, setEditPartsLeft] = useState<string[]>([]);
   const [editAdditionalParts, setEditAdditionalParts] = useState<string[]>([]);
   const [editServices, setEditServices] = useState<ServiceItem[]>([]);
@@ -899,6 +910,7 @@ export function OSViewModal({
   if (!order) return null;
 
   const client = clients.find(c => c.id === order.clientId);
+  const hasObservations = !!order.observations && order.observations.replace(/\[ENTRADAS_JSON:\[[\s\S]*?\]\]/i, "").trim().length > 0;
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '';
@@ -1049,7 +1061,7 @@ export function OSViewModal({
       <DialogContent
         showCloseButton={false}
         useFlexLayout={true}
-        className="print-friendly-modal w-[min(1000px,calc(100vw-48px))] max-h-[calc(100vh-48px)] p-0 border border-border bg-card rounded-xl overflow-hidden shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08),_0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] outline-none flex flex-col gap-0 print:block print:!static print:!w-full print:!max-w-none print:!h-auto print:border-none print:shadow-none print:bg-card print:overflow-visible"
+        className="print-friendly-modal w-[min(1000px,calc(100vw-48px))] md:w-[min(1000px,calc(100vw-140px))] max-h-[calc(100vh-48px)] p-0 border-0 bg-transparent ring-0 rounded-none overflow-visible shadow-none outline-none flex flex-col gap-0 print:block print:!static print:!w-full print:!max-w-none print:!h-auto print:border-none print:shadow-none print:bg-card print:overflow-visible"
         style={{ transform: 'none' }}
         finalFocus={false}
       >
@@ -1094,159 +1106,144 @@ export function OSViewModal({
           }
         `}} />
 
-        <div className="flex flex-col flex-1 min-h-0 print:hidden">
-
-          {/* ═══ HEADER ═══ */}
-          <div className="shrink-0 border-b border-border bg-card p-4 flex items-stretch gap-3 print:px-0 print:bg-card">
-            {/* Nº da O.S. e abertura */}
-            <div
-              className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 border-l-4 px-4 py-2.5 flex flex-col justify-center shrink-0 select-none"
-              style={{ borderLeftColor: getStatusBorderColor(isEditingStatus ? editServiceStatus : order.serviceStatus) }}
+        <div className="relative flex flex-col flex-1 min-h-0 print:hidden">
+          <DialogClose render={
+            <Button
+              variant="outline"
+              size="icon"
+              title="Fechar"
+              className="absolute z-20 top-2 right-2 md:top-0 md:-right-14 w-10 h-10 rounded-full border-border bg-card hover:bg-secondary shadow-lg print:hidden"
             >
-              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700/80 dark:text-blue-300/80">O.S. Nº</span>
-              <span className="font-extrabold text-3xl leading-none tracking-tight text-blue-600 dark:text-blue-400 tabular-nums mt-0.5">
-                #{String(order.osNumber || order.id).padStart(4, '0')}
-              </span>
-              <span className="flex items-center gap-1 text-[11px] text-muted-foreground mt-1.5 whitespace-nowrap">
-                <Calendar className="w-3.5 h-3.5" />
-                Abertura: <strong className="text-foreground font-semibold">{order.arrivalDate ? new Date(order.arrivalDate + 'T12:00:00').toLocaleDateString('pt-BR') : new Date(order.createdAt).toLocaleDateString('pt-BR')}</strong>
-              </span>
-            </div>
+              <X className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+            </Button>
+          } />
 
-            {/* Cliente */}
-            <div className="flex-1 min-w-0 rounded-xl border border-border bg-card px-4 py-2.5 flex items-center gap-4">
-              <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center gap-2 min-w-0">
-                  <User className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <span className="text-sm font-extrabold uppercase tracking-tight text-foreground truncate">{client?.name || 'CLIENTE REMOVIDO'}</span>
-                  {client?.nickname && (
-                    <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-md px-1.5 py-0.5 uppercase shrink-0">{client.nickname}</span>
-                  )}
-                  {client && (
-                    <span className={cn(
-                      "text-[10px] font-extrabold tracking-wider uppercase rounded-md border px-1.5 py-0.5 shrink-0",
-                      client.clientType === 'mechanic' ? "bg-info/10 text-info border-info/20" : "bg-secondary text-secondary-foreground border-border"
-                    )}>
-                      {client.clientType === 'mechanic' ? 'MECÂNICO' : 'CLIENTE'}
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-foreground/80">
-                  {client?.phone && (
-                    <span className="flex items-center gap-1.5 font-semibold"><Phone className="w-3.5 h-3.5 text-muted-foreground" />{client.phone}</span>
-                  )}
-                  {client?.document?.trim() && (
-                    <span className="flex items-center gap-1.5 font-semibold"><FileText className="w-3.5 h-3.5 text-muted-foreground" />CPF/CNPJ: {client.document}</span>
-                  )}
-                  {client?.city?.trim() && (
-                    <span className="flex items-center gap-1.5 text-muted-foreground"><MapPin className="w-3.5 h-3.5" />{client.city}</span>
-                  )}
-                </div>
-                {order.mechanicId && (() => {
-                  const m = clients.find(c => c.id === order.mechanicId);
-                  const nickname = m?.nickname || order.mechanicNickname;
-                  const name = m?.name || order.mechanicName;
-                  const displayName = nickname ? nickname.toUpperCase() : name;
-                  return displayName ? (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Wrench className="w-3.5 h-3.5" /> Mecânico: <span className="font-semibold text-foreground/80">{displayName}</span>
+          {/* ═══ ÁREA PRINCIPAL ═══ */}
+          <div className="flex-1 min-w-0 flex flex-col min-h-0 rounded-2xl border border-border bg-card overflow-hidden shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08),_0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)]">
+
+          {/* ═══ CABEÇALHO (Nº da O.S., status e cliente) ═══ */}
+          <section className="shrink-0 px-4 pt-4">
+            <div className="rounded-xl bg-blue-50/70 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 px-4 py-3 flex flex-col md:flex-row md:items-stretch gap-3 md:gap-4 select-none">
+              {/* Nº da O.S., abertura, dias em aberto e status */}
+              {(() => {
+                const openedAt = order.arrivalDate ? new Date(order.arrivalDate + 'T12:00:00') : new Date(order.createdAt);
+                const today = new Date();
+                today.setHours(12, 0, 0, 0);
+                const opened = new Date(openedAt);
+                opened.setHours(12, 0, 0, 0);
+                const days = Math.max(0, Math.round((today.getTime() - opened.getTime()) / 86400000));
+                const daysLabel = days === 0 ? 'Aberta hoje' : days === 1 ? 'Há 1 dia' : `Há ${days} dias`;
+                return (
+                  <div className="shrink-0 md:pr-4 md:border-r border-blue-200/70 dark:border-blue-500/20">
+                    <span className="text-xs font-bold uppercase tracking-wider text-blue-700/80 dark:text-blue-300/80">O.S. Nº</span>
+                    <div className="font-extrabold text-3xl leading-none tracking-tight text-blue-600 dark:text-blue-400 tabular-nums mt-0.5">
+                      #{String(order.osNumber || order.id).padStart(4, '0')}
                     </div>
-                  ) : null;
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2 whitespace-nowrap">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <strong className="text-foreground font-semibold">{openedAt.toLocaleDateString('pt-BR')}</strong>
+                      <span className="text-border">•</span>
+                      <Clock className="w-3.5 h-3.5" />
+                      <strong className={cn("font-semibold", days >= 30 ? "text-danger" : days >= 15 ? "text-warning" : "text-foreground")}>{daysLabel}</strong>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                      {getStatusBadge(order.serviceStatus)}
+                      {getPaymentBadge(order.paymentStatus)}
+                    </div>
+                    {order.statusObservation && (
+                      <div className="text-xs text-muted-foreground font-semibold break-words mt-2 max-w-[220px]">{order.statusObservation}</div>
+                    )}
+                    {!order.finished && order.serviceStatus !== 'Levou' && order.deliveryDate && (
+                      <div className="text-xs font-bold text-foreground mt-2">
+                        Previsão: {new Date(order.deliveryDate + 'T12:00:00').toLocaleDateString('pt-BR')}
+                      </div>
+                    )}
+                    {order.finished && (order.finishedAt || order.deliveryDate) && (
+                      <div className="text-xs font-bold text-success mt-2">
+                        Finalizado em: {new Date(order.finishedAt || (order.deliveryDate as string) + 'T12:00:00').toLocaleDateString('pt-BR')}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Cliente: apelido acima do nome, tipo ao lado e contatos em linha */}
+              <div className="flex-1 min-w-0 flex flex-col justify-center gap-2.5">
+                <div className="min-w-0">
+                  {client?.nickname && (
+                    <div className="text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-blue-400 leading-tight">{client.nickname}</div>
+                  )}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+                    <span className="text-lg font-extrabold uppercase tracking-tight text-foreground break-words leading-snug">{client?.name || 'CLIENTE REMOVIDO'}</span>
+                    {client && (
+                      <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                        Tipo:{' '}
+                        <span className={cn(
+                          "inline-block ml-1 text-[11px] font-extrabold tracking-wider uppercase rounded-full border px-2.5 py-0.5 align-middle",
+                          client.clientType === 'mechanic' ? "bg-info/10 text-info border-info/20" : "bg-card text-secondary-foreground border-border"
+                        )}>
+                          {client.clientType === 'mechanic' ? 'Mecânico' : 'Cliente'}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {(client?.phone || client?.document?.trim() || client?.city?.trim()) && (() => {
+                  const docDigits = (client?.document || '').replace(/\D/g, '');
+                  const rows = [
+                    client?.phone ? { icon: Phone, label: 'TEL.', value: client.phone } : null,
+                    client?.document?.trim() ? { icon: FileText, label: docDigits.length > 11 ? 'CNPJ' : 'CPF', value: client.document } : null,
+                    client?.city?.trim() ? { icon: MapPin, label: 'CID.', value: client.city } : null,
+                  ].filter(Boolean) as { icon: React.ElementType; label: string; value: string }[];
+                  return (
+                    <div className="flex items-center min-w-0">
+                      {rows.map((r, i) => (
+                        <div key={r.label} className={cn("flex items-center gap-2 min-w-0", i < rows.length - 1 && "shrink-0", i > 0 && "pl-3 ml-3 border-l border-blue-200/70 dark:border-blue-500/20")}>
+                          <r.icon className="w-[18px] h-[18px] text-muted-foreground shrink-0" />
+                          <div className="min-w-0">
+                            <div className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground leading-tight">{r.label}</div>
+                            <div className="text-[13px] font-semibold text-foreground truncate" title={r.value}>{r.value}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
                 })()}
               </div>
-              <span className="hidden sm:block w-px self-stretch bg-border" aria-hidden />
-              <div className="text-right flex flex-col items-end justify-center gap-2 shrink-0 print:hidden">
-                {isEditingStatus ? (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={handleSaveStatus}
-                        disabled={isSubmittingPayment}
-                        className="h-8 px-3 rounded-lg solid-btn font-bold text-xs uppercase tracking-wider gap-1 shadow-sm disabled:opacity-50"
-                      >
-                        {isSubmittingPayment ? (
-                          <span>SALVANDO...</span>
-                        ) : (
-                          <>
-                            <Check className="w-3.5 h-3.5" /> SALVAR
-                          </>
+
+              {/* Mecânico responsável */}
+              {order.mechanicId && (() => {
+                const m = clients.find(c => c.id === order.mechanicId);
+                const nickname = m?.nickname || order.mechanicNickname;
+                const name = m?.name || order.mechanicName;
+                const displayName = nickname ? nickname.toUpperCase() : name;
+                return displayName ? (
+                  <div className="shrink-0 md:pl-4 md:border-l border-blue-200/70 dark:border-blue-500/20 flex items-center">
+                    <div className="md:w-[215px] rounded-xl border border-info/20 bg-info/5 dark:bg-info/10 px-3 py-2.5 flex items-center gap-2.5 min-w-0">
+                      <span className="w-10 h-10 rounded-lg bg-info/15 text-info flex items-center justify-center shrink-0">
+                        <Wrench className="w-5 h-5" />
+                      </span>
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-bold uppercase whitespace-nowrap text-info">Mecânico responsável</div>
+                        <div className="text-sm font-extrabold uppercase text-foreground truncate" title={name || displayName}>{displayName}</div>
+                        {nickname && name && name.toUpperCase() !== nickname.toUpperCase() && (
+                          <div className="text-xs font-medium uppercase text-muted-foreground truncate">{name}</div>
                         )}
-                      </Button>
-                      <Button
-                        onClick={handleDiscardStatus}
-                        disabled={isSubmittingPayment}
-                        variant="outline"
-                        className="h-8 px-3 rounded-lg border-border bg-background hover:bg-secondary text-foreground font-bold text-xs uppercase tracking-wider gap-1 shadow-sm disabled:opacity-50"
-                      >
-                        <X className="w-3.5 h-3.5" /> CANCELAR
-                      </Button>
-                    </div>
-                    <Select value={editServiceStatus} onValueChange={(val) => setEditServiceStatus(val as ServiceStatus)}>
-                      <SelectTrigger className="premium-input h-8 rounded-lg text-xs font-bold bg-card border-border w-[160px] flex justify-between gap-1.5">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent className="z-[9999] bg-card dark:bg-background border border-border rounded-lg shadow-2xl">
-                        <SelectItem value="Na Fila">{getStatusOptionLabel("Na Fila")}</SelectItem>
-                        <SelectItem value="Em Andamento">{getStatusOptionLabel("Em Andamento")}</SelectItem>
-                        <SelectItem value="Aguardando Peça">{getStatusOptionLabel("Aguardando Peça")}</SelectItem>
-                        <SelectItem value="Pronto">{getStatusOptionLabel("Pronto")}</SelectItem>
-                        <SelectItem value="Levou">{getStatusOptionLabel("Levou")}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      onClick={() => setIsEditingStatus(true)}
-                      variant="outline"
-                      className="h-8 px-3 rounded-lg border-border bg-background hover:bg-secondary text-foreground font-bold text-xs uppercase tracking-wider gap-1.5 shadow-sm"
-                    >
-                      <Pencil className="w-3.5 h-3.5" /> Editar
-                    </Button>
-                    <div className="flex flex-col items-end gap-1.5">
-                      <div className="flex items-center gap-2">
-                        {getStatusBadge(order.serviceStatus)}
-                        {getPaymentBadge(order.paymentStatus)}
                       </div>
-                      {order.statusObservation && (
-                        <div className="text-xs text-muted-foreground font-semibold max-w-[180px] break-words text-right">
-                          {order.statusObservation}
-                        </div>
-                      )}
                     </div>
-                    <div className="flex items-center gap-2 empty:hidden">
-                      {!order.finished && order.serviceStatus !== 'Levou' && order.deliveryDate && (
-                        <>
-                          <span className="text-xs font-bold text-foreground">
-                            Previsão: {new Date(order.deliveryDate + 'T12:00:00').toLocaleDateString('pt-BR')}
-                          </span>
-                        </>
-                      )}
-                      {order.finished && (order.finishedAt || order.deliveryDate) && (
-                        <>
-                          <span className="text-xs font-bold text-success">
-                            Finalizado em: {new Date(order.finishedAt || (order.deliveryDate as string) + 'T12:00:00').toLocaleDateString('pt-BR')}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
+                  </div>
+                ) : null;
+              })()}
             </div>
-            <DialogClose render={
-              <Button variant="outline" size="icon" className="w-8 h-8 rounded-lg border-border bg-background hover:bg-secondary shrink-0 self-start print:hidden">
-                <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-              </Button>
-            } />
-          </div>
+          </section>
 
           {/* ═══ BODY ═══ */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
             {/* Top Section: Motor + Cards + Financial */}
             <div className={cn(
               "flex flex-col p-4 gap-4 min-w-0",
-              isEditing ? "md:flex-row" : "md:grid md:grid-cols-[minmax(0,1fr)_300px] md:grid-rows-[auto_auto_1fr]"
+              isEditing ? "md:flex-row" : cn("md:grid md:grid-cols-[minmax(0,1fr)_320px]", hasObservations ? "md:grid-rows-[auto_auto_1fr]" : "md:grid-rows-[auto_1fr]")
             )}>
               {/* Left Column: Motor & Materials (na visualização vira parte da grade) */}
               <div className={isEditing ? "flex-1 min-w-0 space-y-4" : "contents"}>
@@ -1648,7 +1645,7 @@ export function OSViewModal({
                   </div>
                 )}
 
-              <div className={cn("border border-border rounded-xl bg-background p-3 shadow-sm flex flex-col flex-1 min-w-0", !isEditing && "md:col-start-2 md:row-start-2 md:row-span-2")}>
+              <div className={cn("border border-border rounded-xl bg-background p-3 shadow-sm flex flex-col flex-1 min-w-0", !isEditing && cn("md:col-start-2 md:row-start-2", hasObservations && "md:row-span-2"))}>
                 {!isEditing && (
                   <ViewCardHeader icon={CreditCard} title="Pagamento" right={getPaymentBadge(order.paymentStatus)} />
                 )}
@@ -1838,59 +1835,139 @@ export function OSViewModal({
                         </div>
                       )}
 
-                      {/* ═══ ENTRADA / PAGO: histórico de pagamentos ═══ */}
-                      {(order.paymentStatus === 'Entrada' || order.paymentStatus === 'Pago') && getEntries().length > 0 && (
-                        <div className="space-y-2 animate-in fade-in duration-200">
-                          <div className="text-xs font-semibold text-muted-foreground">
-                            Histórico de pagamentos - {getEntries().length}
+                      {/* ═══ ENTRADA / PAGO: histórico de pagamentos (numerado pela data) ═══ */}
+                      {(order.paymentStatus === 'Entrada' || order.paymentStatus === 'Pago') && getEntries().length > 0 && (() => {
+                        const ordered = getEntries()
+                          .map((entry: any, index: number) => ({ entry, index }))
+                          .sort((x: any, y: any) => String(x.entry.date || '').localeCompare(String(y.entry.date || '')) || x.index - y.index);
+                        const totalPaid = ordered.reduce((acc: number, it: any) => acc + (parseFloat(it.entry.amount) || 0), 0);
+                        const lastDate = ordered.length ? ordered[ordered.length - 1].entry.date : '';
+                        const list = (
+                          <div className="space-y-2">
+                            {ordered.map(({ entry, index }: any, pos: number) => {
+                              const entryAmount = parseFloat(entry.amount) || 0;
+                              return (
+                                <PaymentHistoryRow
+                                  key={entry.id || index}
+                                  entry={entry}
+                                  onOpen={() => setViewEntry({ entry: { ...entry, amount: entryAmount }, index })}
+                                />
+                              );
+                            })}
                           </div>
-                          {getEntries().map((entry: any, index: number) => {
-                            const entryAmount = parseFloat(entry.amount) || 0;
-                            return (
-                              <PaymentHistoryRow
-                                key={entry.id || index}
-                                entry={entry}
-                                onOpen={() => setViewEntry({ entry: { ...entry, amount: entryAmount }, index })}
-                              />
-                            );
-                          })}
-                        </div>
-                      )}
+                        );
+                        if (order.paymentStatus === 'Pago') {
+                          const methods = Array.from(new Set(ordered.map((it: any) => paymentMethodInfo(it.entry.method).label))) as string[];
+                          return (
+                            <div className="space-y-2 animate-in fade-in duration-200">
+                              <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-500/25 dark:bg-emerald-500/10 p-3 flex items-center gap-3">
+                                <span className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                                  <CheckCircle2 className="w-5 h-5" />
+                                </span>
+                                <div className="min-w-0">
+                                  <div className="text-[11px] font-extrabold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Pagamento finalizado</div>
+                                  <div className="text-lg font-extrabold text-foreground tabular-nums leading-tight">
+                                    {totalPaid.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                  </div>
+                                  <div className="text-[11px] font-semibold uppercase text-emerald-800/80 dark:text-emerald-200/80 truncate" title={methods.join(', ')}>
+                                    {methods.join(' · ')}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setShowPaidHistory(true)}
+                                className="w-full h-8 rounded-lg border border-border bg-card hover:bg-muted text-[11px] font-bold uppercase tracking-wide text-foreground/80 flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                              >
+                                <Clock className="w-3.5 h-3.5" />
+                                Ver histórico de pagamentos ({ordered.length})
+                              </button>
+
+                              {/* Modal: registros dos pagamentos */}
+                              <Dialog open={showPaidHistory} onOpenChange={setShowPaidHistory}>
+                                <DialogContent showCloseButton={false} className="sm:max-w-[440px] z-[1100] rounded-2xl bg-popover border border-border ring-1 ring-foreground/15 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] p-0 gap-0 overflow-hidden" overlayClassName="z-[1099] bg-black/55 supports-backdrop-filter:backdrop-blur-[2px]" forceOverlay>
+                                  <div className="flex items-center gap-3 px-5 pt-5 pb-3">
+                                    <span className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300 flex items-center justify-center shrink-0">
+                                      <Clock className="w-[18px] h-[18px]" />
+                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                      <DialogTitle className="text-sm font-extrabold uppercase tracking-wide text-foreground">Histórico de pagamentos</DialogTitle>
+                                      <div className="text-xs text-muted-foreground">O.S. #{String(order.osNumber || order.id).padStart(4, '0')} · {ordered.length} {ordered.length === 1 ? 'pagamento' : 'pagamentos'}</div>
+                                    </div>
+                                    <DialogClose render={
+                                      <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground">
+                                        <X className="w-4 h-4" />
+                                      </Button>
+                                    } />
+                                  </div>
+                                  <div className="px-5 pb-3 space-y-2 max-h-[55vh] overflow-y-auto">
+                                    {ordered.map(({ entry, index }: any, pos: number) => {
+                                      const entryAmount = parseFloat(entry.amount) || 0;
+                                      return (
+                                        <PaymentHistoryRow
+                                          key={entry.id || index}
+                                          entry={entry}
+                                          onOpen={() => { setShowPaidHistory(false); setViewEntry({ entry: { ...entry, amount: entryAmount }, index }); }}
+                                        />
+                                      );
+                                    })}
+                                  </div>
+                                  <div className="px-5 py-3 border-t border-border flex items-center justify-between text-sm font-bold">
+                                    <span className="uppercase tracking-wide text-muted-foreground text-xs">Total pago</span>
+                                    <span className="text-success tabular-nums">{totalPaid.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="space-y-2 animate-in fade-in duration-200">
+                            <div className="text-xs font-semibold text-muted-foreground">
+                              Histórico de pagamentos - {ordered.length}
+                            </div>
+                            {list}
+                          </div>
+                        );
+                      })()}
                     </>
                   )}
                 </div>
 
                 {!groupedPayment && (
-                  <div className="pt-3 mt-3 flex flex-col gap-1.5">
-                    <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground">
-                      <span>Valor Total</span>
-                      <span className="font-mono">
-                        {isEditing ? editTotalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : order.totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                      </span>
-                    </div>
-                    {order.discount && Number(order.discount) > 0 ? (
-                      <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground">
-                        <span>Desconto</span>
-                        <span className="font-mono text-warning">
-                          {order.discount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                        </span>
-                      </div>
-                    ) : null}
-                    <hr className="border-border my-0.5" />
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-bold uppercase tracking-wider text-foreground">TOTAL FINAL</span>
-                      <span className="text-2xl font-bold font-mono text-foreground tracking-tight">
-                        {isEditing ? editNetValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : order.netValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                      </span>
-                    </div>
-                    {order.paymentStatus === 'Entrada' && getEntries().length > 0 && (
-                      <div className="flex justify-between items-center text-xs font-bold text-warning pt-0.5">
-                        <span className="uppercase tracking-wider">Restante (Saldo)</span>
-                        <span className="font-mono">
-                          {Math.max(0, (isEditing ? editNetValue : order.netValue) - getEntries().reduce((acc: number, curr: any) => acc + (parseFloat(curr.amount) || 0), 0)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                        </span>
-                      </div>
-                    )}
+                  <div className="pt-2 mt-2 flex flex-col gap-1.5">
+                    {(() => {
+                      const brl = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                      const total = isEditing ? editTotalValue : order.totalValue;
+                      const discount = Number(order.discount) || 0;
+                      const finalValue = isEditing ? editNetValue : order.netValue;
+                      const paid = getEntries().reduce((acc: number, curr: any) => acc + (parseFloat(curr.amount) || 0), 0);
+                      const remaining = Math.max(0, finalValue - paid);
+                      return (
+                        <div className="rounded-xl border border-border bg-muted/30 px-3 py-2 flex flex-col gap-1">
+                          <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground">
+                            <span>Valor total</span>
+                            <span className="font-mono">{brl(total)}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground">
+                            <span>Desconto</span>
+                            <span className={cn("font-mono", discount > 0 ? "text-warning" : "")}>{discount > 0 ? `- ${brl(discount)}` : brl(0)}</span>
+                          </div>
+                          <div className="flex justify-between items-center border-t border-border pt-1 mt-0.5">
+                            <span className="text-xs font-bold uppercase tracking-wider text-foreground">Valor final</span>
+                            <span className="text-lg font-bold font-mono text-foreground tracking-tight">{brl(finalValue)}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs font-bold text-success border-t border-border pt-1 mt-0.5">
+                            <span className="uppercase tracking-wider">Total pago{getEntries().length > 0 ? ` (${getEntries().length})` : ''}</span>
+                            <span className="font-mono">{brl(paid)}</span>
+                          </div>
+                          <div className={cn("flex justify-between items-center text-xs font-bold", remaining > 0 ? "text-warning" : "text-success")}>
+                            <span className="uppercase tracking-wider">Restante</span>
+                            <span className="font-mono">{remaining > 0 ? brl(remaining) : 'Quitado'}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* Ações de Pagamento */}
                     <div className="flex flex-col items-center gap-1.5 pt-1.5">
@@ -1992,6 +2069,7 @@ export function OSViewModal({
                 )}
               </div>
             </div>
+          </div>
           </div>
         </div>
 
@@ -2268,7 +2346,7 @@ export function OSViewModal({
 
         {/* ═══ VISUALIZAÇÃO DE UM LANÇAMENTO (com Editar / Excluir) ═══ */}
         <Dialog open={!!viewEntry} onOpenChange={(o) => { if (!o) setViewEntry(null); }}>
-          <DialogContent showCloseButton={false} className="sm:max-w-[400px] rounded-2xl bg-popover border-border p-0 gap-0 overflow-hidden">
+          <DialogContent showCloseButton={false} className="sm:max-w-[400px] z-[1100] rounded-2xl bg-popover border border-border ring-1 ring-foreground/15 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] p-0 gap-0 overflow-hidden" overlayClassName="z-[1099] bg-black/55 supports-backdrop-filter:backdrop-blur-[2px]" forceOverlay>
             {viewEntry && (() => {
               const e = viewEntry.entry;
               const amount = parseFloat(e.amount) || 0;
