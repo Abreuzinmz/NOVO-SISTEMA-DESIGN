@@ -24,7 +24,7 @@ const CONFIG: Record<PartsKind, { storageKey: string; builtIn: string[]; title: 
   },
   peca: {
     storageKey: 'retifica_catalogo_pecas',
-    builtIn: ['SENSOR', 'TUCHOS', 'TAMPA DE ÓLEO', 'CÁRTER', 'BALANCIM', 'PARAFUSOS', 'VELAS', 'MANCAIS DO CABEÇOTE', 'SUPORTE TERMOSTÁTICA', 'CEBOLINHA ÓLEO'],
+    builtIn: ['GUIAS', 'SENSOR', 'TUCHOS', 'TAMPA DE ÓLEO', 'CÁRTER', 'BALANCIM', 'PARAFUSOS', 'VELAS', 'MANCAIS DO CABEÇOTE', 'SUPORTE TERMOSTÁTICA', 'CEBOLINHA ÓLEO'],
     title: 'Mais peças',
     description: 'Selecione peças cadastradas ou cadastre uma nova',
     newPlaceholder: 'Nome da peça',
@@ -57,10 +57,12 @@ interface PartsPickerModalProps {
   onOpenChange: (open: boolean) => void;
   /** Itens que já aparecem no cartão da O.S. */
   inList: string[];
+  /** Itens a mostrar antes dos cadastrados (ex.: as peças que ficavam direto no cartão) */
+  extraItems?: string[];
   onConfirm: (names: string[]) => void;
 }
 
-export function PartsPickerModal({ kind, open, onOpenChange, inList, onConfirm }: PartsPickerModalProps) {
+export function PartsPickerModal({ kind, open, onOpenChange, inList, extraItems, onConfirm }: PartsPickerModalProps) {
   const cfg = CONFIG[kind];
   const [query, setQuery] = useState('');
   const [picked, setPicked] = useState<string[]>([]);
@@ -85,10 +87,10 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, onConfirm }
 
   const inListSet = useMemo(() => new Set(inList.map((n) => n.toUpperCase())), [inList]);
   const items = useMemo(() => {
-    const all = Array.from(new Set([...cfg.builtIn, ...custom]));
+    const all = Array.from(new Set([...(extraItems || []).map((n) => n.toUpperCase()), ...cfg.builtIn, ...custom]));
     const q = normalize(query);
     return q ? all.filter((n) => normalize(n).includes(q)) : all;
-  }, [cfg.builtIn, custom, query]);
+  }, [extraItems, cfg.builtIn, custom, query]);
 
   const togglePick = (name: string) => {
     setPicked((p) => (p.includes(name) ? p.filter((n) => n !== name) : [...p, name]));
@@ -102,7 +104,7 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, onConfirm }
   const submitNew = () => {
     const name = newName.trim().toUpperCase();
     if (!name) return;
-    if (!cfg.builtIn.includes(name) && !custom.includes(name)) {
+    if (!cfg.builtIn.includes(name) && !custom.includes(name) && !(extraItems || []).some((n) => n.toUpperCase() === name)) {
       const next = [...custom, name];
       setCustom(next);
       saveCatalog(kind, next);

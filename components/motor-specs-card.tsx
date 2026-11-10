@@ -64,8 +64,8 @@ interface MotorSpecsCardProps {
 
 // ═══ Opções fixas ═══
 
-const CYLINDER_OPTIONS = ['2', '3', '4', '5', '6', '8', '10', '12'];
-const DEFAULT_DISPLACEMENTS = ['0.8', '1.0', '1.2', '1.3', '1.4', '1.5', '1.6', '1.8', '2.0', '2.2', '2.4', '2.5', '2.8', '3.0', '3.2', '3.6', '4.0', '5.0', '6.0'];
+const CYLINDER_OPTIONS = ['3', '4', '5', '6'];
+const DEFAULT_DISPLACEMENTS = ['1.0', '1.2', '1.3', '1.4', '1.5', '1.6', '1.8', '2.0', '2.2', '2.4', '2.5', '2.8', '3.0', '3.2', '3.6', '4.0', '5.0', '6.0'];
 const DEFAULT_VALVES = ['8V', '12V', '16V', '20V', '24V'];
 const DEFAULT_ASPIRATIONS = ['Aspirado', 'Turbo', 'Biturbo', 'Supercharger'];
 
@@ -172,6 +172,8 @@ function SpecSelect({
   actionLabel,
   onAction,
   emptyLabel,
+  searchable,
+  onCreate,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -182,11 +184,23 @@ function SpecSelect({
   actionLabel?: string;
   onAction?: () => void;
   emptyLabel?: string;
+  /** campo de pesquisa no topo da lista */
+  searchable?: boolean;
+  /** cadastra o texto digitado quando não existe na lista */
+  onCreate?: (text: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const ref = useRef<HTMLDivElement>(null);
   useClickOutside(ref, () => setOpen(false), open);
+  useEffect(() => { if (!open) setQuery(''); }, [open]);
   const label = (v: string) => (formatOption ? formatOption(v) : v);
+  const norm = (v: string) => v.toLowerCase().replace(',', '.').trim();
+  const q = norm(query);
+  const shown = searchable && q ? options.filter((o) => norm(o).includes(q) || norm(label(o)).includes(q)) : options;
+  const exists = !!q && options.some((o) => norm(o) === q || norm(label(o)) === q);
+  const canCreate = searchable && !!onCreate && !!q && !exists;
+  const create = () => { if (!canCreate) return; onCreate!(query.trim()); setOpen(false); };
 
   return (
     <div ref={ref} className="relative">
@@ -207,8 +221,28 @@ function SpecSelect({
       </button>
       {open && (
         <div className="absolute z-50 left-0 right-0 mt-1.5 rounded-xl border border-border bg-popover shadow-lg p-1.5 animate-in fade-in-0 zoom-in-95 duration-100">
+          {searchable && (
+            <div className="relative mb-1.5">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+              <input
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setOpen(false); }
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (shown.length > 0) { onChange(shown[0]); setOpen(false); }
+                    else create();
+                  }
+                }}
+                placeholder="Pesquisar..."
+                className="w-full h-9 pl-8 pr-2.5 rounded-lg border border-border bg-card text-sm outline-none focus:border-primary placeholder:text-muted-foreground"
+              />
+            </div>
+          )}
           <div className="max-h-60 overflow-y-auto">
-            {value && (
+            {value && !q && (
               <button
                 type="button"
                 onClick={() => { onChange(''); setOpen(false); }}
@@ -217,10 +251,12 @@ function SpecSelect({
                 Limpar seleção
               </button>
             )}
-            {options.length === 0 && (
-              <div className="px-2.5 py-3 text-center text-xs text-muted-foreground">{emptyLabel || 'Nenhuma opção'}</div>
+            {shown.length === 0 && (
+              <div className="px-2.5 py-3 text-center text-xs text-muted-foreground">
+                {q ? <>Nenhuma opção para “{query.trim()}”</> : (emptyLabel || 'Nenhuma opção')}
+              </div>
             )}
-            {options.map((o) => {
+            {shown.map((o, i) => {
               const selected = o === value;
               return (
                 <button
@@ -229,7 +265,9 @@ function SpecSelect({
                   onClick={() => { onChange(o); setOpen(false); }}
                   className={cn(
                     'w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-left transition-colors cursor-pointer',
-                    selected ? 'bg-primary/10 font-semibold text-foreground' : 'text-foreground/90 hover:bg-muted'
+                    selected ? 'bg-primary/10 font-semibold text-foreground' : 'text-foreground/90 hover:bg-muted',
+                    // com pesquisa, o primeiro é o que o Enter escolhe
+                    q && i === 0 && !selected && 'bg-muted'
                   )}
                 >
                   <span className="flex-1 truncate">{label(o)}</span>
@@ -238,7 +276,15 @@ function SpecSelect({
               );
             })}
           </div>
-          {actionLabel && onAction && (
+          {canCreate ? (
+            <button
+              type="button"
+              onClick={create}
+              className="w-full mt-1 pt-2 border-t border-border flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-semibold text-primary hover:bg-muted cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> Cadastrar “{query.trim()}”
+            </button>
+          ) : actionLabel && onAction && (
             <button
               type="button"
               onClick={() => { setOpen(false); onAction(); }}
@@ -330,7 +376,8 @@ export function MotorSpecsCard({
   // Listas personalizadas (válvulas / aspiração) guardadas neste computador
   const [customValves, setCustomValves] = useState<string[]>(() => loadCustomList('retifica_custom_valves'));
   const [customAspirations, setCustomAspirations] = useState<string[]>(() => loadCustomList('retifica_custom_aspirations'));
-  const [customTarget, setCustomTarget] = useState<null | 'valves' | 'aspiration' | 'displacement' | 'engineModel' | 'car'>(null);
+  const [customCylinders, setCustomCylinders] = useState<string[]>(() => loadCustomList('retifica_custom_cylinders'));
+  const [customTarget, setCustomTarget] = useState<null | 'cylinders' | 'valves' | 'aspiration' | 'displacement' | 'engineModel' | 'car'>(null);
   const [customValue, setCustomValue] = useState('');
 
   const showForm = !readOnly && (motors.length === 0 || editingIndex !== null || addingAnother);
@@ -352,13 +399,18 @@ export function MotorSpecsCard({
     return list;
   }, [selectedCatalog, form.cars]);
 
-  const showSpecs = editingIndex !== null || (!!form.model.trim() && (!!selectedCatalog || motorConfirmed));
+  // Só mostra o motor escolhido depois de clicar num resultado ou apertar Enter (digitar o nome não seleciona)
+  const showSpecs = editingIndex !== null || (!!form.model.trim() && motorConfirmed);
 
   const allDisplacements = useMemo(() => {
     const set = new Set([...DEFAULT_DISPLACEMENTS, ...displacementOptions]);
     if (form.displacement) set.add(form.displacement);
     return Array.from(set).sort((a, b) => parseFloat(a) - parseFloat(b) || a.localeCompare(b));
   }, [displacementOptions, form.displacement]);
+  const cylinderOptions = useMemo(
+    () => Array.from(new Set([...CYLINDER_OPTIONS, ...customCylinders, ...(form.cylinders ? [form.cylinders] : [])])).sort((a, b) => parseInt(a) - parseInt(b)),
+    [customCylinders, form.cylinders]
+  );
   const valveOptions = useMemo(() => Array.from(new Set([...DEFAULT_VALVES, ...customValves, ...(form.valves ? [form.valves] : [])])), [customValves, form.valves]);
   const aspirationOptions = useMemo(() => Array.from(new Set([...DEFAULT_ASPIRATIONS, ...customAspirations, ...(form.aspiration ? [form.aspiration] : [])])), [customAspirations, form.aspiration]);
 
@@ -387,6 +439,10 @@ export function MotorSpecsCard({
   }, [catalog, form.model]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const totalResults = groupedResults.reduce((n, [, list]) => n + list.length, 0);
+  // Resultado destacado (setas ↑ ↓; Enter seleciona)
+  const flatResults = useMemo(() => groupedResults.flatMap(([, list]) => list), [groupedResults]);
+  const [activeIdx, setActiveIdx] = useState(0);
+  useEffect(() => { setActiveIdx(0); }, [form.model]);
   const exactMatch = catalog.some((c) => c.name.toUpperCase() === form.model.trim().toUpperCase());
 
   // ── Lista de motores (modal) ──
@@ -543,13 +599,15 @@ export function MotorSpecsCard({
       aspiration: m.aspiration || '',
     });
     setEditingIndex(index);
+    setMotorConfirmed(true);
     setAddingAnother(false);
   };
 
   // ── Cadastrar opção personalizada (válvulas / aspiração / cilindrada / modelo / veículo) ──
-  const submitCustom = async () => {
-    const v = customValue.trim();
+  const applyCustom = async (target: NonNullable<typeof customTarget>, raw: string) => {
+    const v = raw.trim();
     if (!v) return;
+    const customTarget = target;
     if (customTarget === 'engineModel' || customTarget === 'car') {
       const val = v.toUpperCase();
       const key = customTarget === 'engineModel' ? 'engineModel' : 'cars';
@@ -570,7 +628,12 @@ export function MotorSpecsCard({
       setCustomValue('');
       return;
     }
-    if (customTarget === 'valves') {
+    if (customTarget === 'cylinders') {
+      const val = v.replace(/\D/g, '');
+      if (!val) { toast.error('Digite só o número de cilindros (ex.: 8).'); return; }
+      const next = Array.from(new Set([...customCylinders, val]));
+      setCustomCylinders(next); saveCustomList('retifica_custom_cylinders', next); set('cylinders', val);
+    } else if (customTarget === 'valves') {
       const val = v.toUpperCase();
       const next = Array.from(new Set([...customValves, val]));
       setCustomValves(next); saveCustomList('retifica_custom_valves', next); set('valves', val);
@@ -584,6 +647,7 @@ export function MotorSpecsCard({
     setCustomTarget(null);
     setCustomValue('');
   };
+  const submitCustom = () => { if (customTarget) applyCustom(customTarget, customValue); };
 
   // ═══ Render ═══
   return (
@@ -617,7 +681,7 @@ export function MotorSpecsCard({
           {/* Motor ou Veículo */}
           <FieldCard icon={<Car className="w-4 h-4 text-info" />} label="Motor ou Veículo" htmlFor="motor-spec-search">
             <div ref={searchRef} className="relative">
-              {form.model.trim() && showSpecs ? (() => {
+              {form.model.trim() && motorConfirmed ? (() => {
                 const chipBrand = form.brand || detectBrandFromName(`${form.model} ${form.cars || ''}`);
                 const clearMotor = () => {
                   setForm((f) => ({ ...f, model: '', brand: '' }));
@@ -655,7 +719,16 @@ export function MotorSpecsCard({
                   onFocus={() => { if (form.model.trim()) setSearchOpen(true); }}
                   onKeyDown={(e) => {
                     if (e.key === 'Escape') setSearchOpen(false);
-                    if (e.key === 'Enter') { e.preventDefault(); setSearchOpen(false); if (form.model.trim()) setMotorConfirmed(true); }
+                    if (e.key === 'ArrowDown' && flatResults.length) { e.preventDefault(); setSearchOpen(true); setActiveIdx((i) => Math.min(flatResults.length - 1, i + 1)); }
+                    if (e.key === 'ArrowUp' && flatResults.length) { e.preventDefault(); setActiveIdx((i) => Math.max(0, i - 1)); }
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const picked = form.model.trim() ? flatResults[activeIdx] : undefined;
+                      if (picked) { selectCatalogMotor(picked); return; }
+                      // sem resultado: usa o motor digitado
+                      setSearchOpen(false);
+                      if (form.model.trim()) setMotorConfirmed(true);
+                    }
                   }}
                   className={cn(searchFieldClass, 'pr-12 font-semibold uppercase placeholder:normal-case placeholder:font-normal')}
                 />
@@ -696,12 +769,13 @@ export function MotorSpecsCard({
                           <div
                             key={m.name}
                             role="option"
-                            aria-selected={m.name === form.model}
+                            aria-selected={flatResults[activeIdx] === m}
                             onMouseDown={(e) => e.preventDefault()}
+                            onMouseEnter={() => setActiveIdx(flatResults.indexOf(m))}
                             onClick={() => selectCatalogMotor(m)}
                             className={cn(
                               'group flex items-center gap-3 rounded-lg px-3 py-2 cursor-pointer transition-colors',
-                              m.name === form.model ? 'bg-primary/10' : 'hover:bg-muted'
+                              flatResults[activeIdx] === m ? 'bg-muted ring-1 ring-border' : 'hover:bg-muted'
                             )}
                           >
                             <div className="flex-1 min-w-0">
@@ -772,13 +846,13 @@ export function MotorSpecsCard({
           {/* Cilindros • Cilindrada • Válvulas */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FieldCard icon={<PistonIcon className="w-4 h-4" />} label="Cilindros">
-              <SpecSelect value={form.cylinders} onChange={(v) => set('cylinders', v)} options={CYLINDER_OPTIONS} formatOption={(v) => `${v} cilindros`} />
+              <SpecSelect value={form.cylinders} onChange={(v) => set('cylinders', v)} options={cylinderOptions} formatOption={(v) => `${v} cilindros`} searchable onCreate={(t) => applyCustom('cylinders', t)} actionLabel="Cadastrar outro..." onAction={() => { setCustomTarget('cylinders'); setCustomValue(''); }} />
             </FieldCard>
             <FieldCard icon={<GaugeIcon className="w-4 h-4" />} label="Cilindrada">
-              <SpecSelect value={form.displacement} onChange={(v) => set('displacement', v)} options={allDisplacements} actionLabel="Cadastrar outra..." onAction={() => { setCustomTarget('displacement'); setCustomValue(''); }} />
+              <SpecSelect value={form.displacement} onChange={(v) => set('displacement', v)} options={allDisplacements} searchable onCreate={(t) => applyCustom('displacement', t)} actionLabel="Cadastrar outra..." onAction={() => { setCustomTarget('displacement'); setCustomValue(''); }} />
             </FieldCard>
             <FieldCard icon={<ValvesIcon className="w-4 h-4" />} label="Válvulas">
-              <SpecSelect value={form.valves} onChange={(v) => set('valves', v)} options={valveOptions} actionLabel="Cadastrar outra..." onAction={() => { setCustomTarget('valves'); setCustomValue(''); }} />
+              <SpecSelect value={form.valves} onChange={(v) => set('valves', v)} options={valveOptions} searchable onCreate={(t) => applyCustom('valves', t)} actionLabel="Cadastrar outra..." onAction={() => { setCustomTarget('valves'); setCustomValue(''); }} />
             </FieldCard>
           </div>
 
@@ -1112,7 +1186,8 @@ export function MotorSpecsCard({
         <DialogContent className="max-w-sm z-[1100] rounded-2xl p-6" overlayClassName="z-[1099]">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
-              {customTarget === 'valves' ? 'Cadastrar quantidade de válvulas'
+              {customTarget === 'cylinders' ? 'Cadastrar quantidade de cilindros'
+                : customTarget === 'valves' ? 'Cadastrar quantidade de válvulas'
                 : customTarget === 'aspiration' ? 'Cadastrar tipo de aspiração'
                 : customTarget === 'engineModel' ? 'Cadastrar modelo do motor'
                 : customTarget === 'car' ? 'Cadastrar veículo compatível'
@@ -1131,7 +1206,8 @@ export function MotorSpecsCard({
             value={customValue}
             onChange={(e) => setCustomValue(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submitCustom(); } }}
-            placeholder={customTarget === 'valves' ? 'Ex.: 10V, 30V, 32V'
+            placeholder={customTarget === 'cylinders' ? 'Ex.: 8'
+              : customTarget === 'valves' ? 'Ex.: 10V, 30V, 32V'
               : customTarget === 'aspiration' ? 'Ex.: Tri-turbo'
               : customTarget === 'engineModel' ? 'Ex.: EA111 1.6 8V'
               : customTarget === 'car' ? 'Ex.: GOL, SAVEIRO'

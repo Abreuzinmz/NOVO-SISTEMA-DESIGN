@@ -92,7 +92,7 @@ import { useOsFormMode } from '@/lib/os-form-mode';
 import { searchFieldClass, searchFieldIconClass } from '@/lib/search-field';
 import { MotorSpecsCard } from '@/components/motor-specs-card';
 import { PrintPreviewModal } from './print-preview-modal';
-import { FormSection, FieldLabel, IconField, ClientTypeToggle, ClientDialogHeader, ClientDialogFooter, iconInputClass, clientDialogClass } from '@/components/client-form';
+import { FieldLabel, IconField, ContactFields, ClientConflictWarning, findClientConflicts, ClientTypeToggle, ClientDialogHeader, ClientDialogFooter, iconInputClass, clientDialogClass } from '@/components/client-form';
 import { OSPrintReport } from './os-print-report';
 
 const normalizeText = (value: any = ''): string => {
@@ -630,38 +630,16 @@ function OSFormImpl({
     return () => clearTimeout(handler);
   }, [clientSearchText]);
 
-  const newClientDuplicateMatches = useMemo(() => {
-    try {
-      const normName = normalizeText(newClientName);
-      const normPhone = normalizeNumber(newClientPhone);
-      const normDoc = normalizeNumber(newClientDoc);
-
-      const nameMatch = normName ? (clients || []).find(c => c && normalizeText(c.name) === normName) || null : null;
-      const phoneMatch = normPhone ? (clients || []).find(c => c && c.phone && normalizeNumber(c.phone) === normPhone) || null : null;
-      const docMatch = normDoc ? (clients || []).find(c => c && c.document && normalizeNumber(c.document) === normDoc) || null : null;
-
-      return { nameMatch, phoneMatch, docMatch };
-    } catch (e) {
-      console.error('[newClientDuplicateMatches] Error in duplicate check memo:', e);
-      return { nameMatch: null, phoneMatch: null, docMatch: null };
-    }
-  }, [newClientName, newClientPhone, newClientDoc, clients]);
-
-  const newClientConflicts = useMemo(() => {
-    const conflicts: { client: Client; fields: ('name' | 'phone' | 'document')[] }[] = [];
-    const add = (client: Client | null, field: 'name' | 'phone' | 'document') => {
-      if (!client) return;
-      const existing = conflicts.find(c => c.client.id === client.id);
-      if (existing) existing.fields.push(field);
-      else conflicts.push({ client, fields: [field] });
-    };
-    add(newClientDuplicateMatches.nameMatch, 'name');
-    add(newClientDuplicateMatches.phoneMatch, 'phone');
-    add(newClientDuplicateMatches.docMatch, 'document');
-    return conflicts;
-  }, [newClientDuplicateMatches]);
-
+  // Duplicados: mesmo nome, telefone (telefone, telefone 2 ou WhatsApp) ou CPF/CNPJ
+  const newClientConflicts = useMemo(
+    () => findClientConflicts(clients || [], { name: newClientName, phones: [newClientPhone, newClientPhone2, newClientWhatsapp], document: newClientDoc }),
+    [clients, newClientName, newClientPhone, newClientPhone2, newClientWhatsapp, newClientDoc]
+  );
   const isNewClientDuplicate = newClientConflicts.length > 0;
+  const editClientConflicts = useMemo(
+    () => findClientConflicts(clients || [], { name: editClientName, phones: [editClientPhone, editClientPhone2, editClientWhatsapp], document: editClientDoc }, targetEditingClientId || clientId),
+    [clients, editClientName, editClientPhone, editClientPhone2, editClientWhatsapp, editClientDoc, targetEditingClientId, clientId]
+  );
 
   const exactMatchClient = useMemo(() => {
     try {
@@ -1559,7 +1537,7 @@ function OSFormImpl({
     return 0;
   }, []);
 
-  const filteredClients = useMemo(() => {
+  const exactFilteredClients = useMemo(() => {
     try {
       const q = (debouncedClientSearchQuery || '').trim();
       if (q.length < 2) {
@@ -1603,6 +1581,41 @@ function OSFormImpl({
       return [];
     }
   }, [clients, debouncedClientSearchQuery, clientId, getSearchScore]);
+
+  // Nenhum resultado exato: clientes com nome parecido (ex.: "lazaro santos abreu" → LAZARO ABREU)
+  const similarClients = useMemo(() => {
+    if (exactFilteredClients.length > 0) return [];
+    const words = normalizeText(debouncedClientSearchQuery || '').split(/\s+/).filter(w => w.length >= 2);
+    if (words.length === 0) return [];
+    // palavras iguais, uma começando pela outra, ou com até 1 letra trocada (nomes com 4+ letras)
+    const close = (a: string, b: string) => {
+      if (a === b || (a.length >= 3 && b.startsWith(a)) || (b.length >= 3 && a.startsWith(b))) return true;
+      if (Math.min(a.length, b.length) < 4 || Math.abs(a.length - b.length) > 1) return false;
+      let i = 0, j = 0, diff = 0;
+      while (i < a.length && j < b.length) {
+        if (a[i] === b[j]) { i++; j++; continue; }
+        if (++diff > 1) return false;
+        if (a.length > b.length) i++;
+        else if (b.length > a.length) j++;
+        else { i++; j++; }
+      }
+      return diff + (a.length - i) + (b.length - j) <= 1;
+    };
+    return (clients || [])
+      .map(c => {
+        if (!c) return null;
+        const clientWords = normalizeText(`${c.name || ''} ${c.nickname || ''}`).split(/\s+/).filter(Boolean);
+        const hits = words.filter(w => clientWords.some(cw => close(w, cw))).length;
+        return { c, hits };
+      })
+      .filter((x): x is { c: Client; hits: number } => !!x && x.hits > 0 && x.hits >= Math.ceil(words.length / 2))
+      .sort((a, b) => b.hits - a.hits || (a.c.name || '').localeCompare(b.c.name || '', 'pt-BR'))
+      .slice(0, 8)
+      .map(x => x.c);
+  }, [clients, debouncedClientSearchQuery, exactFilteredClients]);
+
+  const isSimilarClientResult = exactFilteredClients.length === 0 && similarClients.length > 0;
+  const filteredClients = isSimilarClientResult ? similarClients : exactFilteredClients;
 
   // Keyboard navigation state and refs for client selector
   const [highlightedIndex, setHighlightedIndex] = useState<number>(0);
@@ -1915,6 +1928,10 @@ function OSFormImpl({
     const targetId = targetEditingClientId || clientId;
     const found = clients.find(c => c.id === targetId);
     if (!found) return;
+    if (editClientConflicts.length > 0) {
+      toast.error('Já existe outro cliente com esse nome, telefone ou CPF/CNPJ.');
+      return;
+    }
 
     if (!editClientName.trim()) {
       toast.error('O nome do cliente é obrigatório.');
@@ -2396,15 +2413,16 @@ function OSFormImpl({
   const [availableAdditionalParts, setAvailableAdditionalParts] = useState(initialAdditionalParts);
   const [partsModal, setPartsModal] = useState<PartsKind | null>(null);
   // Peças adicionais ficam recolhidas; abrem sozinhas se a O.S. já tiver alguma
-  const [showAdditionalParts, setShowAdditionalParts] = useState(() => (order?.additionalParts?.length || 0) > 0);
 
   const handleAddAdditionalParts = (names: string[]) => {
     const list = names.map(n => n.trim().toUpperCase()).filter(Boolean);
     if (!list.length) return;
     setAvailableAdditionalParts(prev => [...prev, ...list.filter(n => !prev.includes(n))]);
+    const cyl = parseInt(motorsList[0]?.cylinders || '') || 4;
+    const startQty = (n: string) => n.includes('MANCAIS DO BLOCO') ? 5 : n.includes('JETCOOLER') ? cyl : 1;
     setAdditionalParts(prev => [
       ...prev,
-      ...list.filter(n => !prev.some(p => p === n || p.startsWith(n + '|'))).map(n => `${n}|1`),
+      ...list.filter(n => !prev.some(p => p === n || p.startsWith(n + '|'))).map(n => `${n}|${startQty(n)}`),
     ]);
     toast.success(list.length === 1 ? `Peça "${list[0]}" adicionada.` : `${list.length} peças adicionadas.`);
   };
@@ -3091,7 +3109,13 @@ function OSFormImpl({
                             </Button>
                           </div>
                         ) : (
-                          filteredClients.map((client, index) => {
+                          <>
+                          {isSimilarClientResult && (
+                            <p className="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                              Nenhum resultado exato · clientes parecidos
+                            </p>
+                          )}
+                          {filteredClients.map((client, index) => {
                             const qDigits = normalizeNumber(clientSearchText);
                             const isExactDuplicate = exactMatchClient && (
                               (normalizeText(client.name) === normalizeText(clientSearchText)) ||
@@ -3154,7 +3178,27 @@ function OSFormImpl({
                                 </div>
                               </button>
                             );
-                          })
+                          })}
+                          {isSimilarClientResult && (
+                            <div className="pt-2 pb-1 border-t border-border mt-1">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setIsClientSelectorOpen(false);
+                                  setNewClientName(clientSearchText.toUpperCase());
+                                  setIsClientModalOpen(true);
+                                }}
+                                className="h-8 px-3 text-xs font-bold mx-auto flex items-center gap-1.5 rounded-lg cursor-pointer"
+                              >
+                                <UserPlus className="w-4 h-4 shrink-0" />
+                                Não é nenhum desses? Cadastrar "{clientSearchText.trim().toUpperCase()}"
+                              </Button>
+                            </div>
+                          )}
+                          </>
                         )}
                       </div>
                     </div>,
@@ -3195,21 +3239,20 @@ function OSFormImpl({
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-center gap-4 min-w-0">
                           <div className={cn(
-                            "w-[68px] h-[68px] rounded-2xl flex items-center justify-center shrink-0 shadow-sm text-white",
-                            isMechanicClient ? "bg-slate-800" : "bg-slate-700"
+                            "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm text-white",
+                            // mecânico em azul, cliente padrão em cinza
+                            isMechanicClient ? "bg-blue-600 dark:bg-blue-500" : "bg-slate-500 dark:bg-slate-600"
                           )}>
-                            {isMechanicClient ? <Wrench className="w-7 h-7 stroke-[1.75]" /> : <User className="w-7 h-7 stroke-[1.75]" />}
+                            {isMechanicClient ? <Wrench className="w-6 h-6 stroke-[1.75]" /> : <User className="w-6 h-6 stroke-[1.75]" />}
                           </div>
 
-                          <div className="flex flex-col min-w-0">
-                            <span className="uppercase tracking-[0.14em] text-[11px] text-muted-foreground font-medium">Apelido</span>
-                            <span className={cn(
-                              "text-sm sm:text-base font-extrabold text-foreground uppercase tracking-tight leading-tight truncate",
-                              !selectedClient?.nickname && "font-normal normal-case italic text-muted-foreground text-xs sm:text-sm"
-                            )}>
-                              {selectedClient?.nickname || 'Não informado'}
-                            </span>
-                            <span className="uppercase tracking-[0.14em] text-[11px] text-muted-foreground font-medium mt-2">Nome</span>
+                          <div className="flex flex-col justify-center gap-0.5 min-w-0">
+                            {/* apelido acima do nome (sem rótulo; só aparece se tiver) */}
+                            {selectedClient?.nickname && (
+                              <span className="text-sm sm:text-base font-extrabold text-muted-foreground uppercase tracking-tight leading-tight truncate">
+                                {selectedClient.nickname}
+                              </span>
+                            )}
                             <h3
                               className="text-xl sm:text-2xl font-black text-foreground uppercase tracking-tight leading-tight truncate select-all"
                               title={selectedClient?.name || ''}
@@ -3221,12 +3264,12 @@ function OSFormImpl({
 
                         <div className="shrink-0 pt-1">
                           {isMechanicClient ? (
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-info/10 text-info text-sm font-semibold">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-semibold">
                               <Wrench className="w-4 h-4 stroke-[2]" />
                               <span>Mecânico</span>
                             </div>
                           ) : (
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted text-muted-foreground text-sm font-semibold">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-500/10 text-slate-600 dark:text-slate-300 text-sm font-semibold">
                               <User className="w-4 h-4 stroke-[2]" />
                               <span>Cliente Padrão</span>
                             </div>
@@ -3636,7 +3679,8 @@ function OSFormImpl({
                   {
                     key: 'additional',
                     label: 'PEÇAS ADICIONAIS',
-                    available: availableAdditionalParts,
+                    // peças: só as escolhidas aparecem no cartão; o resto fica no modal
+                    available: additionalParts.map(p => p.split('|')[0]),
                     defaults: defaultAdditionalParts,
                     selected: additionalParts,
                     setSelected: setAdditionalParts,
@@ -3680,20 +3724,19 @@ function OSFormImpl({
                         </button>
                       )}
 
-                      {group.key === 'additional' && (
+                      {group.key === 'additional' && !readOnly && (
                         <button
                           type="button"
-                          onClick={() => setShowAdditionalParts(v => !v)}
-                          aria-expanded={showAdditionalParts}
+                          onClick={() => setPartsModal('peca')}
                           className="h-8 px-3 rounded-lg text-[11px] font-bold uppercase tracking-wider shrink-0 text-foreground/80 bg-card hover:bg-muted border border-border flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                         >
-                          {showAdditionalParts ? 'Ocultar' : 'Mostrar'}
-                          <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showAdditionalParts && "rotate-180")} />
+                          <Plus className="w-3.5 h-3.5" />
+                          Adicionar peças
                         </button>
                       )}
                     </div>
 
-                    {(group.key !== 'additional' || showAdditionalParts) && (
+                    {(group.key !== 'additional' || group.selected.length > 0) && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                       {group.available.map(part => {
                         const normalizedPart = part.toUpperCase();
@@ -3826,7 +3869,8 @@ function OSFormImpl({
               kind={partsModal ?? 'material'}
               open={partsModal !== null}
               onOpenChange={(o) => { if (!o) setPartsModal(null); }}
-              inList={partsModal === 'peca' ? availableAdditionalParts : availablePartsLeft}
+              inList={partsModal === 'peca' ? additionalParts.map(p => p.split('|')[0]) : availablePartsLeft}
+              extraItems={partsModal === 'peca' ? Array.from(new Set([...defaultAdditionalParts, ...availableAdditionalParts])) : undefined}
               onConfirm={partsModal === 'peca' ? handleAddAdditionalParts : handleAddPartsLeft}
             />
           )}
@@ -4213,93 +4257,60 @@ function OSFormImpl({
         <Dialog open={isClientModalOpen} onOpenChange={setIsClientModalOpen}>
           <DialogContent showCloseButton={false} className={cn(clientDialogClass, 'z-[1100]')} overlayClassName="z-[1099]">
             <ClientDialogHeader title="Novo Cliente" subtitle="Cadastre um novo cliente sem sair da O.S." onClose={() => setIsClientModalOpen(false)} />
-            <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 space-y-3">
-              <FormSection icon={FileText} tone="info" title="Dados principais" hint="Informações básicas do cliente.">
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 pt-1 pb-6 space-y-4">
                 <div className="space-y-1.5">
                   <FieldLabel htmlFor="os-new-client-name" required>Nome completo</FieldLabel>
                   <IconField icon={User}>
                     <Input id="os-new-client-name" value={newClientName} onChange={e => setNewClientName(e.target.value)} placeholder="Digite o nome completo do cliente" className={cn(iconInputClass, 'uppercase placeholder:normal-case')} autoFocus />
                   </IconField>
-                      {isNewClientDuplicate && (
-                        <div className="p-3 rounded-lg bg-warning/10 border border-warning/20 text-xs font-semibold text-warning mt-1 flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                          <span>⚠️ Cliente já cadastrado</span>
-                          <span className="text-xs font-normal text-muted-foreground">Não é permitido cadastrar outro cliente com o mesmo nome, telefone ou CPF/CNPJ. Selecione o cliente existente na lista de busca.</span>
-                          <div className="flex flex-col gap-1 mt-0.5">
-                            {newClientConflicts.map(({ client, fields }) => {
-                              const fieldLabel = fields.length === 1
-                                ? (fields[0] === 'name' ? 'Nome já usado por' : fields[0] === 'phone' ? 'Telefone já usado por' : 'CPF/CNPJ já usado por')
-                                : 'Já cadastrado (' + fields.map(f => f === 'name' ? 'nome' : f === 'phone' ? 'telefone' : 'CPF/CNPJ').join(', ') + ') por';
-                              return (
-                                <div key={client.id} className="flex flex-wrap items-center gap-1 text-xs font-normal">
-                                  <span className="font-bold text-warning">{fieldLabel}:</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => openEditClientModalFor(client)}
-                                    className="font-extrabold text-warning underline decoration-dotted underline-offset-2 hover:text-warning cursor-pointer"
-                                  >
-                                    {client.name}
-                                  </button>
-                                  {(client.phone || client.document) && (
-                                    <span className="text-muted-foreground">— {[client.phone, client.document].filter(Boolean).join(' · ')}</span>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
+                  <ClientConflictWarning conflicts={newClientConflicts} onOpenClient={openEditClientModalFor} />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="os-new-client-nickname" optional>Apelido / Nome fantasia</FieldLabel>
-                    <IconField icon={Tag}>
-                      <Input id="os-new-client-nickname" value={newClientNickname} onChange={e => setNewClientNickname(e.target.value)} placeholder="Apelido ou nome fantasia" className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
-                    </IconField>
-                  </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="os-new-client-doc" optional>CPF/CNPJ</FieldLabel>
-                    <IconField icon={FileText}>
-                      <MaskedInput id="os-new-client-doc" value={newClientDoc} mask={maskCPFCNPJ} unmask={(v) => normalizeNumber(v).slice(0, 14)} onValueChange={setNewClientDoc} placeholder="000.000.000-00" className={iconInputClass} />
-                    </IconField>
-                  </div>
-                </div>
-              </FormSection>
-
-              <FormSection icon={Phone} tone="success" title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="os-new-client-phone" optional>Telefone</FieldLabel>
-                    <IconField icon={Phone}>
-                      <MaskedInput id="os-new-client-phone" value={newClientPhone} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setNewClientPhone} placeholder="(00) 00000-0000" className={iconInputClass} />
-                    </IconField>
-                  </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="os-new-client-phone2" optional>Telefone 2</FieldLabel>
-                    <IconField icon={Phone}>
-                      <MaskedInput id="os-new-client-phone2" value={newClientPhone2} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setNewClientPhone2} placeholder="(11) 99999-9999" className={iconInputClass} />
-                    </IconField>
-                  </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="os-new-client-whatsapp" optional>WhatsApp</FieldLabel>
-                    <IconField icon={MessageCircle}>
-                      <MaskedInput id="os-new-client-whatsapp" value={newClientWhatsapp} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setNewClientWhatsapp} placeholder="(00) 00000-0000" className={iconInputClass} />
-                    </IconField>
-                  </div>
-                </div>
-              </FormSection>
-
-              <FormSection icon={MapPin} tone="levou" title="Localização" hint="Cidade do cliente.">
-                <div className="space-y-1.5">
-                  <FieldLabel htmlFor="os-new-client-city" optional>Cidade</FieldLabel>
-                  <IconField icon={MapPin}>
-                    <Input id="os-new-client-city" value={newClientAddress} onChange={e => setNewClientAddress(e.target.value)} placeholder="Ex: Curitiba - PR" className={iconInputClass} />
+                <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+                  <FieldLabel htmlFor="os-new-client-nickname" optional>Apelido / Nome fantasia</FieldLabel>
+                  <IconField icon={Tag}>
+                    <Input id="os-new-client-nickname" value={newClientNickname} onChange={e => setNewClientNickname(e.target.value)} placeholder="Apelido ou nome fantasia" className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
                   </IconField>
                 </div>
-              </FormSection>
-
-              <FormSection icon={Users} tone="warning" title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
-                <ClientTypeToggle value={newClientType} onChange={setNewClientType} />
-              </FormSection>
+                <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+                  <FieldLabel htmlFor="os-new-client-doc" optional>CPF/CNPJ</FieldLabel>
+                  <IconField icon={FileText}>
+                    <MaskedInput id="os-new-client-doc" value={newClientDoc} mask={maskCPFCNPJ} unmask={(v) => normalizeNumber(v).slice(0, 14)} onValueChange={setNewClientDoc} placeholder="000.000.000-00" className={iconInputClass} />
+                  </IconField>
+                </div>
+                <ContactFields
+                  primary={(
+                    <div className="space-y-1.5">
+                      <FieldLabel htmlFor="os-new-client-phone" optional>Telefone</FieldLabel>
+                      <IconField icon={Phone}>
+                        <MaskedInput id="os-new-client-phone" value={newClientPhone} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setNewClientPhone} placeholder="(00) 00000-0000" className={iconInputClass} />
+                      </IconField>
+                    </div>
+                  )}
+                  extras={[
+                    { key: 'phone2', label: 'Telefone 2', fixed: true, hasValue: !!newClientPhone2, onRemove: () => setNewClientPhone2(''), field: (
+                      <IconField icon={Phone}>
+                        <MaskedInput id="os-new-client-phone2" value={newClientPhone2} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setNewClientPhone2} placeholder="(00) 00000-0000" className={iconInputClass} />
+                      </IconField>
+                    ) },
+                    { key: 'whatsapp', label: 'WhatsApp', hasValue: !!newClientWhatsapp, onRemove: () => setNewClientWhatsapp(''), field: (
+                      <IconField icon={MessageCircle}>
+                        <MaskedInput id="os-new-client-whatsapp" value={newClientWhatsapp} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setNewClientWhatsapp} placeholder="(00) 00000-0000" className={iconInputClass} />
+                      </IconField>
+                    ) },
+                  ]}
+                />
+              <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_280px] gap-4 items-end">
+                <div className="space-y-1.5">
+                  <FieldLabel htmlFor="os-new-client-city" optional>Cidade / Endereço</FieldLabel>
+                  <IconField icon={MapPin}>
+                    <Input id="os-new-client-city" value={newClientAddress} onChange={e => setNewClientAddress(e.target.value)} placeholder="Ex: Curitiba - PR ou rua e número" className={iconInputClass} />
+                  </IconField>
+                </div>
+                <div className="space-y-1.5">
+                  <FieldLabel>Tipo de cliente</FieldLabel>
+                  <ClientTypeToggle value={newClientType} onChange={setNewClientType} />
+                </div>
+              </div>
             </div>
             <ClientDialogFooter onCancel={() => setIsClientModalOpen(false)} onSave={handleAddClient} saveDisabled={isNewClientDuplicate} />
           </DialogContent>
@@ -4408,69 +4419,65 @@ function OSFormImpl({
               subtitle="Atualize os dados sem sair da O.S."
               onClose={() => setIsEditClientModalOpen(false)}
             />
-            <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 space-y-3">
-              <FormSection icon={FileText} tone="info" title="Dados principais" hint="Informações básicas do cliente.">
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 pt-1 pb-6 space-y-4">
                 <div className="space-y-1.5">
                   <FieldLabel htmlFor="os-edit-client-name" required>Nome completo</FieldLabel>
                   <IconField icon={User}>
                     <Input id="os-edit-client-name" placeholder="Digite o nome completo do cliente" value={editClientName} onChange={e => setEditClientName(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
                   </IconField>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="os-edit-client-nickname" optional>Apelido / Nome fantasia</FieldLabel>
-                    <IconField icon={Tag}>
-                      <Input id="os-edit-client-nickname" placeholder="Apelido ou nome fantasia" value={editClientNickname} onChange={e => setEditClientNickname(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
-                    </IconField>
-                  </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="os-edit-client-document" optional>CPF/CNPJ</FieldLabel>
-                    <IconField icon={FileText}>
-                      <MaskedInput id="os-edit-client-document" value={editClientDoc} mask={maskCPFCNPJ} unmask={(v) => normalizeNumber(v).slice(0, 14)} onValueChange={setEditClientDoc} placeholder="000.000.000-00" className={iconInputClass} />
-                    </IconField>
-                  </div>
-                </div>
-              </FormSection>
-
-              <FormSection icon={Phone} tone="success" title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="os-edit-client-phone" optional>Telefone</FieldLabel>
-                    <IconField icon={Phone}>
-                      <MaskedInput id="os-edit-client-phone" value={editClientPhone} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setEditClientPhone} placeholder="(00) 00000-0000" className={iconInputClass} />
-                    </IconField>
-                  </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="os-edit-client-phone2" optional>Telefone 2</FieldLabel>
-                    <IconField icon={Phone}>
-                      <MaskedInput id="os-edit-client-phone2" value={editClientPhone2} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setEditClientPhone2} placeholder="(11) 99999-9999" className={iconInputClass} />
-                    </IconField>
-                  </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="os-edit-client-whatsapp" optional>WhatsApp</FieldLabel>
-                    <IconField icon={MessageCircle}>
-                      <MaskedInput id="os-edit-client-whatsapp" value={editClientWhatsapp} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setEditClientWhatsapp} placeholder="(00) 00000-0000" className={iconInputClass} />
-                    </IconField>
-                  </div>
-                </div>
-              </FormSection>
-
-              <FormSection icon={MapPin} tone="levou" title="Localização" hint="Cidade do cliente.">
-                <div className="space-y-1.5">
-                  <FieldLabel htmlFor="os-edit-client-city" optional>Cidade</FieldLabel>
-                  <IconField icon={MapPin}>
-                    <Input id="os-edit-client-city" placeholder="Ex: Curitiba - PR" value={editClientAddress} onChange={e => setEditClientAddress(e.target.value)} className={iconInputClass} />
+                <ClientConflictWarning conflicts={editClientConflicts} />
+                <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+                  <FieldLabel htmlFor="os-edit-client-nickname" optional>Apelido / Nome fantasia</FieldLabel>
+                  <IconField icon={Tag}>
+                    <Input id="os-edit-client-nickname" placeholder="Apelido ou nome fantasia" value={editClientNickname} onChange={e => setEditClientNickname(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
                   </IconField>
                 </div>
-              </FormSection>
-
-              <FormSection icon={Users} tone="warning" title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
-                <ClientTypeToggle value={editClientType} onChange={setEditClientType} />
-              </FormSection>
+                <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+                  <FieldLabel htmlFor="os-edit-client-document" optional>CPF/CNPJ</FieldLabel>
+                  <IconField icon={FileText}>
+                    <MaskedInput id="os-edit-client-document" value={editClientDoc} mask={maskCPFCNPJ} unmask={(v) => normalizeNumber(v).slice(0, 14)} onValueChange={setEditClientDoc} placeholder="000.000.000-00" className={iconInputClass} />
+                  </IconField>
+                </div>
+                <ContactFields
+                  primary={(
+                    <div className="space-y-1.5">
+                      <FieldLabel htmlFor="os-edit-client-phone" optional>Telefone</FieldLabel>
+                      <IconField icon={Phone}>
+                        <MaskedInput id="os-edit-client-phone" value={editClientPhone} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setEditClientPhone} placeholder="(00) 00000-0000" className={iconInputClass} />
+                      </IconField>
+                    </div>
+                  )}
+                  extras={[
+                    { key: 'phone2', label: 'Telefone 2', fixed: true, hasValue: !!editClientPhone2, onRemove: () => setEditClientPhone2(''), field: (
+                      <IconField icon={Phone}>
+                        <MaskedInput id="os-edit-client-phone2" value={editClientPhone2} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setEditClientPhone2} placeholder="(00) 00000-0000" className={iconInputClass} />
+                      </IconField>
+                    ) },
+                    { key: 'whatsapp', label: 'WhatsApp', hasValue: !!editClientWhatsapp, onRemove: () => setEditClientWhatsapp(''), field: (
+                      <IconField icon={MessageCircle}>
+                        <MaskedInput id="os-edit-client-whatsapp" value={editClientWhatsapp} mask={maskPhone} unmask={(v) => normalizeNumber(v).slice(0, 11)} onValueChange={setEditClientWhatsapp} placeholder="(00) 00000-0000" className={iconInputClass} />
+                      </IconField>
+                    ) },
+                  ]}
+                />
+              <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_280px] gap-4 items-end">
+                <div className="space-y-1.5">
+                  <FieldLabel htmlFor="os-edit-client-city" optional>Cidade / Endereço</FieldLabel>
+                  <IconField icon={MapPin}>
+                    <Input id="os-edit-client-city" placeholder="Ex: Curitiba - PR ou rua e número" value={editClientAddress} onChange={e => setEditClientAddress(e.target.value)} className={iconInputClass} />
+                  </IconField>
+                </div>
+                <div className="space-y-1.5">
+                  <FieldLabel>Tipo de cliente</FieldLabel>
+                  <ClientTypeToggle value={editClientType} onChange={setEditClientType} />
+                </div>
+              </div>
             </div>
             <ClientDialogFooter
               onCancel={() => setIsEditClientModalOpen(false)}
               onSave={handleSaveClientEditModal}
+              saveDisabled={editClientConflicts.length > 0}
               saveLabel="Salvar Alterações"
               onDelete={handleDeleteClientModal}
               deleteLabel={editClientType === 'mechanic' ? 'Excluir Mecânico' : 'Excluir Cliente'}

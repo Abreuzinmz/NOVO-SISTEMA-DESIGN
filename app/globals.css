@@ -292,6 +292,22 @@
         border-color: var(--secondary-foreground) !important;
     }
 
+    /* Cadastro de cliente: campo vazio mais apagado, campo preenchido em destaque */
+    .premium-input.client-input:placeholder-shown {
+        background: color-mix(in oklab, var(--muted) 55%, var(--input)) !important;
+        border-color: color-mix(in oklab, var(--border) 70%, transparent) !important;
+    }
+    .premium-input.client-input:not(:placeholder-shown) {
+        background: var(--card) !important;
+        border-color: color-mix(in oklab, var(--foreground) 30%, transparent) !important;
+    }
+    .premium-input.client-input:focus {
+        border-color: var(--secondary-foreground) !important;
+    }
+    .client-field:has(input:not(:placeholder-shown)) > svg {
+        color: var(--foreground);
+    }
+
     /* ── PREMIUM BUTTON ── */
     .premium-button {
         @apply relative overflow-hidden transition-all duration-200 active:scale-98;

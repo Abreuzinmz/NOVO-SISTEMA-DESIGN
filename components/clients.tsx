@@ -55,7 +55,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
-import { FormSection, FieldLabel, IconField, ClientTypeToggle, ClientDialogHeader, ClientDialogFooter, iconInputClass, clientDialogClass } from '@/components/client-form';
+import { FieldLabel, IconField, ContactFields, ClientConflictWarning, findClientConflicts, ClientTypeToggle, ClientDialogHeader, ClientDialogFooter, iconInputClass, clientDialogClass } from '@/components/client-form';
 import { OSViewModal } from '@/components/os-view-modal';
 import { fetchMotorCatalog } from '@/lib/motors';
 import { detectBrandFromName, getBrandLogoSrc } from '@/lib/motor-brands';
@@ -352,9 +352,16 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
     setNewMechSearch('');
   };
 
+  // Duplicados: mesmo nome, telefone (telefone, telefone 2 ou WhatsApp) ou CPF/CNPJ
+  const newConflicts = useMemo(
+    () => findClientConflicts(clients || [], { name: newName, phones: [newPhone, newPhone2, newWhatsapp], document: newDocument }),
+    [clients, newName, newPhone, newPhone2, newWhatsapp, newDocument]
+  );
+
   const handleAddClient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName) { toast.error('O nome do cliente é obrigatório.'); return; }
+    if (newConflicts.length > 0) { toast.error('Este cliente já está cadastrado.'); return; }
     if (newPhone && newPhone.length < 10) { toast.error('Telefone inválido. Digite no mínimo 10 números (com DDD).'); return; }
     if (newWhatsapp && newWhatsapp.length < 10) { toast.error('WhatsApp inválido. Digite no mínimo 10 números (com DDD).'); return; }
     if (newDocument && newDocument.length !== 11 && newDocument.length !== 14) { toast.error('CPF ou CNPJ inválido.'); return; }
@@ -439,67 +446,65 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
             <DialogContent showCloseButton={false} className={clientDialogClass}>
               <ClientDialogHeader title="Novo Cliente" subtitle="Cadastre um novo cliente no sistema." onClose={() => setIsModalOpen(false)} />
               <form onSubmit={handleAddClient} className="flex flex-col min-h-0 flex-1">
-                <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 space-y-3">
-                  <FormSection icon={FileText} tone="info" title="Dados principais" hint="Informações básicas do cliente.">
+                <div className="flex-1 min-h-0 overflow-y-auto px-6 pt-1 pb-6 space-y-4">
                     <div className="space-y-1.5">
                       <FieldLabel htmlFor="name" required>Nome completo</FieldLabel>
                       <IconField icon={User}>
                         <Input id="name" placeholder="Digite o nome completo do cliente" value={newName} onChange={e => setNewName(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} autoFocus />
                       </IconField>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <FieldLabel htmlFor="nickname" optional>Apelido / Nome fantasia</FieldLabel>
-                        <IconField icon={Tag}>
-                          <Input id="nickname" placeholder="Apelido ou nome fantasia" value={newNickname} onChange={e => setNewNickname(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
-                        </IconField>
-                      </div>
-                      <div className="space-y-1.5">
-                        <FieldLabel htmlFor="document" optional>CPF/CNPJ</FieldLabel>
-                        <IconField icon={FileText}>
-                          <MaskedInput id="document" placeholder="000.000.000-00" value={newDocument} mask={maskCPFCNPJ} unmask={cleanNumeric} onValueChange={setNewDocument} className={iconInputClass} />
-                        </IconField>
-                      </div>
-                    </div>
-                  </FormSection>
-
-                  <FormSection icon={Phone} tone="success" title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="space-y-1.5">
-                        <FieldLabel htmlFor="phone" optional>Telefone</FieldLabel>
-                        <IconField icon={Phone}>
-                          <MaskedInput id="phone" placeholder="(00) 00000-0000" value={newPhone} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewPhone} className={iconInputClass} />
-                        </IconField>
-                      </div>
-                      <div className="space-y-1.5">
-                        <FieldLabel htmlFor="phone2" optional>Telefone 2</FieldLabel>
-                        <IconField icon={Phone}>
-                          <MaskedInput id="phone2" placeholder="(11) 99999-9999" value={newPhone2} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewPhone2} className={iconInputClass} />
-                        </IconField>
-                      </div>
-                      <div className="space-y-1.5">
-                        <FieldLabel htmlFor="whatsapp" optional>WhatsApp</FieldLabel>
-                        <IconField icon={MessageCircle}>
-                          <MaskedInput id="whatsapp" placeholder="(00) 00000-0000" value={newWhatsapp} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewWhatsapp} className={iconInputClass} />
-                        </IconField>
-                      </div>
-                    </div>
-                  </FormSection>
-
-                  <FormSection icon={MapPin} tone="levou" title="Localização" hint="Cidade do cliente.">
-                    <div className="space-y-1.5">
-                      <FieldLabel htmlFor="city" optional>Cidade</FieldLabel>
-                      <IconField icon={MapPin}>
-                        <Input id="city" placeholder="Ex: Curitiba - PR" value={newCity} onChange={e => setNewCity(e.target.value)} className={iconInputClass} />
+                    <ClientConflictWarning
+                      conflicts={newConflicts}
+                      onOpenClient={(c) => { setIsModalOpen(false); resetForm(); onSelectClient(c.id); }}
+                    />
+                    <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+                      <FieldLabel htmlFor="nickname" optional>Apelido / Nome fantasia</FieldLabel>
+                      <IconField icon={Tag}>
+                        <Input id="nickname" placeholder="Apelido ou nome fantasia" value={newNickname} onChange={e => setNewNickname(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
                       </IconField>
                     </div>
-                  </FormSection>
-
-                  <FormSection icon={Users} tone="warning" title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
-                    <ClientTypeToggle value={newClientType} onChange={setNewClientType} />
-                  </FormSection>
+                    <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+                      <FieldLabel htmlFor="document" optional>CPF/CNPJ</FieldLabel>
+                      <IconField icon={FileText}>
+                        <MaskedInput id="document" placeholder="000.000.000-00" value={newDocument} mask={maskCPFCNPJ} unmask={cleanNumeric} onValueChange={setNewDocument} className={iconInputClass} />
+                      </IconField>
+                    </div>
+                    <ContactFields
+                      primary={(
+                        <div className="space-y-1.5">
+                          <FieldLabel htmlFor="phone" optional>Telefone</FieldLabel>
+                          <IconField icon={Phone}>
+                            <MaskedInput id="phone" placeholder="(00) 00000-0000" value={newPhone} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewPhone} className={iconInputClass} />
+                          </IconField>
+                        </div>
+                      )}
+                      extras={[
+                        { key: 'phone2', label: 'Telefone 2', fixed: true, hasValue: !!newPhone2, onRemove: () => setNewPhone2(''), field: (
+                          <IconField icon={Phone}>
+                            <MaskedInput id="phone2" placeholder="(00) 00000-0000" value={newPhone2} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewPhone2} className={iconInputClass} />
+                          </IconField>
+                        ) },
+                        { key: 'whatsapp', label: 'WhatsApp', hasValue: !!newWhatsapp, onRemove: () => setNewWhatsapp(''), field: (
+                          <IconField icon={MessageCircle}>
+                            <MaskedInput id="whatsapp" placeholder="(00) 00000-0000" value={newWhatsapp} mask={maskPhone} unmask={cleanPhone} onValueChange={setNewWhatsapp} className={iconInputClass} />
+                          </IconField>
+                        ) },
+                      ]}
+                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_280px] gap-4 items-end">
+                    <div className="space-y-1.5">
+                      <FieldLabel htmlFor="city" optional>Cidade / Endereço</FieldLabel>
+                      <IconField icon={MapPin}>
+                        <Input id="city" placeholder="Ex: Curitiba - PR ou rua e número" value={newCity} onChange={e => setNewCity(e.target.value)} className={iconInputClass} />
+                      </IconField>
+                    </div>
+                    <div className="space-y-1.5">
+                      <FieldLabel>Tipo de cliente</FieldLabel>
+                      <ClientTypeToggle value={newClientType} onChange={setNewClientType} />
+                    </div>
+                  </div>
                 </div>
-                <ClientDialogFooter onCancel={() => setIsModalOpen(false)} />
+                <ClientDialogFooter onCancel={() => setIsModalOpen(false)} saveDisabled={newConflicts.length > 0} />
               </form>
             </DialogContent>
           </Dialog>
@@ -767,6 +772,12 @@ const ClientDetailsContent = React.memo(({
     }
   }, [selectedClientId]);
 
+  // Duplicados na edição (fica antes do retorno antecipado: é um hook)
+  const editConflicts = useMemo(
+    () => findClientConflicts(clients || [], { name: editName, phones: [editPhone, editPhone2, editWhatsapp], document: editDocument }, selectedClient?.id),
+    [clients, editName, editPhone, editPhone2, editWhatsapp, editDocument, selectedClient?.id]
+  );
+
   if (!selectedClient) {
     return (
       <div className="lg:col-span-7 xl:col-span-8 flex items-center justify-center text-muted-foreground/50 border border-dashed border-border rounded-lg p-12 text-center bg-card/50">
@@ -823,6 +834,7 @@ const ClientDetailsContent = React.memo(({
   const handleEditClient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editName) { toast.error('O nome do cliente é obrigatório.'); return; }
+    if (editConflicts.length > 0) { toast.error('Já existe outro cliente com esse nome, telefone ou CPF/CNPJ.'); return; }
     if (editPhone && editPhone.length < 10) { toast.error('Telefone inválido. Digite no mínimo 10 números (com DDD).'); return; }
     if (editWhatsapp && editWhatsapp.length < 10) { toast.error('WhatsApp inválido. Digite no mínimo 10 números (com DDD).'); return; }
     if (editDocument && editDocument.length !== 11 && editDocument.length !== 14) { toast.error('CPF ou CNPJ inválido.'); return; }
@@ -1250,68 +1262,64 @@ const ClientDetailsContent = React.memo(({
         <DialogContent showCloseButton={false} className={clientDialogClass}>
           <ClientDialogHeader icon={Pencil} title="Editar Cliente" subtitle="Atualize os dados do cliente." onClose={() => setIsEditModalOpen(false)} />
           <form onSubmit={handleEditClient} className="flex flex-col min-h-0 flex-1">
-            <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 space-y-3">
-              <FormSection icon={FileText} tone="info" title="Dados principais" hint="Informações básicas do cliente.">
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 pt-1 pb-6 space-y-4">
                 <div className="space-y-1.5">
                   <FieldLabel htmlFor="edit-name" required>Nome completo</FieldLabel>
                   <IconField icon={User}>
                     <Input id="edit-name" placeholder="Digite o nome completo do cliente" value={editName} onChange={e => setEditName(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
                   </IconField>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="edit-nickname" optional>Apelido / Nome fantasia</FieldLabel>
-                    <IconField icon={Tag}>
-                      <Input id="edit-nickname" placeholder="Apelido ou nome fantasia" value={editNickname} onChange={e => setEditNickname(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
-                    </IconField>
-                  </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="edit-document" optional>CPF/CNPJ</FieldLabel>
-                    <IconField icon={FileText}>
-                      <MaskedInput id="edit-document" placeholder="000.000.000-00" value={editDocument} mask={maskCPFCNPJ} unmask={cleanNumeric} onValueChange={setEditDocument} className={iconInputClass} />
-                    </IconField>
-                  </div>
-                </div>
-              </FormSection>
-
-              <FormSection icon={Phone} tone="success" title="Contatos" hint="Pelo menos um telefone facilita o atendimento.">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="edit-phone" optional>Telefone</FieldLabel>
-                    <IconField icon={Phone}>
-                      <MaskedInput id="edit-phone" placeholder="(00) 00000-0000" value={editPhone} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditPhone} className={iconInputClass} />
-                    </IconField>
-                  </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="edit-phone2" optional>Telefone 2</FieldLabel>
-                    <IconField icon={Phone}>
-                      <MaskedInput id="edit-phone2" placeholder="(11) 99999-9999" value={editPhone2} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditPhone2} className={iconInputClass} />
-                    </IconField>
-                  </div>
-                  <div className="space-y-1.5">
-                    <FieldLabel htmlFor="edit-whatsapp" optional>WhatsApp</FieldLabel>
-                    <IconField icon={MessageCircle}>
-                      <MaskedInput id="edit-whatsapp" placeholder="(00) 00000-0000" value={editWhatsapp} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditWhatsapp} className={iconInputClass} />
-                    </IconField>
-                  </div>
-                </div>
-              </FormSection>
-
-              <FormSection icon={MapPin} tone="levou" title="Localização" hint="Cidade do cliente.">
-                <div className="space-y-1.5">
-                  <FieldLabel htmlFor="edit-city" optional>Cidade</FieldLabel>
-                  <IconField icon={MapPin}>
-                    <Input id="edit-city" placeholder="Ex: Curitiba - PR" value={editCity} onChange={e => setEditCity(e.target.value)} className={iconInputClass} />
+                <ClientConflictWarning conflicts={editConflicts} />
+                <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+                  <FieldLabel htmlFor="edit-nickname" optional>Apelido / Nome fantasia</FieldLabel>
+                  <IconField icon={Tag}>
+                    <Input id="edit-nickname" placeholder="Apelido ou nome fantasia" value={editNickname} onChange={e => setEditNickname(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
                   </IconField>
                 </div>
-              </FormSection>
-
-              <FormSection icon={Users} tone="warning" title="Tipo de cliente" description="Selecione o tipo para aplicar as configurações corretas.">
-                <ClientTypeToggle value={editClientType} onChange={setEditClientType} />
-              </FormSection>
+                <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+                  <FieldLabel htmlFor="edit-document" optional>CPF/CNPJ</FieldLabel>
+                  <IconField icon={FileText}>
+                    <MaskedInput id="edit-document" placeholder="000.000.000-00" value={editDocument} mask={maskCPFCNPJ} unmask={cleanNumeric} onValueChange={setEditDocument} className={iconInputClass} />
+                  </IconField>
+                </div>
+                <ContactFields
+                  primary={(
+                    <div className="space-y-1.5">
+                      <FieldLabel htmlFor="edit-phone" optional>Telefone</FieldLabel>
+                      <IconField icon={Phone}>
+                        <MaskedInput id="edit-phone" placeholder="(00) 00000-0000" value={editPhone} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditPhone} className={iconInputClass} />
+                      </IconField>
+                    </div>
+                  )}
+                  extras={[
+                    { key: 'phone2', label: 'Telefone 2', fixed: true, hasValue: !!editPhone2, onRemove: () => setEditPhone2(''), field: (
+                      <IconField icon={Phone}>
+                        <MaskedInput id="edit-phone2" placeholder="(00) 00000-0000" value={editPhone2} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditPhone2} className={iconInputClass} />
+                      </IconField>
+                    ) },
+                    { key: 'whatsapp', label: 'WhatsApp', hasValue: !!editWhatsapp, onRemove: () => setEditWhatsapp(''), field: (
+                      <IconField icon={MessageCircle}>
+                        <MaskedInput id="edit-whatsapp" placeholder="(00) 00000-0000" value={editWhatsapp} mask={maskPhone} unmask={cleanPhone} onValueChange={setEditWhatsapp} className={iconInputClass} />
+                      </IconField>
+                    ) },
+                  ]}
+                />
+              <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_280px] gap-4 items-end">
+                <div className="space-y-1.5">
+                  <FieldLabel htmlFor="edit-city" optional>Cidade / Endereço</FieldLabel>
+                  <IconField icon={MapPin}>
+                    <Input id="edit-city" placeholder="Ex: Curitiba - PR ou rua e número" value={editCity} onChange={e => setEditCity(e.target.value)} className={iconInputClass} />
+                  </IconField>
+                </div>
+                <div className="space-y-1.5">
+                  <FieldLabel>Tipo de cliente</FieldLabel>
+                  <ClientTypeToggle value={editClientType} onChange={setEditClientType} />
+                </div>
+              </div>
             </div>
             <ClientDialogFooter
               onCancel={() => setIsEditModalOpen(false)}
+              saveDisabled={editConflicts.length > 0}
               saveLabel="Salvar Alterações"
               onDelete={() => {
                 setIsEditModalOpen(false);

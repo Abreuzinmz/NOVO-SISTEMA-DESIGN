@@ -36,6 +36,9 @@ const PART_IMAGES: Record<string, string> = {
   'CEBOLINHA OLEO': '/parts/cebolinha-oleo.webp',
   'CEBOLINHA DE OLEO': '/parts/cebolinha-oleo.webp',
   'CEBOLINHA': '/parts/cebolinha-oleo.webp',
+  'GUIAS': '/parts/guias.webp',
+  'GUIA': '/parts/guias.webp',
+  'GUIAS DE VALVULA': '/parts/guias.webp',
 };
 
 export function getPartImage(name: string): string | undefined {

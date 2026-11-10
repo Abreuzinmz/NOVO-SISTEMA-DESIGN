@@ -52,7 +52,7 @@ import { cn, formatMotorDisplay, formatMotorModelAndCylinders, getLocalDateStrin
 import { PrintPreviewModal } from './print-preview-modal';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PaymentEntryModal, PaymentEntryItem, PixIcon, DinheiroIcon, DebitoIcon, CreditoIcon, normalizeMethodValue } from './resumo-financeiro';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, User } from 'lucide-react';
 
 /** Forma de pagamento: ícone e texto curto ("Crédito" à vista, "Crédito 3x" parcelado) */
 function paymentMethodInfo(method?: string) {
@@ -133,14 +133,14 @@ function ViewCardHeader({ icon: Icon, title, count, right }: { icon: React.Eleme
 // classes completas (o Tailwind precisa encontrá-las escritas no código)
 // Linhas que o cartão de pagamento ocupa na grade da visualização
 const PAYMENT_ROW_SPAN: Record<number, string> = { 1: 'md:row-span-1', 2: 'md:row-span-2', 3: 'md:row-span-3' };
-const TILE_COLS: Record<number, string> = { 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3', 4: 'sm:grid-cols-4', 5: 'sm:grid-cols-5' };
+const TILE_COLS: Record<number, string> = { 1: 'sm:grid-cols-1', 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3', 4: 'sm:grid-cols-4', 5: 'sm:grid-cols-5' };
 
 /**
- * Até 4 itens: 4 colunas; com 5 ou mais: 5 colunas (todos do mesmo tamanho). half = metade do cartão: 2 colunas.
+ * Até 4 itens: 4 colunas; com 5 ou mais: 5 colunas (todos do mesmo tamanho). row = lado a lado com a outra seção: todos numa linha.
  * fill = uma linha só ao lado do motor: os quadrinhos (e as fotos) crescem até a altura do cartão do motor.
  */
-function PartTiles({ parts, half, fill }: { parts: string[]; half?: boolean; fill?: boolean }) {
-  const cols = half ? 2 : fill ? Math.min(Math.max(parts.length, 3), 5) : parts.length >= 5 ? 5 : 4;
+function PartTiles({ parts, row, fill }: { parts: string[]; row?: boolean; fill?: boolean }) {
+  const cols = row ? parts.length : fill ? Math.min(Math.max(parts.length, 3), 5) : parts.length >= 5 ? 5 : 4;
   return (
     <div className={cn("grid gap-2 grid-cols-2", TILE_COLS[cols], fill && "flex-1 auto-rows-fr")}>
       {parts.map((p, i) => {
@@ -1031,9 +1031,12 @@ export function OSViewModal({
 
   const showPartsLeft = isEditing || (order.partsLeft && order.partsLeft.length > 0);
   const showAdditionalParts = isEditing || (order.additionalParts && order.additionalParts.length > 0);
-  // Poucos itens nas duas seções (até 2 em cada): material e peças ficam lado a lado, em duas colunas
+  // Até 5 itens somando as duas seções: material e peças ficam lado a lado, numa linha só
+  // (cada coluna com a largura proporcional aos seus itens)
   const partsSideBySide = !isEditing && !!showPartsLeft && !!showAdditionalParts
-    && (order.partsLeft?.length || 0) <= 2 && (order.additionalParts?.length || 0) <= 2;
+    && (order.partsLeft?.length || 0) + (order.additionalParts?.length || 0) <= 5;
+  // Modal mais largo só quando precisa: 5 quadrinhos lado a lado numa linha
+  const wideModal = partsSideBySide && (order.partsLeft?.length || 0) + (order.additionalParts?.length || 0) >= 5;
   // Cartão de peças baixo: fica só na linha do motor; alto: ocupa também o começo da coluna do pagamento
   // Só uma seção com até 5 itens também cabe numa linha ao lado do motor
   const partsOneRow = partsSideBySide || (!isEditing && !showPartsLeft !== !showAdditionalParts
@@ -1072,7 +1075,11 @@ export function OSViewModal({
       <DialogContent
         showCloseButton={false}
         useFlexLayout={true}
-        className="print-friendly-modal w-[min(1000px,calc(100vw-48px))] md:w-[min(1000px,calc(100vw-140px))] max-h-[calc(100vh-48px)] p-0 border-0 bg-transparent ring-0 rounded-none overflow-visible shadow-none outline-none flex flex-col gap-0 print:block print:!static print:!w-full print:!max-w-none print:!h-auto print:border-none print:shadow-none print:bg-card print:overflow-visible"
+        className={cn(
+          "print-friendly-modal",
+          wideModal ? "w-[min(1200px,calc(100vw-48px))] md:w-[min(1200px,calc(100vw-140px))]" : "w-[min(1000px,calc(100vw-48px))] md:w-[min(1000px,calc(100vw-140px))]",
+          "max-h-[calc(100vh-48px)] p-0 border-0 bg-transparent ring-0 rounded-none overflow-visible shadow-none outline-none flex flex-col gap-0 print:block print:!static print:!w-full print:!max-w-none print:!h-auto print:border-none print:shadow-none print:bg-card print:overflow-visible"
+        )}
         style={{ transform: 'none' }}
         finalFocus={false}
       >
@@ -1145,7 +1152,8 @@ export function OSViewModal({
                 const days = Math.max(0, Math.round((today.getTime() - opened.getTime()) / 86400000));
                 const daysLabel = days === 0 ? 'Aberta hoje' : days === 1 ? 'Há 1 dia' : `Há ${days} dias`;
                 return (
-                  <div className="shrink-0 md:pr-4 md:border-r border-blue-200/70 dark:border-blue-500/20">
+                  // Nº da O.S. no canto direito do cabeçalho
+                  <div className="shrink-0 md:order-last md:pl-4 md:border-l border-blue-200/70 dark:border-blue-500/20">
                     <span className="text-xs font-bold uppercase tracking-wider text-blue-700/80 dark:text-blue-300/80">O.S. Nº</span>
                     <div className="font-extrabold text-3xl leading-none tracking-tight text-blue-600 dark:text-blue-400 tabular-nums mt-0.5">
                       #{String(order.osNumber || order.id).padStart(4, '0')}
@@ -1157,17 +1165,8 @@ export function OSViewModal({
                       <Clock className="w-3.5 h-3.5" />
                       <strong className={cn("font-semibold", days >= 30 ? "text-danger" : days >= 15 ? "text-warning" : "text-foreground")}>{daysLabel}</strong>
                     </div>
-                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                      {getStatusBadge(order.serviceStatus)}
-                      {getPaymentBadge(order.paymentStatus)}
-                    </div>
                     {order.statusObservation && (
                       <div className="text-xs text-muted-foreground font-semibold break-words mt-2 max-w-[220px]">{order.statusObservation}</div>
-                    )}
-                    {!order.finished && order.serviceStatus !== 'Levou' && order.deliveryDate && (
-                      <div className="text-xs font-bold text-foreground mt-2">
-                        Previsão: {new Date(order.deliveryDate + 'T12:00:00').toLocaleDateString('pt-BR')}
-                      </div>
                     )}
                     {order.finished && (order.finishedAt || order.deliveryDate) && (
                       <div className="text-xs font-bold text-success mt-2">
@@ -1178,9 +1177,19 @@ export function OSViewModal({
                 );
               })()}
 
-              {/* Cliente: apelido acima do nome, tipo ao lado e contatos em linha */}
+              {/* Cliente: ícone do tipo, apelido acima do nome, tipo ao lado e contatos em linha */}
               <div className="flex-1 min-w-0 flex flex-col justify-center gap-2.5">
-                <div className="min-w-0">
+                {/* ícone com a mesma altura do apelido + nome */}
+                <div className="flex items-center gap-3 min-w-0">
+                <span className={cn(
+                  "rounded-xl flex items-center justify-center shrink-0 shadow-sm text-white",
+                  client?.nickname ? "w-10 h-10" : "w-8 h-8",
+                  // mecânico em azul, cliente padrão em cinza (igual ao cartão da Nova O.S.)
+                  client?.clientType === 'mechanic' ? "bg-blue-600 dark:bg-blue-500" : "bg-slate-500 dark:bg-slate-600"
+                )}>
+                  {client?.clientType === 'mechanic' ? <Wrench className={cn("stroke-[1.75]", client?.nickname ? "w-5 h-5" : "w-4 h-4")} /> : <User className={cn("stroke-[1.75]", client?.nickname ? "w-5 h-5" : "w-4 h-4")} />}
+                </span>
+                <div className="min-w-0 flex flex-col justify-center">
                   {client?.nickname && (
                     <div className="text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-blue-400 leading-tight">{client.nickname}</div>
                   )}
@@ -1198,6 +1207,7 @@ export function OSViewModal({
                       </span>
                     )}
                   </div>
+                </div>
                 </div>
 
                 {(client?.phone || client?.document?.trim() || client?.city?.trim()) && (() => {
@@ -1320,14 +1330,17 @@ export function OSViewModal({
                     (() => {
                       const sideBySide = partsSideBySide;
                       return (
-                        <div className={cn(
-                          "border border-border rounded-xl bg-background p-3 shadow-sm min-w-0",
-                          sideBySide ? "sm:grid sm:grid-cols-2" : partsOneRow && "flex flex-col"
-                        )}>
+                        <div
+                          className={cn(
+                            "border border-border rounded-xl bg-background p-3 shadow-sm min-w-0",
+                            sideBySide ? "sm:grid sm:grid-cols-[var(--parts-cols)]" : partsOneRow && "flex flex-col"
+                          )}
+                          style={sideBySide ? { '--parts-cols': `${order.partsLeft!.length}fr ${order.additionalParts!.length}fr` } as React.CSSProperties : undefined}
+                        >
                           {showPartsLeft && (
                             <div className={cn("min-w-0", partsOneRow && "flex-1 flex flex-col", sideBySide && "sm:pr-3")}>
                               <ViewCardHeader icon={Package} title="Material deixado" count={order.partsLeft?.length || 0} />
-                              <PartTiles parts={order.partsLeft || []} half={sideBySide} fill={partsOneRow} />
+                              <PartTiles parts={order.partsLeft || []} row={sideBySide} fill={partsOneRow} />
                             </div>
                           )}
                           {showPartsLeft && showAdditionalParts && (
@@ -1336,7 +1349,7 @@ export function OSViewModal({
                           {showAdditionalParts && (
                             <div className={cn("min-w-0", partsOneRow && "flex-1 flex flex-col", sideBySide && "sm:pl-3 sm:border-l sm:border-border")}>
                               <ViewCardHeader icon={SettingsIcon} title="Peças adicionais" count={order.additionalParts?.length || 0} />
-                              <PartTiles parts={order.additionalParts || []} half={sideBySide} fill={partsOneRow} />
+                              <PartTiles parts={order.additionalParts || []} row={sideBySide} fill={partsOneRow} />
                             </div>
                           )}
                         </div>
