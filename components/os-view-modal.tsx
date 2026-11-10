@@ -129,33 +129,36 @@ function ViewCardHeader({ icon: Icon, title, count, right }: { icon: React.Eleme
   );
 }
 
-/** Peças em quadrinhos (2 colunas): foto, nome embaixo e quantidade no canto superior direito */
+/** Peças em quadrinhos: foto, nome embaixo e quantidade no canto superior direito */
 // classes completas (o Tailwind precisa encontrá-las escritas no código)
-const TILE_COLS: Record<number, string> = { 1: 'sm:grid-cols-1', 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3', 4: 'sm:grid-cols-4' };
+// Linhas que o cartão de pagamento ocupa na grade da visualização
+const PAYMENT_ROW_SPAN: Record<number, string> = { 1: 'md:row-span-1', 2: 'md:row-span-2', 3: 'md:row-span-3' };
+const TILE_COLS: Record<number, string> = { 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3', 4: 'sm:grid-cols-4', 5: 'sm:grid-cols-5' };
 
-/** wide = cartão na largura toda: os itens se dividem em uma linha (até 4 por linha) */
-function PartTiles({ parts, wide }: { parts: string[]; wide?: boolean }) {
-  const cols = wide ? Math.min(Math.max(parts.length, 1), 4) : 2;
-  // Com poucos itens (até 2), eles crescem para ocupar o cartão; com mais, ficam no tamanho normal
-  const few = parts.length <= 2;
+/**
+ * Até 4 itens: 4 colunas; com 5 ou mais: 5 colunas (todos do mesmo tamanho). half = metade do cartão: 2 colunas.
+ * fill = uma linha só ao lado do motor: os quadrinhos (e as fotos) crescem até a altura do cartão do motor.
+ */
+function PartTiles({ parts, half, fill }: { parts: string[]; half?: boolean; fill?: boolean }) {
+  const cols = half ? 2 : fill ? Math.min(Math.max(parts.length, 3), 5) : parts.length >= 5 ? 5 : 4;
   return (
-    <div className={cn("grid gap-1.5 grid-cols-2", wide && TILE_COLS[cols], few && "flex-1 auto-rows-fr")}>
+    <div className={cn("grid gap-2 grid-cols-2", TILE_COLS[cols], fill && "flex-1 auto-rows-fr")}>
       {parts.map((p, i) => {
         const [name, qtyStr] = p.includes('|') ? p.split('|') : [p, '1'];
         const qty = parseInt(qtyStr) || 1;
         const img = getPartImage(name);
         return (
-          <div key={i} className={cn("relative rounded-lg border border-border bg-card flex flex-col items-center min-w-0", few ? "p-2 justify-center gap-1.5" : "p-1.5 gap-1")}>
-            <span className="absolute top-1 right-1 min-w-[20px] h-[18px] px-1 rounded-md bg-muted text-[11px] font-bold text-foreground flex items-center justify-center tabular-nums">{qty}</span>
-            <div className={cn("w-full flex items-center justify-center", few ? "flex-1 min-h-11 max-h-16 px-6" : "h-11 px-5")}>
+          <div key={i} className="relative rounded-xl border border-border bg-card flex flex-col items-center justify-center gap-1 px-2 pt-2 pb-1.5 min-w-0">
+            <span className="absolute top-1.5 right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-muted text-[11px] font-bold text-foreground flex items-center justify-center tabular-nums">{qty}</span>
+            <div className={cn("w-full flex items-center justify-center", fill ? "flex-1 basis-0 min-h-14 max-h-24 px-4" : "h-11 px-5")}>
               {img ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={img} alt="" draggable={false} className="max-w-full max-h-full object-contain" />
               ) : (
-                <Package className="w-7 h-7 text-muted-foreground/40" />
+                <Package className={cn("text-muted-foreground/40", fill ? "w-10 h-10" : "w-8 h-8")} />
               )}
             </div>
-            <span className={cn("w-full text-center font-bold uppercase leading-tight text-foreground line-clamp-2 break-words", few ? "text-xs" : "text-[11px]")} title={name}>{name}</span>
+            <span className={cn("w-full text-center font-bold uppercase leading-tight text-foreground line-clamp-2 break-words", cols === 5 ? "text-[11px] tracking-tight" : fill ? "text-[13px]" : "text-xs")} title={name}>{name}</span>
           </div>
         );
       })}
@@ -1028,6 +1031,14 @@ export function OSViewModal({
 
   const showPartsLeft = isEditing || (order.partsLeft && order.partsLeft.length > 0);
   const showAdditionalParts = isEditing || (order.additionalParts && order.additionalParts.length > 0);
+  // Poucos itens nas duas seções (até 2 em cada): material e peças ficam lado a lado, em duas colunas
+  const partsSideBySide = !isEditing && !!showPartsLeft && !!showAdditionalParts
+    && (order.partsLeft?.length || 0) <= 2 && (order.additionalParts?.length || 0) <= 2;
+  // Cartão de peças baixo: fica só na linha do motor; alto: ocupa também o começo da coluna do pagamento
+  // Só uma seção com até 5 itens também cabe numa linha ao lado do motor
+  const partsOneRow = partsSideBySide || (!isEditing && !showPartsLeft !== !showAdditionalParts
+    && ((showPartsLeft ? order.partsLeft?.length : order.additionalParts?.length) || 0) <= 5);
+  const partsRows = partsOneRow ? 1 : 2;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
@@ -1243,25 +1254,23 @@ export function OSViewModal({
             {/* Top Section: Motor + Cards + Financial */}
             <div className={cn(
               "flex flex-col p-4 gap-4 min-w-0",
-              isEditing ? "md:flex-row" : cn("md:grid md:grid-cols-[minmax(0,1fr)_320px]", hasObservations ? "md:grid-rows-[auto_auto_1fr]" : "md:grid-rows-[auto_1fr]")
+              isEditing ? "md:flex-row" : cn("md:grid md:grid-cols-[minmax(0,1fr)_320px]", partsRows === 2
+                ? (hasObservations ? "md:grid-rows-[auto_auto_auto_1fr]" : "md:grid-rows-[auto_auto_1fr]")
+                : (hasObservations ? "md:grid-rows-[auto_auto_1fr]" : "md:grid-rows-[auto_1fr]"))
             )}>
               {/* Left Column: Motor & Materials (na visualização vira parte da grade) */}
               <div className={isEditing ? "flex-1 min-w-0 space-y-4" : "contents"}>
                 {/* Top Row: Material Deixado / Peças Adicionais (left) + Motor (right) */}
                 <div className={cn(
-                  "grid gap-4 items-stretch min-w-0 md:col-start-1 md:row-start-1",
+                  "grid gap-4 items-stretch min-w-0 md:col-start-1 md:row-start-1", partsRows === 2 && "md:row-span-2 md:self-start",
                   isEditing
                     ? (showPartsLeft ? "grid-cols-1 sm:grid-cols-[1.6fr_1fr]" : "grid-cols-1")
-                    : (showPartsLeft && showAdditionalParts ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1")
+                    : "grid-cols-1"
                 )}>
-                    {showPartsLeft && (
-                      <div className={cn("border border-border rounded-xl bg-background p-3 shadow-sm min-w-0", !isEditing && "flex flex-col")}>
-                        {isEditing ? (
-                          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80 block mb-3">MATERIAL DEIXADO</span>
-                        ) : (
-                          <ViewCardHeader icon={Package} title="Material deixado" count={order.partsLeft?.length || 0} />
-                        )}
-                        {isEditing ? (
+                    {isEditing && showPartsLeft && (
+                      <div className="border border-border rounded-xl bg-background p-3 shadow-sm min-w-0">
+                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80 block mb-3">MATERIAL DEIXADO</span>
+                        {(
                           <div className="flex flex-col gap-2">
                             {editPartsLeft.map((p, idx) => {
                               const [name, qtyStr] = p.includes('|') ? p.split('|') : [p, '1'];
@@ -1302,18 +1311,37 @@ export function OSViewModal({
                               <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar
                             </Button>
                           </div>
-                        ) : (
-                          <PartTiles parts={order.partsLeft || []} wide={!showAdditionalParts} />
                         )}
                       </div>
                     )}
 
-                  {/* Peças adicionais ao lado do material (visualização) */}
-                  {!isEditing && showAdditionalParts && (
-                    <div className="border border-border rounded-xl bg-background p-3 shadow-sm min-w-0 flex flex-col">
-                      <ViewCardHeader icon={SettingsIcon} title="Peças adicionais" count={order.additionalParts?.length || 0} />
-                      <PartTiles parts={order.additionalParts || []} wide={!showPartsLeft} />
-                    </div>
+                  {/* Material deixado e peças adicionais no mesmo cartão (visualização) */}
+                  {!isEditing && (showPartsLeft || showAdditionalParts) && (
+                    (() => {
+                      const sideBySide = partsSideBySide;
+                      return (
+                        <div className={cn(
+                          "border border-border rounded-xl bg-background p-3 shadow-sm min-w-0",
+                          sideBySide ? "sm:grid sm:grid-cols-2" : partsOneRow && "flex flex-col"
+                        )}>
+                          {showPartsLeft && (
+                            <div className={cn("min-w-0", partsOneRow && "flex-1 flex flex-col", sideBySide && "sm:pr-3")}>
+                              <ViewCardHeader icon={Package} title="Material deixado" count={order.partsLeft?.length || 0} />
+                              <PartTiles parts={order.partsLeft || []} half={sideBySide} fill={partsOneRow} />
+                            </div>
+                          )}
+                          {showPartsLeft && showAdditionalParts && (
+                            <hr className={cn("border-border my-2.5", sideBySide && "sm:hidden")} />
+                          )}
+                          {showAdditionalParts && (
+                            <div className={cn("min-w-0", partsOneRow && "flex-1 flex flex-col", sideBySide && "sm:pl-3 sm:border-l sm:border-border")}>
+                              <ViewCardHeader icon={SettingsIcon} title="Peças adicionais" count={order.additionalParts?.length || 0} />
+                              <PartTiles parts={order.additionalParts || []} half={sideBySide} fill={partsOneRow} />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()
                   )}
 
                   {/* Motor (na visualização fica na coluna da direita) */}
@@ -1413,7 +1441,7 @@ export function OSViewModal({
                 )}
 
                 {/* Bottom Section: Services List */}
-                <div className="border border-border rounded-xl bg-background overflow-hidden shadow-sm min-w-0 md:col-start-1 md:row-start-2 self-start w-full">
+                <div className={cn("border border-border rounded-xl bg-background overflow-hidden shadow-sm min-w-0 md:col-start-1 self-start w-full", partsRows === 2 ? "md:row-start-3" : "md:row-start-2")}>
                   <div className="px-3 py-2.5 border-b border-border flex justify-between items-center">
                     <span className="flex items-center gap-2">
                       <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 flex items-center justify-center shrink-0"><Wrench className="w-4 h-4" /></span>
@@ -1552,7 +1580,7 @@ export function OSViewModal({
 
                 {/* Card de Observações */}
                 {(((order.observations && order.observations.replace(/\[ENTRADAS_JSON:\[[\s\S]*?\]\]/i, "").trim().length > 0)) || isEditing) && (
-                  <div className="border border-border rounded-xl bg-background overflow-hidden shadow-sm animate-in fade-in slide-in-from-top-1 duration-200 min-w-0 md:col-start-1 md:row-start-3 self-start w-full">
+                  <div className={cn("border border-border rounded-xl bg-background overflow-hidden shadow-sm animate-in fade-in slide-in-from-top-1 duration-200 min-w-0 md:col-start-1 self-start w-full", partsRows === 2 ? "md:row-start-4" : "md:row-start-3")}>
                     <div className="bg-secondary/30 px-4 py-3 border-b border-border flex justify-between items-center">
                       <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-foreground/80">OBSERVAÇÕES</span>
                     </div>
@@ -1577,7 +1605,7 @@ export function OSViewModal({
               {/* Right Column: Motor + Pagamento */}
               <div className={isEditing ? "w-full md:w-[300px] shrink-0 min-w-0 flex flex-col gap-4" : "contents"}>
                 {!isEditing && motors.length > 0 && (
-                  <div className="border border-border rounded-xl bg-background p-3 shadow-sm min-w-0 md:col-start-2 md:row-start-1">
+                  <div className={cn("border border-border rounded-xl bg-background p-3 shadow-sm min-w-0 md:col-start-2 md:row-start-1", partsRows === 2 && "md:self-start")}>
                     <ViewCardHeader icon={Gauge} title={motors.length > 1 ? `Motores (${motors.length})` : 'Motor'} right={<span />} />
                     <div className="space-y-3">
                       {motors.map((m, idx) => {
@@ -1645,7 +1673,7 @@ export function OSViewModal({
                   </div>
                 )}
 
-              <div className={cn("border border-border rounded-xl bg-background p-3 shadow-sm flex flex-col flex-1 min-w-0", !isEditing && cn("md:col-start-2 md:row-start-2", hasObservations && "md:row-span-2"))}>
+              <div className={cn("border border-border rounded-xl bg-background p-3 shadow-sm flex flex-col flex-1 min-w-0", !isEditing && cn("md:col-start-2 md:row-start-2", PAYMENT_ROW_SPAN[partsRows + (hasObservations ? 1 : 0)]))}>
                 {!isEditing && (
                   <ViewCardHeader icon={CreditCard} title="Pagamento" right={getPaymentBadge(order.paymentStatus)} />
                 )}
