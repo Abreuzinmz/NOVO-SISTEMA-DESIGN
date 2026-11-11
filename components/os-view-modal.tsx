@@ -53,6 +53,7 @@ import { PrintPreviewModal } from './print-preview-modal';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PaymentEntryModal, PaymentEntryItem, PixIcon, DinheiroIcon, DebitoIcon, CreditoIcon, normalizeMethodValue } from './resumo-financeiro';
 import { ChevronRight, User } from 'lucide-react';
+import { ClientProfilePanel } from './client-profile-panel';
 
 /** Forma de pagamento: ícone e texto curto ("Crédito" à vista, "Crédito 3x" parcelado) */
 function paymentMethodInfo(method?: string) {
@@ -197,14 +198,27 @@ interface OSViewModalProps {
   onFinish?: (order: Order) => void;
 }
 
-export function OSViewModal({
+/**
+ * Modal de visualização da O.S. Pelo perfil do cliente dá para abrir outra O.S. do histórico:
+ * o modal passa a mostrar essa O.S. (até fechar ou receber outra O.S. de fora).
+ */
+export function OSViewModal(props: OSViewModalProps) {
+  const { orders } = useStore();
+  const [shownOrderId, setShownOrderId] = useState<number | null>(null);
+  useEffect(() => { setShownOrderId(null); }, [props.order?.id, props.isOpen]);
+  const shown = shownOrderId != null ? (orders.find(o => o.id === shownOrderId) || props.order) : props.order;
+  return <OSViewModalContent key={shown?.id ?? 'none'} {...props} order={shown} onOpenOrder={(o) => setShownOrderId(o.id)} />;
+}
+
+function OSViewModalContent({
   order: orderProp,
   isOpen,
   onClose,
   onEdit,
   onDelete,
-  onFinish
-}: OSViewModalProps) {
+  onFinish,
+  onOpenOrder
+}: OSViewModalProps & { onOpenOrder?: (order: Order) => void }) {
   const {
     clients,
     updateOrder,
@@ -508,6 +522,7 @@ export function OSViewModal({
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingStatus, setIsEditingStatus] = useState(false);
   const [showPaidHistory, setShowPaidHistory] = useState(false);
+  const [showClientProfile, setShowClientProfile] = useState(false);
   const [editPartsLeft, setEditPartsLeft] = useState<string[]>([]);
   const [editAdditionalParts, setEditAdditionalParts] = useState<string[]>([]);
   const [editServices, setEditServices] = useState<ServiceItem[]>([]);
@@ -1152,8 +1167,8 @@ export function OSViewModal({
                 const days = Math.max(0, Math.round((today.getTime() - opened.getTime()) / 86400000));
                 const daysLabel = days === 0 ? 'Aberta hoje' : days === 1 ? 'Há 1 dia' : `Há ${days} dias`;
                 return (
-                  // Nº da O.S. no canto direito do cabeçalho
-                  <div className="shrink-0 md:order-last md:pl-4 md:border-l border-blue-200/70 dark:border-blue-500/20">
+                  // Nº da O.S. no canto esquerdo do cabeçalho
+                  <div className="shrink-0 md:pr-4 md:border-r border-blue-200/70 dark:border-blue-500/20">
                     <span className="text-xs font-bold uppercase tracking-wider text-blue-700/80 dark:text-blue-300/80">O.S. Nº</span>
                     <div className="font-extrabold text-3xl leading-none tracking-tight text-blue-600 dark:text-blue-400 tabular-nums mt-0.5">
                       #{String(order.osNumber || order.id).padStart(4, '0')}
@@ -1161,7 +1176,8 @@ export function OSViewModal({
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2 whitespace-nowrap">
                       <Calendar className="w-3.5 h-3.5" />
                       <strong className="text-foreground font-semibold">{openedAt.toLocaleDateString('pt-BR')}</strong>
-                      <span className="text-border">•</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1 whitespace-nowrap">
                       <Clock className="w-3.5 h-3.5" />
                       <strong className={cn("font-semibold", days >= 30 ? "text-danger" : days >= 15 ? "text-warning" : "text-foreground")}>{daysLabel}</strong>
                     </div>
@@ -1179,13 +1195,23 @@ export function OSViewModal({
 
               {/* Cliente: ícone do tipo, apelido acima do nome, tipo ao lado e contatos em linha */}
               <div className="flex-1 min-w-0 flex flex-col justify-center gap-2.5">
-                {/* ícone com a mesma altura do apelido + nome */}
-                <div className="flex items-center gap-3 min-w-0">
+                {/* ícone com a mesma altura do apelido + nome; clique abre o perfil do cliente */}
+                <div
+                  role={client ? 'button' : undefined}
+                  tabIndex={client ? 0 : undefined}
+                  title={client ? 'Abrir perfil do cliente' : undefined}
+                  onClick={client ? () => setShowClientProfile(true) : undefined}
+                  onKeyDown={client ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowClientProfile(true); } } : undefined}
+                  className={cn(
+                    "group/cliente flex items-center gap-3 min-w-0 self-start max-w-full",
+                    client && "-m-1.5 p-1.5 pr-2 rounded-xl cursor-pointer transition-colors hover:bg-blue-100/70 dark:hover:bg-blue-500/10 outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60"
+                  )}
+                >
                 <span className={cn(
                   "rounded-xl flex items-center justify-center shrink-0 shadow-sm text-white",
                   client?.nickname ? "w-10 h-10" : "w-8 h-8",
-                  // mecânico em azul, cliente padrão em cinza (igual ao cartão da Nova O.S.)
-                  client?.clientType === 'mechanic' ? "bg-blue-600 dark:bg-blue-500" : "bg-slate-500 dark:bg-slate-600"
+                  // no modal o ícone fica sempre cinza (mecânico e cliente padrão); só o desenho muda
+                  "bg-slate-500 dark:bg-slate-600"
                 )}>
                   {client?.clientType === 'mechanic' ? <Wrench className={cn("stroke-[1.75]", client?.nickname ? "w-5 h-5" : "w-4 h-4")} /> : <User className={cn("stroke-[1.75]", client?.nickname ? "w-5 h-5" : "w-4 h-4")} />}
                 </span>
@@ -1208,6 +1234,7 @@ export function OSViewModal({
                     )}
                   </div>
                 </div>
+                {client && <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 -ml-1 transition-opacity group-hover/cliente:opacity-100 shrink-0" />}
                 </div>
 
                 {(client?.phone || client?.document?.trim() || client?.city?.trim()) && (() => {
@@ -1221,11 +1248,9 @@ export function OSViewModal({
                     <div className="flex items-center min-w-0">
                       {rows.map((r, i) => (
                         <div key={r.label} className={cn("flex items-center gap-2 min-w-0", i < rows.length - 1 && "shrink-0", i > 0 && "pl-3 ml-3 border-l border-blue-200/70 dark:border-blue-500/20")}>
-                          <r.icon className="w-[18px] h-[18px] text-muted-foreground shrink-0" />
-                          <div className="min-w-0">
-                            <div className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground leading-tight">{r.label}</div>
-                            <div className="text-[13px] font-semibold text-foreground truncate" title={r.value}>{r.value}</div>
-                          </div>
+                          <r.icon className="w-4 h-4 text-muted-foreground shrink-0" />
+                          <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground shrink-0">{r.label}</span>
+                          <span className="min-w-0 text-[13px] font-semibold text-foreground truncate" title={r.value}>{r.value}</span>
                         </div>
                       ))}
                     </div>
@@ -1899,13 +1924,29 @@ export function OSViewModal({
                         );
                         if (order.paymentStatus === 'Pago') {
                           const methods = Array.from(new Set(ordered.map((it: any) => paymentMethodInfo(it.entry.method).label))) as string[];
+                          const single = ordered.length === 1;
+                          const openSingle = () => {
+                            const { entry, index } = ordered[0];
+                            setViewEntry({ entry: { ...entry, amount: parseFloat(entry.amount) || 0 }, index });
+                          };
                           return (
                             <div className="space-y-2 animate-in fade-in duration-200">
-                              <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-500/25 dark:bg-emerald-500/10 p-3 flex items-center gap-3">
+                              {/* Um pagamento só: o próprio cartão abre o lançamento (sem botão de histórico) */}
+                              <div
+                                role={single ? 'button' : undefined}
+                                tabIndex={single ? 0 : undefined}
+                                title={single ? 'Clique para ver o lançamento' : undefined}
+                                onClick={single ? openSingle : undefined}
+                                onKeyDown={single ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSingle(); } } : undefined}
+                                className={cn(
+                                  "rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-500/25 dark:bg-emerald-500/10 p-3 flex items-center gap-3",
+                                  single && "cursor-pointer transition-colors hover:bg-emerald-100/70 dark:hover:bg-emerald-500/15"
+                                )}
+                              >
                                 <span className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
                                   <CheckCircle2 className="w-5 h-5" />
                                 </span>
-                                <div className="min-w-0">
+                                <div className="min-w-0 flex-1">
                                   <div className="text-[11px] font-extrabold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Pagamento finalizado</div>
                                   <div className="text-lg font-extrabold text-foreground tabular-nums leading-tight">
                                     {totalPaid.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
@@ -1914,7 +1955,9 @@ export function OSViewModal({
                                     {methods.join(' · ')}
                                   </div>
                                 </div>
+                                {single && <ChevronRight className="w-4 h-4 text-emerald-700/60 dark:text-emerald-300/60 shrink-0" />}
                               </div>
+                              {!single && (
                               <button
                                 type="button"
                                 onClick={() => setShowPaidHistory(true)}
@@ -1923,6 +1966,7 @@ export function OSViewModal({
                                 <Clock className="w-3.5 h-3.5" />
                                 Ver histórico de pagamentos ({ordered.length})
                               </button>
+                              )}
 
                               {/* Modal: registros dos pagamentos */}
                               <Dialog open={showPaidHistory} onOpenChange={setShowPaidHistory}>
@@ -1998,14 +2042,19 @@ export function OSViewModal({
                             <span className="text-xs font-bold uppercase tracking-wider text-foreground">Valor final</span>
                             <span className="text-lg font-bold font-mono text-foreground tracking-tight">{brl(finalValue)}</span>
                           </div>
-                          <div className="flex justify-between items-center text-xs font-bold text-success border-t border-border pt-1 mt-0.5">
-                            <span className="uppercase tracking-wider">Total pago{getEntries().length > 0 ? ` (${getEntries().length})` : ''}</span>
-                            <span className="font-mono">{brl(paid)}</span>
-                          </div>
-                          <div className={cn("flex justify-between items-center text-xs font-bold", remaining > 0 ? "text-warning" : "text-success")}>
-                            <span className="uppercase tracking-wider">Restante</span>
-                            <span className="font-mono">{remaining > 0 ? brl(remaining) : 'Quitado'}</span>
-                          </div>
+                          {/* Quitada: o cartão "Pagamento finalizado" já mostra o que foi pago */}
+                          {!(order.paymentStatus === 'Pago' && getEntries().length > 0 && !isEditing) && (
+                            <>
+                              <div className="flex justify-between items-center text-xs font-bold text-success border-t border-border pt-1 mt-0.5">
+                                <span className="uppercase tracking-wider">Total pago{getEntries().length > 0 ? ` (${getEntries().length})` : ''}</span>
+                                <span className="font-mono">{brl(paid)}</span>
+                              </div>
+                              <div className={cn("flex justify-between items-center text-xs font-bold", remaining > 0 ? "text-warning" : "text-success")}>
+                                <span className="uppercase tracking-wider">Restante</span>
+                                <span className="font-mono">{remaining > 0 ? brl(remaining) : 'Quitado'}</span>
+                              </div>
+                            </>
+                          )}
                         </div>
                       );
                     })()}
@@ -2661,6 +2710,16 @@ export function OSViewModal({
             </DialogContent>
           </Dialog>
         )}
+      {/* Perfil do cliente por cima do modal */}
+      {client && (
+        <ClientProfilePanel
+          clientId={client.id}
+          currentOrderId={order.id}
+          open={showClientProfile}
+          onOpenChange={setShowClientProfile}
+          onOpenOrder={(o) => { setShowClientProfile(false); onOpenOrder?.(o); }}
+        />
+      )}
       </DialogContent>
     </Dialog>
   );

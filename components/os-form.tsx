@@ -3842,6 +3842,8 @@ function OSFormImpl({
                                   </button>
                                 </div>
                               )}
+                              {/* sem marcar: guarda o espaço da quantidade (todos os cartões com a mesma altura) */}
+                              {!isChecked && <div className="h-[30px]" aria-hidden />}
                             </div>
                           </div>
                         );
