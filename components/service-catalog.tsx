@@ -23,13 +23,17 @@ import {
 } from '@/components/ui/dialog';
 import {
   SERVICE_CATEGORIES,
+  PARTS_CATEGORY_ID,
+  isPartItem,
+  loadCustomParts,
+  addCustomPart,
   searchServices,
   getServiceById,
   type CatalogService,
   type SearchMatch,
 } from '@/lib/service-catalog';
 import { useStore, type ServiceItem } from '@/lib/store';
-import { 
+import {
   fetchCustomServices,
   addCustomService,
   updateCustomService,
@@ -71,13 +75,13 @@ interface ServiceCatalogProps {
   readOnly?: boolean;
 }
 
-const ServiceItemRow = memo(({ 
-  svc, 
+const ServiceItemRow = memo(({
+  svc,
   index,
   motorsList,
   selectedServices,
-  onUpdate, 
-  onRemove, 
+  onUpdate,
+  onRemove,
   onDuplicateToMotor,
   onEditMeasure,
   readOnly,
@@ -89,8 +93,8 @@ const ServiceItemRow = memo(({
   onDragEnd,
   onDragOver,
   onDrop,
-}: { 
-  svc: ServiceItem, 
+}: {
+  svc: ServiceItem,
   index: number,
   motorsList?: Array<{ model: string; cylinders: string; displacement: string }>;
   selectedServices: ServiceItem[];
@@ -120,7 +124,7 @@ const ServiceItemRow = memo(({
   }, [motorsList, selectedServices, svc.name, svc.motorId]);
 
   return (
-  <tr 
+  <tr
     draggable={!readOnly && dragEnabledIndex === index}
     onDragStart={(e) => onDragStart(e, index)}
     onDragEnd={onDragEnd}
@@ -131,7 +135,7 @@ const ServiceItemRow = memo(({
       draggedIndex === index && "opacity-40 bg-muted/50 dark:bg-foreground/[0.01]"
     )}
   >
-    <td className="px-2 py-2 text-center w-10">
+    <td className="px-2 py-3 text-center w-10">
       {!readOnly && (
         <div
           onMouseDown={() => setDragEnabledIndex(index)}
@@ -144,9 +148,9 @@ const ServiceItemRow = memo(({
         </div>
       )}
     </td>
-    <td className="px-3 py-2">
+    <td className="px-3 py-3">
       <div className="flex flex-col gap-0.5 min-w-0">
-        <span className="text-xs font-bold text-foreground/90 truncate max-w-[150px] md:max-w-[300px]">
+        <span className="text-[13px] font-bold text-foreground truncate max-w-[150px] md:max-w-[300px]">
           {svc.id === 'eix-retificar' && svc.measure ? `Retificar Eixo — ${svc.measure}` : svc.name}
         </span>
         {(svc.measure || svc.id === 'eix-retificar') && (
@@ -185,8 +189,8 @@ const ServiceItemRow = memo(({
         )}
       </div>
     </td>
-    <td className="px-1 py-2">
-      <div className="flex items-center justify-center gap-0.5 bg-muted dark:bg-background/20 rounded-lg border border-border p-0.5 w-fit mx-auto">
+    <td className="px-1 py-3">
+      <div className="flex items-center justify-center gap-1 bg-muted dark:bg-background/20 rounded-lg border border-border p-1 w-fit mx-auto">
         <Button
           type="button"
           variant="ghost"
@@ -197,7 +201,7 @@ const ServiceItemRow = memo(({
         >
           <Plus className="w-3 h-3 rotate-45" />
         </Button>
-        <span className="text-xs font-bold w-6 text-center text-foreground/80">{svc.quantity}</span>
+        <span className="text-sm font-bold w-7 text-center text-foreground">{svc.quantity}</span>
         <Button
           type="button"
           variant="ghost"
@@ -210,9 +214,9 @@ const ServiceItemRow = memo(({
         </Button>
       </div>
     </td>
-    <td className="px-2 py-2">
-      <div className="relative ml-auto w-full max-w-[104px] group">
-        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-primary/60 group-focus-within:text-primary">R$</span>
+    <td className="px-2 py-3">
+      <div className="relative mx-auto w-full max-w-[128px] group">
+        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground group-focus-within:text-foreground">R$</span>
         <Input
           type="number"
           step="0.01"
@@ -240,18 +244,18 @@ const ServiceItemRow = memo(({
             if (e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault();
           }}
           onWheel={(e) => e.currentTarget.blur()}
-          className="service-value-input pl-8 h-7 text-right font-mono text-xs font-bold bg-input border-border focus-visible:ring-1 focus-visible:ring-primary/20 rounded-lg transition-all [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield]"
+          className="service-value-input pl-8 pr-3 h-8 text-right font-mono text-sm font-bold bg-input border-border focus-visible:ring-1 focus-visible:ring-primary/20 rounded-lg transition-all [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [appearance:textfield]"
           placeholder="0,00"
           disabled={readOnly}
         />
       </div>
     </td>
-    <td className="px-2 py-2 text-right">
-      <span className="text-xs font-bold font-mono text-foreground/90 whitespace-nowrap">
+    <td className="px-2 py-3 text-right">
+      <span className="text-[13px] font-bold font-mono text-foreground whitespace-nowrap">
         {formatCurrency(svc.value * svc.quantity)}
       </span>
     </td>
-    <td className="px-1 py-2 text-center w-16">
+    <td className="px-1 py-3 text-center w-16">
       <div className="flex items-center justify-center gap-1.5">
         {motorsList && motorsList.length >= 2 && !readOnly && (
           <Button
@@ -444,12 +448,12 @@ export const ServiceCatalog = memo(({
     const catSvc = getServiceById(item.id);
     setSelectedMeasureService(catSvc || { id: item.id, name: item.name, defaultPrice: item.value });
     setIsEditingMeasureForId(item.id);
-    
+
     if (item.id === 'eix-retificar') {
       let bVal = '';
       let mVal = '';
       const measureStr = item.measure || '';
-      
+
       if (measureStr.includes('/') || (measureStr.includes('Biela') && measureStr.includes('Mancal'))) {
         const match = measureStr.match(/Biela\s+(.+?)\s*\/\s*Mancal\s+(.+)/i);
         if (match) {
@@ -502,7 +506,7 @@ export const ServiceCatalog = memo(({
         setCustomMeasure(item.measure || '');
       }
     }
-    
+
     setIsMeasureDialogOpen(true);
   }, []);
 
@@ -511,10 +515,10 @@ export const ServiceCatalog = memo(({
     if (selectedMeasureService?.id === 'eix-retificar') {
       const bielaSelected = bielaMeasure !== 'nada';
       const mancalSelected = mancalMeasure !== 'nada';
-      
+
       const bVal = bielaMeasure === 'personalizado' ? bielaCustomMeasure.trim() : bielaMeasure;
       const mVal = mancalMeasure === 'personalizado' ? mancalCustomMeasure.trim() : mancalMeasure;
-      
+
       if (bielaSelected && !bVal) {
         toast.error('Por favor, informe a medida de Biela.');
         return;
@@ -523,7 +527,7 @@ export const ServiceCatalog = memo(({
         toast.error('Por favor, informe a medida de Mancal.');
         return;
       }
-      
+
       if (bielaSelected && mancalSelected) {
         finalMeasure = `Biela ${bVal} / Mancal ${mVal}`;
       } else if (bielaSelected) {
@@ -540,16 +544,16 @@ export const ServiceCatalog = memo(({
         return;
       }
     }
-    
+
     const measureToSave = finalMeasure || undefined;
-    
+
     if (isEditingMeasureForId) {
       onUpdateService(isEditingMeasureForId, { measure: measureToSave });
     } else if (selectedMeasureService) {
       const svc = selectedMeasureService;
       let finalPrice = svc.defaultPrice;
       let finalName = svc.name;
-      
+
       if (selectedMotorModel) {
         const specificPrices = motorPrices.filter(
           p => (p.motorId === selectedMotorModel || resolveMotorName(p.motorId).toUpperCase() === selectedMotorModel.toUpperCase()) && resolveServiceId(p.serviceId) === svc.id
@@ -580,13 +584,24 @@ export const ServiceCatalog = memo(({
         measure: measureToSave
       });
     }
-    
+
     setIsMeasureDialogOpen(false);
     setSelectedMeasureService(null);
     setIsEditingMeasureForId(null);
   };
 
   const selectedIds = useMemo(() => new Set(selectedServices.map((s) => s.id)), [selectedServices]);
+
+  // Peças cadastradas pelo usuário (aparecem em PEÇAS)
+  const [customParts, setCustomParts] = useState<CatalogService[]>([]);
+  useEffect(() => { setCustomParts(loadCustomParts()); }, []);
+  const createPart = useCallback((rawName: string) => {
+    const res = addCustomPart(customParts, rawName);
+    if (!res) return;
+    setCustomParts(res.list);
+    if (!selectedIds.has(res.part.id)) handleAddServiceWithPricing(res.part);
+    setCatSearch('');
+  }, [customParts, selectedIds, handleAddServiceWithPricing]);
 
   useEffect(() => {
     let mounted = true;
@@ -629,7 +644,7 @@ export const ServiceCatalog = memo(({
       e.preventDefault();
       e.stopPropagation();
     }
-    
+
     if (selectedIds.has(svc.id)) {
       onRemoveService(svc.id);
     } else {
@@ -658,8 +673,8 @@ export const ServiceCatalog = memo(({
   const customSearchResults = useMemo(() => {
     if (!globalSearch.trim()) return [];
     const q = globalSearch.toLowerCase();
-    return customServices.filter(s => (s.name || '').toLowerCase().includes(q));
-  }, [globalSearch, customServices]);
+    return [...customServices, ...customParts].filter(s => (s.name || '').toLowerCase().includes(q));
+  }, [globalSearch, customServices, customParts]);
 
   const showAddCustomOption = globalSearch.trim().length > 0
     && searchResults.length === 0
@@ -668,7 +683,7 @@ export const ServiceCatalog = memo(({
 
   const combinedResults = useMemo(() => {
     const list: Array<{ id: string; name: string; defaultPrice: number; raw: any; type: 'catalog' | 'custom' }> = [];
-    
+
     searchResults.forEach(({ service }) => {
       list.push({
         id: service.id,
@@ -815,7 +830,7 @@ export const ServiceCatalog = memo(({
   const handleSearchInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (readOnly) return;
     const totalOptions = combinedResults.length + (showAddCustomOption ? 1 : 0);
-    
+
     if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
@@ -844,7 +859,7 @@ export const ServiceCatalog = memo(({
     if (e.key === 'Enter') {
       e.preventDefault();
       e.stopPropagation();
-      
+
       const isCreateOptionHighlighted = showAddCustomOption && highlightedServiceIndex === 0;
 
       if (isCreateOptionHighlighted) {
@@ -896,10 +911,12 @@ export const ServiceCatalog = memo(({
   const selectedByCategory = useMemo(() => {
     const counts: Record<string, number> = {};
     SERVICE_CATEGORIES.forEach(cat => {
-      counts[cat.id] = cat.services.filter(s => selectedIds.has(s.id)).length;
+      counts[cat.id] = cat.id === PARTS_CATEGORY_ID
+        ? selectedServices.filter(isPartItem).length
+        : cat.services.filter(s => selectedIds.has(s.id)).length;
     });
     return counts;
-  }, [selectedIds]);
+  }, [selectedIds, selectedServices]);
 
   return (
     <div className="space-y-4">
@@ -1001,15 +1018,15 @@ export const ServiceCatalog = memo(({
                       }}
                       className={cn(
                         "flex items-center justify-between p-3.5 rounded-xl border transition-all text-left group relative overflow-hidden",
-                        isSelected 
-                          ? "bg-primary/10 border-primary/30" 
+                        isSelected
+                          ? "bg-primary/10 border-primary/30"
                           : "bg-input border-border hover:bg-muted hover:border-foreground/10",
                         isHighlighted && "ring-2 ring-primary border-primary bg-primary/15 dark:bg-foreground/[0.08]"
                       )}
                     >
                       <div className="flex items-center gap-2.5 min-w-0 relative z-10">
                         <div className={cn(
-                          "w-4 h-4 rounded-md border-2 shrink-0 flex items-center justify-center transition-all", 
+                          "w-4 h-4 rounded-md border-2 shrink-0 flex items-center justify-center transition-all",
                           isSelected ? "bg-primary border-primary text-primary-foreground shadow-lg" : "border-border bg-muted"
                         )}>
                           {isSelected && <Check className="w-3 h-3 stroke-[4]" />}
@@ -1033,11 +1050,15 @@ export const ServiceCatalog = memo(({
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
             {SERVICE_CATEGORIES.map((cat) => {
-              const filteredServices = cat.services.filter(s => s.name.toLowerCase().includes(catSearch.toLowerCase()));
+              const isParts = cat.id === PARTS_CATEGORY_ID;
+              const catServices = isParts ? [...cat.services, ...customParts] : cat.services;
+              const filteredServices = catServices.filter(s => s.name.toLowerCase().includes(catSearch.toLowerCase()));
+              const typedPart = catSearch.trim().toUpperCase();
+              const canCreatePart = isParts && !!typedPart && !catServices.some(s => s.name === typedPart);
               return (
-                <Popover 
-                  key={cat.id} 
-                  open={openCategory === cat.id} 
+                <Popover
+                  key={cat.id}
+                  open={openCategory === cat.id}
                   onOpenChange={(open) => {
                     setOpenCategory(open ? cat.id : null);
                     if (!open) setCatSearch('');
@@ -1050,23 +1071,24 @@ export const ServiceCatalog = memo(({
                         variant="outline"
                         className={cn(
                           "h-12 flex flex-col items-center justify-center gap-0.5 border rounded-xl transition-all relative overflow-hidden group shadow-sm",
-                          openCategory === cat.id 
-                            ? "border-primary/40 bg-primary/10" 
-                            : "bg-card border-border hover:bg-muted hover:border-foreground/10",
-                          selectedByCategory[cat.id] > 0 && !openCategory && "border-primary/20"
+                          // PEÇAS numa linha própria, abaixo das categorias de serviço
+                          isParts && "order-last col-start-1",
+                          openCategory === cat.id
+                            ? "bg-muted border-border"
+                            : "bg-card border-border hover:bg-muted hover:border-foreground/10"
                         )}
                         disabled={readOnly}
                       >
                         <span className={cn(
                           "text-xs font-bold uppercase tracking-wider transition-colors",
-                          openCategory === cat.id ? "text-primary" : "text-foreground/90"
+                          openCategory === cat.id || selectedByCategory[cat.id] > 0 ? "text-foreground" : "text-foreground/70"
                         )}>
                           {cat.name}
                         </span>
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs font-medium uppercase tracking-[0.1em] text-muted-foreground/40">Explorar</span>
                           {selectedByCategory[cat.id] > 0 && (
-                            <Badge className="h-4 min-w-[16px] px-1 text-xs font-bold bg-primary text-primary-foreground rounded-md border-none shadow-lg amber-glow">
+                            <Badge className="h-4 min-w-[16px] px-1 text-[10px] font-bold bg-foreground text-background rounded-full border-none">
                               {selectedByCategory[cat.id]}
                             </Badge>
                           )}
@@ -1083,13 +1105,20 @@ export const ServiceCatalog = memo(({
                       <div className="p-2.5 border-b border-border bg-muted dark:bg-foreground/[0.02]">
                         <div className="relative group flex items-center">
                           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary/40 group-focus-within:text-primary transition-colors pointer-events-none" />
-                          <Input 
+                          <Input
                             ref={popoverInputRef}
-                            placeholder="Buscar serviço..." 
-                            className="pl-9 pr-8 h-8 text-xs rounded-lg premium-input focus-visible:ring-1 focus-visible:ring-primary/20 w-full" 
+                            placeholder={isParts ? "Buscar ou cadastrar peça..." : "Buscar serviço..."}
+                            className="pl-9 pr-8 h-8 text-xs rounded-lg premium-input focus-visible:ring-1 focus-visible:ring-primary/20 w-full"
                             value={catSearch}
                             onChange={(e) => setCatSearch(e.target.value)}
-                            onKeyDown={(e) => handlePopoverSearchKeyDown(e, filteredServices)}
+                            onKeyDown={(e) => {
+                              if (canCreatePart && filteredServices.length === 0 && e.key === 'Enter') {
+                                e.preventDefault();
+                                createPart(catSearch);
+                                return;
+                              }
+                              handlePopoverSearchKeyDown(e, filteredServices);
+                            }}
                           />
                           {catSearch && (
                             <button
@@ -1122,7 +1151,7 @@ export const ServiceCatalog = memo(({
                               >
                                 <div className="flex items-center gap-2.5 min-w-0">
                                   <div className={cn(
-                                    "w-4 h-4 rounded-md border-2 shrink-0 flex items-center justify-center transition-all", 
+                                    "w-4 h-4 rounded-md border-2 shrink-0 flex items-center justify-center transition-all",
                                     isSelected ? "bg-primary border-primary text-primary-foreground shadow-lg" : "border-border bg-muted group-hover:border-foreground/15"
                                   )}>
                                     {isSelected && <Check className="w-3 h-3 stroke-[4]" />}
@@ -1134,8 +1163,27 @@ export const ServiceCatalog = memo(({
                               </button>
                             );
                           })}
+                          {isParts && filteredServices.length === 0 && !canCreatePart && (
+                            <div className="px-2.5 py-6 text-center text-xs text-muted-foreground">Nenhuma peça encontrada</div>
+                          )}
                         </div>
                       </ScrollArea>
+                      {isParts && (
+                        <div className="p-1.5 border-t border-border">
+                          {canCreatePart ? (
+                            <button
+                              type="button"
+                              onClick={() => createPart(catSearch)}
+                              className="w-full flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-bold uppercase text-primary hover:bg-muted cursor-pointer"
+                            >
+                              <Plus className="w-3.5 h-3.5 shrink-0" />
+                              <span className="truncate">Cadastrar peça “{typedPart}”</span>
+                            </button>
+                          ) : (
+                            <p className="px-2.5 py-1.5 text-xs text-muted-foreground">Para cadastrar outra peça, digite o nome no campo acima.</p>
+                          )}
+                        </div>
+                      )}
                       <div className="p-1.5 border-t border-border bg-muted/30 dark:bg-foreground/[0.01] flex justify-end">
                         <Button
                           type="button"
@@ -1168,14 +1216,14 @@ export const ServiceCatalog = memo(({
                       className={cn(
                         "h-12 flex flex-col items-center justify-center gap-0.5 border rounded-xl transition-all relative overflow-hidden group shadow-sm",
                         openCategory === 'custom'
-                          ? "border-primary/40 bg-primary/10"
+                          ? "bg-muted border-border"
                           : "bg-card border-border hover:bg-muted hover:border-foreground/10"
                       )}
                       disabled={readOnly}
                     >
                       <span className={cn(
                         "text-xs font-bold uppercase tracking-wider transition-colors",
-                        openCategory === 'custom' ? "text-primary" : "text-foreground/90"
+                        openCategory === 'custom' ? "text-foreground" : "text-foreground/70"
                       )}>
                         PERSONALIZADOS
                       </span>
@@ -1194,10 +1242,10 @@ export const ServiceCatalog = memo(({
                     <div className="p-2.5 border-b border-border bg-muted dark:bg-foreground/[0.02]">
                       <div className="relative group flex items-center">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary/40 group-focus-within:text-primary transition-colors pointer-events-none" />
-                        <Input 
+                        <Input
                           ref={popoverInputRef}
-                          placeholder="Buscar serviço personalizado..." 
-                          className="pl-9 pr-8 h-8 text-xs rounded-lg premium-input focus-visible:ring-1 focus-visible:ring-primary/20 w-full" 
+                          placeholder="Buscar serviço personalizado..."
+                          className="pl-9 pr-8 h-8 text-xs rounded-lg premium-input focus-visible:ring-1 focus-visible:ring-primary/20 w-full"
                           value={catSearch}
                           onChange={(e) => setCatSearch(e.target.value)}
                           onKeyDown={(e) => handlePopoverSearchKeyDown(e, filteredCustomServices)}
@@ -1233,7 +1281,7 @@ export const ServiceCatalog = memo(({
                             >
                               <button
                                 type="button"
-                                onClick={(e) => { 
+                                onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
                                   const existing = selectedServices.find(s => s.id === svc.id);
@@ -1321,12 +1369,12 @@ export const ServiceCatalog = memo(({
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-left border-collapse table-fixed">
                   <thead>
-                    <tr className="bg-muted dark:bg-foreground/[0.02] border-b border-border">
-                      <th className="w-8 px-1 py-2.5"></th>
+                    <tr className="bg-muted/60 dark:bg-foreground/[0.02] border-b border-border">
+                      <th className="w-10 px-1 py-3"></th>
                       <th className="px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60">Serviço</th>
-                      <th className="px-2 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-center w-24">Qtd.</th>
-                      <th className="px-2 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-right w-28">Vlr. Unit.</th>
-                      <th className="px-2 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-right w-24">Total</th>
+                      <th className="px-2 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-center w-32">Quantidade</th>
+                      <th className="px-2 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-center w-40">Vlr. Unitário</th>
+                      <th className="px-2 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-right w-28">Total Item</th>
                       <th className="px-1 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60 text-center w-16">Ações</th>
                     </tr>
                   </thead>
@@ -1470,9 +1518,9 @@ export const ServiceCatalog = memo(({
                     <Label className="text-xs font-bold text-foreground/80 uppercase tracking-wider ml-0.5">Medida Biela</Label>
                     <span className="text-xs font-bold text-primary/60 bg-primary/5 px-2 py-0.5 rounded border border-primary/10">Biela</span>
                   </div>
-                  
+
                   {/* Linha de Botões */}
-                  <div 
+                  <div
                     className="flex flex-row items-center gap-1.5 w-full"
                     style={{ display: 'flex', flexDirection: 'row', gap: '6px', width: '100%', alignItems: 'center' }}
                   >
@@ -1574,9 +1622,9 @@ export const ServiceCatalog = memo(({
                     <Label className="text-xs font-bold text-foreground/80 uppercase tracking-wider ml-0.5">Medida Mancal</Label>
                     <span className="text-xs font-bold text-primary/60 bg-primary/5 px-2 py-0.5 rounded border border-primary/10">Mancal</span>
                   </div>
-                  
+
                   {/* Linha de Botões */}
-                  <div 
+                  <div
                     className="flex flex-row items-center gap-1.5 w-full"
                     style={{ display: 'flex', flexDirection: 'row', gap: '6px', width: '100%', alignItems: 'center' }}
                   >
@@ -1768,10 +1816,10 @@ export const ServiceCatalog = memo(({
                   type="button"
                   onClick={() => {
                     const finalName = p.subName ? `${pendingService.svc.name} — ${p.subName}` : pendingService.svc.name;
-                    handleAddServiceWithMotor({ 
-                      id: pendingService.svc.id, 
-                      name: finalName, 
-                      value: p.price, 
+                    handleAddServiceWithMotor({
+                      id: pendingService.svc.id,
+                      name: finalName,
+                      value: p.price,
                       quantity: 1,
                       measure: pendingMeasure
                     });

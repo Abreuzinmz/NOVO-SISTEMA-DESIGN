@@ -52,7 +52,10 @@ import { cn, formatMotorDisplay, formatMotorModelAndCylinders, getLocalDateStrin
 import { PrintPreviewModal } from './print-preview-modal';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PaymentEntryModal, PaymentEntryItem, PixIcon, DinheiroIcon, DebitoIcon, CreditoIcon, normalizeMethodValue } from './resumo-financeiro';
-import { ChevronRight, User } from 'lucide-react';
+import { ChevronRight, Ban, RotateCcw } from 'lucide-react';
+
+const CANCEL_REASONS = ['Cliente desistiu', 'Orçamento não aprovado', 'Motor sem conserto', 'Outro'];
+import { isPartItem } from '@/lib/service-catalog';
 import { ClientProfilePanel } from './client-profile-panel';
 
 /** Forma de pagamento: ícone e texto curto ("Crédito" à vista, "Crédito 3x" parcelado) */
@@ -543,8 +546,8 @@ function OSViewModalContent({
   const filteredEditMechanics = useMemo(() => {
     const q = editMechanicSearchText.toLowerCase().trim();
     if (!q) return mechanics;
-    return mechanics.filter(m => 
-      (m.name || '').toLowerCase().includes(q) || 
+    return mechanics.filter(m =>
+      (m.name || '').toLowerCase().includes(q) ||
       (m.nickname || '').toLowerCase().includes(q)
     );
   }, [mechanics, editMechanicSearchText]);
@@ -925,6 +928,41 @@ function OSViewModalContent({
     setIsEditing(false);
   };
 
+  // ── Cancelar / reabrir O.S. (o motivo fica na observação do status) ──
+  const [isCancelOpen, setIsCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelOther, setCancelOther] = useState('');
+  const isCancelled = order?.serviceStatus === 'Cancelada';
+  const openCancelDialog = () => { setCancelReason(''); setCancelOther(''); setIsCancelOpen(true); };
+  const handleCancelOrder = async () => {
+    if (!order) return;
+    const reason = cancelReason === 'Outro' ? cancelOther.trim() : cancelReason;
+    if (!reason) return;
+    const today = new Date().toLocaleDateString('pt-BR');
+    try {
+      await updateOrder(order.id, { serviceStatus: 'Cancelada', statusObservation: `Cancelada em ${today} · ${reason}` });
+      setIsCancelOpen(false);
+      toast.success(`O.S. #${order.osNumber || order.id} cancelada.`);
+    } catch {
+      toast.error('Não foi possível cancelar a O.S.');
+    }
+  };
+  const handleReopenOrder = async () => {
+    if (!order) return;
+    const ok = await confirmDialog.confirm({
+      title: `Reabrir O.S. #${order.osNumber || order.id}?`,
+      description: 'Ela volta para a fila de trabalho com o status "Na Fila".',
+      confirmLabel: 'Reabrir',
+    });
+    if (!ok) return;
+    try {
+      await updateOrder(order.id, { serviceStatus: 'Na Fila', statusObservation: '' });
+      toast.success('O.S. reaberta.');
+    } catch {
+      toast.error('Não foi possível reabrir a O.S.');
+    }
+  };
+
   if (!order) return null;
 
   const client = clients.find(c => c.id === order.clientId);
@@ -971,6 +1009,12 @@ function OSViewModalContent({
           LEVOU
         </span>
       );
+      case 'Cancelada': return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-muted text-muted-foreground border border-border">
+          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60 shrink-0" />
+          CANCELADA
+        </span>
+      );
     }
   };
 
@@ -1004,6 +1048,12 @@ function OSViewModalContent({
         <span className="flex items-center gap-1.5 text-xs font-bold text-levou">
           <span className="w-1.5 h-1.5 rounded-full bg-levou shrink-0" />
           Levou
+        </span>
+      );
+      case 'Cancelada': return (
+        <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60 shrink-0" />
+          Cancelada
         </span>
       );
     }
@@ -1064,17 +1114,17 @@ function OSViewModalContent({
         const mainEl = document.querySelector('main') || document.querySelector('.dashboard-content');
         const prevScroll = mainEl ? mainEl.scrollTop : 0;
         const prevWindowScroll = typeof window !== 'undefined' ? window.scrollY : 0;
-        
+
         if (mainEl) {
           mainEl.style.overflowY = 'hidden';
         }
-        
+
         if (typeof document !== 'undefined' && document.activeElement) {
           (document.activeElement as HTMLElement).blur();
         }
-        
+
         onClose();
-        
+
         const restore = () => {
           if (mainEl) mainEl.scrollTop = prevScroll;
           if (typeof window !== 'undefined') window.scrollTo(0, prevWindowScroll);
@@ -1118,7 +1168,7 @@ function OSViewModalContent({
               min-height: unset !important;
               overflow: visible !important;
             }
-            
+
             /* Hide everything in the body except the print report container */
             body > *:not(#print-os-report) {
               display: none !important;
@@ -1181,7 +1231,7 @@ function OSViewModalContent({
                       <Clock className="w-3.5 h-3.5" />
                       <strong className={cn("font-semibold", days >= 30 ? "text-danger" : days >= 15 ? "text-warning" : "text-foreground")}>{daysLabel}</strong>
                     </div>
-                    {order.statusObservation && (
+                    {order.statusObservation && !isCancelled && (
                       <div className="text-xs text-muted-foreground font-semibold break-words mt-2 max-w-[220px]">{order.statusObservation}</div>
                     )}
                     {order.finished && (order.finishedAt || order.deliveryDate) && (
@@ -1207,14 +1257,6 @@ function OSViewModalContent({
                     client && "-m-1.5 p-1.5 pr-2 rounded-xl cursor-pointer transition-colors hover:bg-blue-100/70 dark:hover:bg-blue-500/10 outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60"
                   )}
                 >
-                <span className={cn(
-                  "rounded-xl flex items-center justify-center shrink-0 shadow-sm text-white",
-                  client?.nickname ? "w-10 h-10" : "w-8 h-8",
-                  // no modal o ícone fica sempre cinza (mecânico e cliente padrão); só o desenho muda
-                  "bg-slate-500 dark:bg-slate-600"
-                )}>
-                  {client?.clientType === 'mechanic' ? <Wrench className={cn("stroke-[1.75]", client?.nickname ? "w-5 h-5" : "w-4 h-4")} /> : <User className={cn("stroke-[1.75]", client?.nickname ? "w-5 h-5" : "w-4 h-4")} />}
-                </span>
                 <div className="min-w-0 flex flex-col justify-center">
                   {client?.nickname && (
                     <div className="text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-blue-400 leading-tight">{client.nickname}</div>
@@ -1286,6 +1328,20 @@ function OSViewModalContent({
 
           {/* ═══ BODY ═══ */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+            {isCancelled && !isEditing && (
+              <div className="mx-4 mt-4 flex items-center gap-3 rounded-xl border border-border bg-muted/60 px-4 py-3">
+                <span className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center shrink-0">
+                  <Ban className="w-4 h-4 text-muted-foreground" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-extrabold uppercase tracking-wider text-foreground">O.S. cancelada</div>
+                  {order.statusObservation && <div className="text-xs font-semibold text-muted-foreground break-words">{order.statusObservation}</div>}
+                </div>
+                <Button variant="outline" size="sm" onClick={handleReopenOrder} className="h-8 px-3 rounded-lg text-xs font-bold uppercase tracking-wider gap-1.5 shrink-0">
+                  <RotateCcw className="w-3.5 h-3.5" /> Reabrir
+                </Button>
+              </div>
+            )}
             {/* Top Section: Motor + Cards + Financial */}
             <div className={cn(
               "flex flex-col p-4 gap-4 min-w-0",
@@ -1564,6 +1620,9 @@ function OSViewModalContent({
                               <span className="w-6 h-6 rounded-full bg-muted text-xs font-bold text-foreground/80 flex items-center justify-center shrink-0 tabular-nums">
                                 {s.quantity || 1}
                               </span>
+                              {isPartItem(s) && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-amber-500/10 text-amber-700 border border-amber-500/30 dark:text-amber-300 shrink-0">Peça</span>
+                              )}
                               <span className="font-semibold uppercase text-foreground break-words">
                                 {s.id === 'eix-retificar' && s.measure ? `Retificar Eixo — ${s.measure}` : s.name}
                               </span>
@@ -1578,40 +1637,65 @@ function OSViewModalContent({
                             </span>
                           </div>
                         );
-                        if (motors.length < 2) return order.services.map(renderService);
+                        // serviços primeiro, peças no fim (marcadas com "Peça")
+                        const svcItems = [...order.services.filter(s => !isPartItem(s)), ...order.services.filter(isPartItem)];
+                        if (motors.length < 2) return svcItems.map(renderService);
                         const isCommon = (s: ServiceItem) => s.motorId === 'all' || (s.motorId as unknown) === null;
                         const motorIndexOf = (s: ServiceItem) => Number(s.motorId ?? '0');
                         const groups: { title: string; items: ServiceItem[] }[] = [
-                          { title: 'Comuns a todos os motores', items: order.services.filter(isCommon) },
+                          { title: 'Comuns a todos os motores', items: svcItems.filter(isCommon) },
                           ...motors.map((m, idx) => ({
                             title: `Motor ${idx + 1}: ${[m.model, m.displacement, m.cylinders].filter(Boolean).join(' ')}`,
-                            items: order.services.filter(s => !isCommon(s) && motorIndexOf(s) === idx),
+                            items: svcItems.filter(s => !isCommon(s) && motorIndexOf(s) === idx),
                           })),
                           {
                             title: 'Sem motor definido',
-                            items: order.services.filter(s => !isCommon(s) && !(motorIndexOf(s) >= 0 && motorIndexOf(s) < motors.length)),
+                            items: svcItems.filter(s => !isCommon(s) && !(motorIndexOf(s) >= 0 && motorIndexOf(s) < motors.length)),
                           },
                         ];
-                        return groups.filter(g => g.items.length > 0).map(g => (
+                        return <>{groups.filter(g => g.items.length > 0).map(g => (
                           <div key={g.title}>
                             <div className="px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-muted-foreground bg-secondary/20">{g.title}</div>
                             {g.items.map(renderService)}
                           </div>
-                        ));
+                        ))}</>;
                       })()}
                       {order.services.length === 0 && (
                         <div className="px-4 py-8 text-center text-xs text-muted-foreground font-bold uppercase tracking-wider italic">
                           Nenhum serviço registrado
                         </div>
                       )}
-                      {order.services.length > 0 && (
-                        <div className="m-2 rounded-lg bg-blue-50/70 dark:bg-blue-500/10 px-3 py-2 flex items-center justify-between">
-                          <span className="text-[13px] font-bold text-foreground">Total dos serviços</span>
-                          <span className="text-base font-extrabold font-mono text-foreground tabular-nums">
-                            {order.services.reduce((acc, sv) => acc + sv.value * (sv.quantity || 1), 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                          </span>
-                        </div>
-                      )}
+                      {order.services.length > 0 && (() => {
+                        const sum = (list: ServiceItem[]) => list.reduce((acc, sv) => acc + sv.value * (sv.quantity || 1), 0);
+                        const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                        const svcTotal = sum(order.services.filter(s => !isPartItem(s)));
+                        const partsTotal = sum(order.services.filter(isPartItem));
+                        return (
+                          <div className="m-2 rounded-lg bg-blue-50/70 dark:bg-blue-500/10 px-3 py-2 space-y-1">
+                            {partsTotal > 0 || order.services.some(isPartItem) ? (
+                              <>
+                                <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
+                                  <span>Serviços</span>
+                                  <span className="font-mono text-sm tabular-nums">{fmt(svcTotal)}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
+                                  <span>Peças</span>
+                                  <span className="font-mono text-sm tabular-nums">{fmt(partsTotal)}</span>
+                                </div>
+                                <div className="flex items-center justify-between border-t border-blue-200/70 dark:border-blue-500/20 pt-1">
+                                  <span className="text-[13px] font-bold text-foreground">Total</span>
+                                  <span className="text-base font-extrabold font-mono text-foreground tabular-nums">{fmt(svcTotal + partsTotal)}</span>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="flex items-center justify-between">
+                                <span className="text-[13px] font-bold text-foreground">Total dos serviços</span>
+                                <span className="text-base font-extrabold font-mono text-foreground tabular-nums">{fmt(svcTotal)}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
@@ -1672,10 +1756,10 @@ function OSViewModalContent({
                                 )}
                               </span>
                               <div className="min-w-0">
-                                <div className="text-sm font-extrabold uppercase text-foreground truncate">{m.model || 'MOTOR NÃO INFORMADO'}</div>
                                 <div className="text-xs font-semibold uppercase text-muted-foreground truncate">
                                   {brand || '—'}
                                 </div>
+                                <div className="text-sm font-extrabold uppercase text-foreground truncate">{m.model || 'MOTOR NÃO INFORMADO'}</div>
                               </div>
                             </div>
                             <div className="grid grid-cols-3 gap-1.5">
@@ -2032,26 +2116,28 @@ function OSViewModalContent({
                         <div className="rounded-xl border border-border bg-muted/30 px-3 py-2 flex flex-col gap-1">
                           <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground">
                             <span>Valor total</span>
-                            <span className="font-mono">{brl(total)}</span>
+                            <span className="font-mono text-sm">{brl(total)}</span>
                           </div>
-                          <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground">
-                            <span>Desconto</span>
-                            <span className={cn("font-mono", discount > 0 ? "text-warning" : "")}>{discount > 0 ? `- ${brl(discount)}` : brl(0)}</span>
-                          </div>
+                          {discount > 0 && (
+                            <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground">
+                              <span>Desconto</span>
+                              <span className="font-mono text-sm text-warning">- {brl(discount)}</span>
+                            </div>
+                          )}
                           <div className="flex justify-between items-center border-t border-border pt-1 mt-0.5">
                             <span className="text-xs font-bold uppercase tracking-wider text-foreground">Valor final</span>
-                            <span className="text-lg font-bold font-mono text-foreground tracking-tight">{brl(finalValue)}</span>
+                            <span className="text-xl font-bold font-mono text-foreground tracking-tight">{brl(finalValue)}</span>
                           </div>
-                          {/* Quitada: o cartão "Pagamento finalizado" já mostra o que foi pago */}
-                          {!(order.paymentStatus === 'Pago' && getEntries().length > 0 && !isEditing) && (
+                          {/* Só com alguma entrada; quitada: o cartão "Pagamento finalizado" já mostra o que foi pago */}
+                          {paid > 0 && !(order.paymentStatus === 'Pago' && getEntries().length > 0 && !isEditing) && (
                             <>
                               <div className="flex justify-between items-center text-xs font-bold text-success border-t border-border pt-1 mt-0.5">
                                 <span className="uppercase tracking-wider">Total pago{getEntries().length > 0 ? ` (${getEntries().length})` : ''}</span>
-                                <span className="font-mono">{brl(paid)}</span>
+                                <span className="font-mono text-sm">{brl(paid)}</span>
                               </div>
                               <div className={cn("flex justify-between items-center text-xs font-bold", remaining > 0 ? "text-warning" : "text-success")}>
                                 <span className="uppercase tracking-wider">Restante</span>
-                                <span className="font-mono">{remaining > 0 ? brl(remaining) : 'Quitado'}</span>
+                                <span className="font-mono text-sm">{remaining > 0 ? brl(remaining) : 'Quitado'}</span>
                               </div>
                             </>
                           )}
@@ -2137,6 +2223,17 @@ function OSViewModalContent({
                 >
                   <Trash2 className="w-4 h-4 stroke-[2]" /> Excluir O.S.
                 </Button>
+                {!isCancelled && !order?.finished && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={isEditingStatus}
+                    onClick={openCancelDialog}
+                    className="h-9 px-3 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted gap-2 text-xs font-bold uppercase tracking-wider disabled:opacity-50"
+                  >
+                    <Ban className="w-4 h-4 stroke-[2]" /> Cancelar O.S.
+                  </Button>
+                )}
                 {onEdit && (
                   <Button
                     variant="outline"
@@ -2148,7 +2245,7 @@ function OSViewModalContent({
                     <Edit className="w-4 h-4 stroke-[2]" /> Editar O.S.
                   </Button>
                 )}
-                {order && order.paymentStatus === 'Pago' && !order.finished && (
+                {order && order.paymentStatus === 'Pago' && !order.finished && !isCancelled && (
                   <Button
                     onClick={handleConcluir}
                     disabled={isEditingStatus}
@@ -2531,6 +2628,62 @@ function OSViewModalContent({
               }
             }}
           />
+        )}
+
+        {/* ═══ CANCELAR O.S. (motivo) ═══ */}
+        {isCancelOpen && order && (
+          <Dialog open={isCancelOpen} onOpenChange={setIsCancelOpen}>
+            <DialogContent className="max-w-md bg-card border border-border p-6 rounded-xl shadow-2xl space-y-4">
+              <DialogHeader>
+                <DialogTitle className="text-base font-bold uppercase tracking-wider flex items-center gap-2 text-foreground">
+                  <Ban className="w-5 h-5 text-muted-foreground" /> Cancelar O.S. #{order.osNumber || order.id}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  A O.S. continua salva, sai da lista de trabalho e não conta mais nos valores a receber. Dá para reabrir depois.
+                </p>
+                <div className="text-xs font-bold uppercase tracking-wider text-foreground/80">Motivo</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {CANCEL_REASONS.map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setCancelReason(r)}
+                      className={cn(
+                        "h-10 px-3 rounded-lg border text-xs font-bold text-left transition-colors cursor-pointer",
+                        cancelReason === r ? "bg-foreground text-background border-foreground" : "bg-card border-border text-foreground/80 hover:bg-muted"
+                      )}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+                {cancelReason === 'Outro' && (
+                  <Textarea
+                    autoFocus
+                    value={cancelOther}
+                    onChange={(e) => setCancelOther(e.target.value)}
+                    placeholder="Descreva o motivo"
+                    className="min-h-[70px] text-sm"
+                  />
+                )}
+                {groupedPayment && (
+                  <p className="text-xs font-semibold text-warning">Esta O.S. faz parte de um pagamento agrupado; o grupo não é alterado.</p>
+                )}
+              </div>
+              <div className="flex justify-end gap-2 pt-1">
+                <Button variant="ghost" onClick={() => setIsCancelOpen(false)} className="h-9 px-3 text-xs font-bold uppercase tracking-wider">Voltar</Button>
+                <Button
+                  onClick={handleCancelOrder}
+                  disabled={!cancelReason || (cancelReason === 'Outro' && !cancelOther.trim())}
+                  className="h-9 px-4 rounded-lg bg-foreground text-background hover:bg-foreground/90 text-xs font-bold uppercase tracking-wider gap-2"
+                >
+                  <Ban className="w-4 h-4" /> Cancelar O.S.
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         )}
 
         {/* ═══ MODAL DE CONFIRMAÇÃO DE EXCLUSÃO DE O.S. AGRUPADA ═══ */}

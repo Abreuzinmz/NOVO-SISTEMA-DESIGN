@@ -4,6 +4,7 @@ import React from 'react';
 import { User, CreditCard, Phone, Package, Wrench, Boxes } from 'lucide-react';
 import { formatMotorModelAndCylinders } from '@/lib/utils';
 import { Order, Client } from '@/lib/store';
+import { isPartItem } from '@/lib/service-catalog';
 
 interface OSPrintReportProps {
   order: Order;
@@ -146,7 +147,13 @@ export function OSPrintReport({
   const rawOsNum = String(order.osNumber || order.id || '0');
   const formattedOsNum = rawOsNum.padStart(5, '0');
 
-  const commonServices = (order.services || []).filter(
+  // Mesma tabela: serviços primeiro, peças no fim (marcadas com "PEÇA")
+  const partItems = (order.services || []).filter((s: any) => isPartItem(s));
+  const serviceItems = [...(order.services || []).filter((s: any) => !isPartItem(s)), ...partItems];
+  const PART_TAG_STYLE: React.CSSProperties = { display: 'inline-block', fontSize: '6.5pt', fontWeight: 900, letterSpacing: '0.3pt', border: '0.75pt solid #000', borderRadius: '2pt', padding: '0.5pt 3pt', marginRight: '5pt', verticalAlign: '1pt' };
+  const partsSubtotal = partItems.reduce((acc: number, s: any) => acc + ((s.value || 0) * (s.quantity || 1)), 0);
+
+  const commonServices = serviceItems.filter(
     (s: any) => s.motorId === 'all' || s.motorId === null
   );
   const commonSubtotal = commonServices.reduce(
@@ -155,7 +162,7 @@ export function OSPrintReport({
   );
 
   const hasMultipleMotors = motors && motors.length >= 2;
-  const hasAssignedMotorServices = (order.services || []).some(
+  const hasAssignedMotorServices = serviceItems.some(
     (s: any) => s.motorId !== undefined && s.motorId !== null && s.motorId !== ''
   );
   const shouldGroupServices = hasMultipleMotors && (hasAssignedMotorServices || commonServices.length > 0);
@@ -178,7 +185,7 @@ export function OSPrintReport({
               height: 297mm !important;
               overflow: visible !important;
             }
-            
+
             body > *:not(#print-os-report) {
               display: none !important;
             }
@@ -895,7 +902,7 @@ export function OSPrintReport({
                       return (
                         <tr key={s.id}>
                           <td style={{ textAlign: 'center', fontWeight: 700 }}>{qty}</td>
-                          <td className="name-col">{displayName}{measureSuffix}</td>
+                          <td className="name-col">{isPartItem(s) && <span style={PART_TAG_STYLE}>PEÇA</span>}{displayName}{measureSuffix}</td>
                           <td className="right">{formatBRL(unitVal)}</td>
                           <td className="right">{formatBRL(subtotal)}</td>
                         </tr>
@@ -918,12 +925,12 @@ export function OSPrintReport({
 
             {/* ── SERVIÇOS ESPECÍFICOS DE CADA MOTOR ── */}
             {motors.map((m, mIdx) => {
-              const motorServices = order.services.filter(
+              const motorServices = serviceItems.filter(
                 (s: any) => s.motorId !== 'all' && s.motorId !== null && String(s.motorId ?? '0') === String(mIdx)
               );
               if (motorServices.length === 0) return null;
               const motorSubtotal = motorServices.reduce((acc: number, s: any) => acc + ((s.value || 0) * (s.quantity || 1)), 0);
-              
+
               const modelStr = m.model ? m.model.replace(/\s*\(.*\)/, '').trim().toUpperCase() : '';
               const dispStr = m.displacement ? m.displacement.trim() : '';
               const cylStr = m.cylinders ? `${m.cylinders.replace(/\D/g, '')} CIL` : '';
@@ -957,7 +964,7 @@ export function OSPrintReport({
                         return (
                           <tr key={s.id}>
                             <td style={{ textAlign: 'center', fontWeight: 700 }}>{qty}</td>
-                            <td className="name-col">{displayName}{measureSuffix}</td>
+                            <td className="name-col">{isPartItem(s) && <span style={PART_TAG_STYLE}>PEÇA</span>}{displayName}{measureSuffix}</td>
                             <td className="right">{formatBRL(unitVal)}</td>
                             <td className="right">{formatBRL(subtotal)}</td>
                           </tr>
@@ -992,7 +999,7 @@ export function OSPrintReport({
                 </tr>
               </thead>
               <tbody>
-                {order.services.map((s: any) => {
+                {serviceItems.map((s: any) => {
                   const qty = s.quantity || 1;
                   const unitVal = s.value || 0;
                   const subtotal = unitVal * qty;
@@ -1003,13 +1010,13 @@ export function OSPrintReport({
                   return (
                     <tr key={s.id}>
                       <td style={{ textAlign: 'center', fontWeight: 700 }}>{qty}</td>
-                      <td className="name-col">{displayName}{measureSuffix}</td>
+                      <td className="name-col">{isPartItem(s) && <span style={PART_TAG_STYLE}>PEÇA</span>}{displayName}{measureSuffix}</td>
                       <td className="right">{formatBRL(unitVal)}</td>
                       <td className="right">{formatBRL(subtotal)}</td>
                     </tr>
                   );
                 })}
-                {order.services.length === 0 && (
+                {serviceItems.length === 0 && (
                   <tr>
                     <td colSpan={4} style={{ textAlign: 'center', fontStyle: 'italic', padding: '36pt 8pt' }}>
                       Nenhum serviço registrado
@@ -1027,8 +1034,14 @@ export function OSPrintReport({
             <tbody>
               <tr>
                 <td className="s-label">SERVIÇOS:</td>
-                <td className="s-value">{formatBRL(totalServicos)}</td>
+                <td className="s-value">{formatBRL(partItems.length > 0 ? Math.max(0, totalServicos - partsSubtotal) : totalServicos)}</td>
               </tr>
+              {partItems.length > 0 && (
+                <tr>
+                  <td className="s-label">PEÇAS:</td>
+                  <td className="s-value">{formatBRL(partsSubtotal)}</td>
+                </tr>
+              )}
               {hasDiscount && (
                 <tr>
                   <td className="s-label">VALOR À VISTA:</td>

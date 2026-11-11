@@ -46,8 +46,9 @@ export function ClientProfilePanel({ clientId, currentOrderId, open, onOpenChang
   const stats = useMemo(() => {
     let spent = 0, pending = 0, pendingCount = 0, openCount = 0;
     for (const o of all) {
-      spent += o.netValue || 0;
-      if (!o.finished) openCount += 1;
+      if (o.serviceStatus !== 'Cancelada') spent += o.netValue || 0;
+      if (!o.finished && o.serviceStatus !== 'Cancelada') openCount += 1;
+      if (o.serviceStatus === 'Cancelada') continue; // cancelada não conta em gasto nem a receber
       const p = getOrderPaymentSummary(o, getGroupedPaymentForOrder(o.id));
       if (p.situation !== 'pago' && p.balance > 0) { pending += p.balance; pendingCount += 1; }
     }

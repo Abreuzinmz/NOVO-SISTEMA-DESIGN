@@ -284,6 +284,9 @@ export function useOrderFilters({ storageKey, orders, clients, defaultSort }: Us
 
     if (effectiveFilters.serviceStatus) {
       result = result.filter((o) => o.serviceStatus === effectiveFilters.serviceStatus);
+    } else {
+      // O.S. cancelada sai da lista normal; aparece só no filtro "Canceladas"
+      result = result.filter((o) => o.serviceStatus !== 'Cancelada');
     }
 
     if (effectiveFilters.serviceType) {

@@ -249,6 +249,7 @@ const ORDER_STATUS_OPTIONS = [
   { value: 'Aguardando Peça', label: 'Aguardando peça' },
   { value: 'Pronto', label: 'Pronto' },
   { value: 'Levou', label: 'Levou' },
+  { value: 'Cancelada', label: 'Cancelada' },
   { value: 'finalizada', label: 'Finalizada' },
 ];
 
@@ -609,6 +610,7 @@ const ClientDetailsContent = React.memo(({
     let amount = 0;
     let count = 0;
     for (const o of clientOrders) {
+      if (o.serviceStatus === 'Cancelada') continue; // cancelada não fica a receber
       const p = getOrderPaymentSummary(o, getGroupedPaymentForOrder(o.id));
       if (p.situation !== 'pago' && p.balance > 0) { amount += p.balance; count += 1; }
     }
@@ -655,7 +657,7 @@ const ClientDetailsContent = React.memo(({
   const matchesQuick = useCallback((o: Order, key: string) => {
     if (!key) return true;
     if (key === 'finalizada') return !!o.finished;
-    if (key === 'pendente') return getOrderPaymentSummary(o, getGroupedPaymentForOrder(o.id)).situation !== 'pago';
+    if (key === 'pendente') return o.serviceStatus !== 'Cancelada' && getOrderPaymentSummary(o, getGroupedPaymentForOrder(o.id)).situation !== 'pago';
     return !o.finished && o.serviceStatus === key;
   }, [getGroupedPaymentForOrder]);
 
@@ -669,6 +671,7 @@ const ClientDetailsContent = React.memo(({
       { key: 'Em Andamento', label: 'Em andamento', cls: neutral, activeCls: neutralActive },
       { key: 'Pronto', label: 'Prontas', cls: neutral, activeCls: neutralActive },
       { key: 'Levou', label: 'Levou', cls: neutral, activeCls: neutralActive },
+      { key: 'Cancelada', label: 'Canceladas', cls: neutral, activeCls: neutralActive },
       { key: 'finalizada', label: 'Finalizadas', cls: neutral, activeCls: neutralActive },
       { key: 'pendente', label: 'Pagamento pendente', cls: 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30', activeCls: 'bg-red-600! text-white! border-red-600!' },
     ];

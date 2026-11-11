@@ -74,11 +74,62 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
       { id: 'out-montagem-parcial', name: 'MONTAGEM PARCIAL', defaultPrice: 0 },
       { id: 'out-montagem-completa', name: 'MONTAGEM COMPLETA', defaultPrice: 0 },
       { id: 'out-lavagem-quimica', name: 'LAVAGEM QUÍMICA', defaultPrice: 0 },
-      { id: 'out-jogo-retentor', name: 'JOGO DE RETENTOR DE VÁLVULAS', defaultPrice: 0 },
       { id: 'out-desmontagem-parcial', name: 'DESMONTAGEM PARCIAL', defaultPrice: 0 },
     ],
   },
+  {
+    // Peças vendidas na O.S. (saem separadas dos serviços no modal e na impressão)
+    id: 'pecas',
+    name: 'PEÇAS',
+    services: [
+      // mantém o id antigo (estava em OUTROS) para as O.S. já salvas
+      { id: 'out-jogo-retentor', name: 'JOGO DE RETENTOR DE VÁLVULAS', defaultPrice: 0 },
+      { id: 'pec-valvulas', name: 'VÁLVULAS', defaultPrice: 0 },
+    ],
+  },
 ];
+
+export const PARTS_CATEGORY_ID = 'pecas';
+
+/** Item da O.S. que é peça (categoria PEÇAS ou peça cadastrada pelo usuário) */
+export function isPartItem(item: { id?: string | null }): boolean {
+  const id = String(item?.id || '');
+  return id === 'out-jogo-retentor' || id.startsWith('pec-');
+}
+
+// ── Peças cadastradas pelo usuário (ficam neste computador) ──
+const CUSTOM_PARTS_KEY = 'retifica_custom_parts';
+
+export function loadCustomParts(): CatalogService[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem(CUSTOM_PARTS_KEY) || '[]');
+    return Array.isArray(parsed)
+      ? parsed.filter((p) => p && typeof p.id === 'string' && typeof p.name === 'string' && p.name.trim())
+          .map((p) => ({ id: p.id, name: p.name, defaultPrice: Number(p.defaultPrice) || 0 }))
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomParts(list: CatalogService[]) {
+  try { localStorage.setItem(CUSTOM_PARTS_KEY, JSON.stringify(list)); } catch { /* ignore */ }
+}
+
+/** Cadastra (ou reaproveita, se o nome já existir) uma peça; retorna a lista nova e a peça */
+export function addCustomPart(list: CatalogService[], rawName: string): { list: CatalogService[]; part: CatalogService } | null {
+  const name = rawName.trim().toUpperCase();
+  if (!name) return null;
+  const builtIn = SERVICE_CATEGORIES.find((c) => c.id === PARTS_CATEGORY_ID)?.services.find((s) => s.name === name);
+  if (builtIn) return { list, part: builtIn };
+  const existing = list.find((p) => p.name === name);
+  if (existing) return { list, part: existing };
+  const part: CatalogService = { id: `pec-custom-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, name, defaultPrice: 0 };
+  const next = [...list, part];
+  saveCustomParts(next);
+  return { list: next, part };
+}
 
 export function getServiceById(id: string): CatalogService | undefined {
   for (const cat of SERVICE_CATEGORIES) {

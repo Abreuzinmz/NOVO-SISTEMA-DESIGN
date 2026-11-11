@@ -14,6 +14,7 @@ export const SERVICE_STATUS_STYLE: Record<string, { label: string; className: st
   'Aguardando Peça': { label: 'Aguardando peça', className: 'bg-yellow-100 text-amber-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/30', dot: 'bg-amber-600' },
   'Pronto': { label: 'Pronto', className: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/30', dot: 'bg-green-600' },
   'Levou': { label: 'Levou', className: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/30', dot: 'bg-red-600' },
+  'Cancelada': { label: 'Cancelada', className: 'bg-zinc-100 text-zinc-500 border-zinc-300 dark:bg-white/5 dark:text-zinc-400 dark:border-white/15', dot: 'bg-zinc-400' },
   'Finalizada': { label: 'Finalizada', className: 'bg-transparent border-border text-muted-foreground dark:text-foreground/80', dot: 'bg-muted-foreground/50' },
 };
 

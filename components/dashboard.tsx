@@ -67,6 +67,7 @@ const STATUS_ACCENT: Record<string, string> = {
   'Aguardando Peça': 'border-l-orange-400',
   'Pronto': 'border-l-green-500',
   'Levou': 'border-l-red-500',
+  'Cancelada': 'border-l-zinc-300',
 };
 
 const motorChip = 'inline-flex items-center h-5 px-1.5 rounded-md bg-gray-100 border border-gray-200 text-[11px] font-semibold text-gray-500 tabular-nums uppercase dark:bg-white/5 dark:border-white/10 dark:text-gray-300';
@@ -822,7 +823,7 @@ export function Dashboard({
             <X className="w-4 h-4 text-muted-foreground" />
           </Button>
         </div>
-        <div className="flex-1 overflow-y-auto px-5 py-5 bg-background">
+        <div className="flex-1 overflow-y-auto px-5 pt-5 bg-background">
           {quickOsOpen && (
             <OSForm onComplete={() => setQuickOsOpen(false)} />
           )}

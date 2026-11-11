@@ -1763,8 +1763,8 @@ function OSFormImpl({
     setIsStatusConfirmOpen(false);
   };
 
-  const handleAutoGenerateOS = async (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleAutoGenerateOS = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
     const isElectron = typeof window !== 'undefined' && !!window.electronAPI;
     let next = 1001;
     if (isElectron) {
@@ -1787,6 +1787,12 @@ function OSFormImpl({
     }
     setOsNumber(next.toString());
   };
+
+  // Nova O.S.: já abre com o próximo número gerado
+  useEffect(() => {
+    if (!order && !readOnly && !osNumber) handleAutoGenerateOS();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Selected Client Details Display State
   const [clientPhone, setClientPhone] = useState('');
@@ -2775,42 +2781,41 @@ function OSFormImpl({
               </div>
             </div>
 
-            {/* Linha: O.S. Nº e Data de Chegada */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-1">
+            {/* Linha: O.S. Nº e Data de Chegada (lado a lado, próximos) */}
+            <div className="flex flex-wrap items-start gap-x-8 gap-y-4 pt-1">
               {/* O.S. Nº */}
               <div className="space-y-2">
                 <Label className="text-[13px] font-bold text-foreground/80">O.S. Nº</Label>
-                <div className="flex items-center gap-2.5">
+                <div className="relative w-32">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-mono text-sm font-bold text-muted-foreground/60 pointer-events-none">#</span>
                   <Input
                     ref={osNumberRef}
                     type="number"
                     value={osNumber}
                     onChange={e => setOsNumber(e.target.value)}
-                    className="flex-1 min-w-0 h-10 px-3.5 font-mono text-sm font-semibold rounded-xl bg-muted/50 border border-border text-foreground focus:bg-card focus:border-foreground/30 transition-all os-number-input shadow-none"
+                    className="w-full min-w-0 h-10 pl-8 pr-3 font-mono text-sm font-semibold rounded-xl bg-muted/50 border border-border text-foreground focus:bg-card focus:border-foreground/30 transition-all os-number-input shadow-none"
                     placeholder={String(Math.max(1000, ...orders.map(o => Number(o.osNumber || o.id) || 0)) + 1)}
                     title="Deixe em branco para usar o próximo número livre"
                     disabled={!!order || readOnly}
                   />
-                  {!order && !readOnly && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleAutoGenerateOS}
-                      className="h-10 px-3.5 rounded-xl border border-border bg-muted/50 hover:bg-muted text-foreground/80 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shrink-0 shadow-none cursor-pointer"
-                      title="Gerar próximo número sequencial de O.S."
-                    >
-                      <Settings className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span>Gerar auto</span>
-                    </Button>
-                  )}
                 </div>
+                {!order && !readOnly && (
+                  <button
+                    type="button"
+                    onClick={handleAutoGenerateOS}
+                    className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    title="Gerar próximo número sequencial de O.S."
+                  >
+                    Gerar O.S. automática
+                  </button>
+                )}
               </div>
 
               {/* DATA DE CHEGADA */}
               <div className="space-y-2">
                 <Label className="text-[13px] font-bold text-foreground/80">Data de Chegada</Label>
                 <div className="flex items-center gap-2.5">
-                  <div className="flex-1 min-w-0">
+                  <div className="w-44 min-w-0">
                     <DatePicker
                       value={arrivalDate}
                       onChange={(dateStr) => setArrivalDate(dateStr)}
@@ -2832,9 +2837,9 @@ function OSFormImpl({
             </div>
 
             {/* Linha 2: Status do Serviço e Observação do Status */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-1">
+            <div className="flex flex-wrap items-start gap-x-8 gap-y-4 pt-1">
               {/* STATUS DO SERVIÇO */}
-              <div className="space-y-2">
+              <div className="space-y-2 w-full sm:w-[220px]">
                 <Label className="text-[13px] font-bold uppercase tracking-wider text-foreground/80">STATUS DO SERVIÇO</Label>
                 <Select
                   value={serviceStatus}
@@ -2847,7 +2852,7 @@ function OSFormImpl({
                   }}
                   disabled={readOnly}
                 >
-                  <SelectTrigger className="h-10 w-full rounded-xl border border-border bg-muted/50 hover:bg-muted transition-all px-3.5 group text-sm font-semibold text-foreground focus:outline-none focus:border-foreground/30 flex items-center justify-between gap-2.5 cursor-pointer shadow-none">
+                  <SelectTrigger className="h-10 w-full sm:w-[220px] rounded-xl border border-border bg-muted/50 hover:bg-muted transition-all px-3.5 group text-sm font-semibold text-foreground focus:outline-none focus:border-foreground/30 flex items-center justify-between gap-2.5 cursor-pointer shadow-none">
                     <div className="flex items-center gap-2.5">
                       <div className={cn(
                         "w-2.5 h-2.5 rounded-full shadow-sm ring-2 ring-offset-1 ring-offset-background",
@@ -2855,7 +2860,8 @@ function OSFormImpl({
                         serviceStatus === 'Em Andamento' && "bg-blue-500 ring-blue-300 dark:ring-blue-600",
                         serviceStatus === 'Aguardando Peça' && "bg-amber-500 ring-amber-300 dark:ring-amber-600",
                         serviceStatus === 'Pronto' && "bg-green-500 ring-green-300 dark:ring-green-600",
-                        serviceStatus === 'Levou' && "bg-red-500 ring-red-300 dark:ring-red-600"
+                        serviceStatus === 'Levou' && "bg-red-500 ring-red-300 dark:ring-red-600",
+                        serviceStatus === 'Cancelada' && "bg-zinc-400 ring-zinc-300 dark:ring-zinc-600"
                       )} />
                       <SelectValue className="font-semibold text-sm text-foreground" />
                     </div>
@@ -2867,6 +2873,7 @@ function OSFormImpl({
                       ['Aguardando Peça', 'bg-amber-500'],
                       ['Pronto', 'bg-green-500'],
                       ['Levou', 'bg-red-500'],
+                      ...(serviceStatus === 'Cancelada' ? [['Cancelada', 'bg-zinc-400'] as const] : []),
                     ] as const).map(([value, dot]) => (
                       <SelectItem key={value} value={value} className="rounded-lg py-2 pl-3 pr-8 focus:bg-muted cursor-pointer transition-colors group">
                         <div className="flex items-center gap-2">
@@ -2893,7 +2900,7 @@ function OSFormImpl({
               </div>
 
               {/* OBSERVAÇÃO DO STATUS */}
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1 min-w-[220px]">
                 <Label className="text-[13px] font-bold uppercase tracking-wider text-foreground/80">
                   OBSERVAÇÃO DO STATUS <span className="text-[11px] text-muted-foreground font-normal tracking-normal">(OPCIONAL)</span>
                 </Label>
@@ -4033,7 +4040,7 @@ function OSFormImpl({
 
 
         {/* Barra de ações fixa no rodapé: salvar sempre à vista */}
-        <div className={cn("sticky bottom-0 z-30 max-w-[980px] mx-auto px-2 py-3 flex items-center justify-between gap-3 bg-background/95 backdrop-blur border-t border-border pointer-events-auto print:hidden", stepped && "@[1000px]/osform:max-w-[900px]")}>
+        <div className={cn("sticky bottom-0 z-30 -mb-10 max-w-[980px] mx-auto px-2 py-3 flex items-center justify-between gap-3 bg-background/95 backdrop-blur border-t border-border pointer-events-auto print:hidden", stepped && "@[1000px]/osform:max-w-[900px]")}>
           <Button
             type="button"
             variant="outline"

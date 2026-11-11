@@ -108,13 +108,14 @@ export interface FilterBarProps {
 }
 
 // ═══ Status da O.S.: ordem e nomes usados nos chips ═══
-const STATUS_ORDER = ['Na Fila', 'Em Andamento', 'Aguardando Peça', 'Pronto', 'Levou'];
+const STATUS_ORDER = ['Na Fila', 'Em Andamento', 'Aguardando Peça', 'Pronto', 'Levou', 'Cancelada'];
 const STATUS_LABEL: Record<string, string> = {
   'Na Fila': 'Na fila',
   'Em Andamento': 'Em andamento',
   'Aguardando Peça': 'Aguardando peça',
   'Pronto': 'Prontas',
   'Levou': 'Levou',
+  'Cancelada': 'Canceladas',
 };
 
 // ═══ Dropdown padrão do sistema (substitui o <select> nativo) ═══

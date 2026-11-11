@@ -20,7 +20,7 @@ declare global {
   }
 }
 
-export type ServiceStatus = 'Na Fila' | 'Em Andamento' | 'Aguardando Peça' | 'Pronto' | 'Levou';
+export type ServiceStatus = 'Na Fila' | 'Em Andamento' | 'Aguardando Peça' | 'Pronto' | 'Levou' | 'Cancelada';
 export type PaymentStatus = 'Não Pago' | 'Entrada' | 'Pago';
 export type PaymentMethod = 'PIX' | 'Dinheiro' | 'Débito' | 'Crédito à Vista' | 'Crédito 2x' | 'Crédito 3x';
 
