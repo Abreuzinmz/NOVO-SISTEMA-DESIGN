@@ -94,7 +94,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
           </div>
           {isExpanded && (
             <div className="whitespace-nowrap transition-opacity duration-200">
-              <h1 className="font-extrabold text-[15px] leading-none tracking-tight text-foreground">Retifica</h1>
+              <h1 className="font-extrabold text-[0.9375rem] leading-none tracking-tight text-foreground">Retifica</h1>
               <p className="text-xs text-muted-foreground/60 font-bold uppercase tracking-[0.15em] mt-1">Mendonça</p>
             </div>
           )}
@@ -267,7 +267,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
                     {osFormMode === value && <span className="w-1.5 h-1.5 rounded-full bg-foreground" />}
                   </span>
                 </span>
-                <span className="block text-[11px] text-muted-foreground leading-snug mt-1">{desc}</span>
+                <span className="block text-[0.6875rem] text-muted-foreground leading-snug mt-1">{desc}</span>
               </button>
             ))}
           </div>

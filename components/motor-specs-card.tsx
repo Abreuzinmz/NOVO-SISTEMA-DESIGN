@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { CatalogMotor } from '@/lib/motors';
+import { FieldLabel, IconField, iconInputClass, ClientDialogFooter } from '@/components/client-form';
 import { splitOptionsList } from '@/lib/motors';
 import { MOTOR_BRANDS, detectBrandFromName, getBrandLogoSrc } from '@/lib/motor-brands';
 
@@ -449,6 +450,11 @@ export function MotorSpecsCard({
   const [listOpen, setListOpen] = useState(false);
   const [listQuery, setListQuery] = useState('');
   const [listBrand, setListBrand] = useState<string | null>(null);
+  // filtro de marca (lista suspensa)
+  const [brandFilterOpen, setBrandFilterOpen] = useState(false);
+  const [brandFilterQuery, setBrandFilterQuery] = useState('');
+  const brandFilterRef = useRef<HTMLDivElement>(null);
+  useClickOutside(brandFilterRef, () => setBrandFilterOpen(false), brandFilterOpen);
 
   const brandOf = (m: CatalogMotor) => m.brand || detectBrandFromName(`${m.name} ${m.cars.join(' ')}`) || 'Outros';
 
@@ -479,6 +485,8 @@ export function MotorSpecsCard({
   const openMotorList = () => {
     setListQuery('');
     setListBrand(null);
+    setBrandFilterOpen(false);
+    setBrandFilterQuery('');
     setListOpen(true);
   };
 
@@ -782,7 +790,7 @@ export function MotorSpecsCard({
                               <div className="flex items-center gap-2">
                                 <span className="text-sm font-bold uppercase text-foreground truncate"><Highlight text={m.name} tokens={tokens} /></span>
                                 {m.engineModels.length > 0 && (
-                                  <span className="px-1.5 py-px rounded-md bg-muted border border-border text-[11px] font-semibold text-muted-foreground uppercase truncate">
+                                  <span className="px-1.5 py-px rounded-md bg-muted border border-border text-[0.6875rem] font-semibold text-muted-foreground uppercase truncate">
                                     <Highlight text={m.engineModels.join(', ')} tokens={tokens} />
                                   </span>
                                 )}
@@ -910,7 +918,7 @@ export function MotorSpecsCard({
 
           {/* Ações */}
           <div className="flex flex-col sm:flex-row sm:justify-center gap-2">
-            <Button type="button" onClick={submitMotor} disabled={!form.model.trim() && !form.cars.trim() && !form.engineModel.trim()} className="solid-btn w-full sm:w-auto sm:min-w-[280px] h-11 px-8 rounded-xl text-sm font-bold gap-2 disabled:opacity-50">
+            <Button type="button" onClick={submitMotor} disabled={!form.model.trim() && !form.cars.trim() && !form.engineModel.trim()} className="solid-btn w-full sm:w-auto sm:min-w-[17.5rem] h-11 px-8 rounded-xl text-sm font-bold gap-2 disabled:opacity-50">
               {editingIndex !== null ? <><Check className="w-4 h-4" /> Salvar alterações do motor</> : <><Plus className="w-4 h-4" /> Adicionar Motor à O.S.</>}
             </Button>
             {motors.length > 0 && (
@@ -950,11 +958,11 @@ export function MotorSpecsCard({
                         <h4 className="text-base font-extrabold uppercase text-foreground truncate" title={m.model}>{m.model}</h4>
                         <div className="text-xs font-semibold uppercase text-muted-foreground truncate">{brand || 'Montadora não identificada'}</div>
                         <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-bold whitespace-nowrap bg-green-50 text-green-600 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/30">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[0.6875rem] font-bold whitespace-nowrap bg-green-50 text-green-600 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/30">
                             <CheckCircle2 className="w-3 h-3" /> Adicionado à O.S.
                           </span>
                           {motors.length > 1 && (
-                            <span className="px-2 py-0.5 rounded-full bg-muted border border-border text-[11px] font-bold text-muted-foreground whitespace-nowrap">Motor {idx + 1}</span>
+                            <span className="px-2 py-0.5 rounded-full bg-muted border border-border text-[0.6875rem] font-bold text-muted-foreground whitespace-nowrap">Motor {idx + 1}</span>
                           )}
                         </div>
                       </div>
@@ -985,7 +993,7 @@ export function MotorSpecsCard({
                               {t.icon}
                             </span>
                             <div className="min-w-0">
-                              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t.label}</div>
+                              <div className="text-[0.625rem] font-semibold uppercase tracking-wide text-muted-foreground">{t.label}</div>
                               <div className={cn('text-sm font-bold leading-tight break-words line-clamp-2', t.orange ? 'text-orange-600 dark:text-orange-400' : 'text-foreground')}>{t.value}</div>
                             </div>
                           </div>
@@ -1015,7 +1023,7 @@ export function MotorSpecsCard({
 
       {/* ═══ DIALOG: lista de motores por marca ═══ */}
       <Dialog open={listOpen} onOpenChange={setListOpen}>
-        <DialogContent showCloseButton={false} className="sm:max-w-[860px] w-[calc(100vw-32px)] h-[min(720px,calc(100vh-48px))] z-[1100] rounded-2xl p-0 gap-0 overflow-hidden flex flex-col" overlayClassName="z-[1099]">
+        <DialogContent showCloseButton={false} className="sm:max-w-[53.75rem] w-[calc(100vw-2rem)] h-[min(45rem,calc(100vh-3rem))] z-[1100] rounded-2xl p-0 gap-0 overflow-hidden flex flex-col" overlayClassName="z-[1099]">
           <div className="flex items-start gap-4 px-6 pt-6 pb-4">
             <div className="w-11 h-11 rounded-xl bg-muted border border-border flex items-center justify-center shrink-0">
               <List className="w-5 h-5 text-foreground/80" />
@@ -1029,36 +1037,124 @@ export function MotorSpecsCard({
             </button>
           </div>
 
-          <div className="px-6 pb-3 space-y-3 border-b border-border">
-            <div className="relative">
-              <Search className={searchFieldIconClass} />
-              <Input
-                value={listQuery}
-                onChange={(e) => setListQuery(e.target.value)}
-                placeholder="Filtrar por motor, modelo ou veículo..."
-                className={searchFieldClass}
-              />
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-1.5">
-              <button
-                type="button"
-                onClick={() => setListBrand(null)}
-                className={cn('h-11 px-5 rounded-full border text-sm font-bold whitespace-nowrap shrink-0 transition-colors cursor-pointer shadow-2xs', !listBrand ? 'bg-foreground text-background border-foreground' : 'bg-card border-border/70 text-foreground hover:bg-muted/50')}
-              >
-                Todas ({catalog.length})
-              </button>
-              {listGroups.brands.map(({ brand, count }) => (
+          <div className="px-6 pb-4 border-b border-border">
+            <div className="flex items-stretch gap-2">
+              {/* Busca */}
+              <div className="relative flex-1 min-w-0">
+                <Search className={searchFieldIconClass} />
+                <Input
+                  value={listQuery}
+                  onChange={(e) => setListQuery(e.target.value)}
+                  placeholder="Filtrar por motor, modelo ou veículo..."
+                  className={searchFieldClass}
+                />
+              </div>
+
+              {/* Filtro de marca */}
+              <div className="relative shrink-0" ref={brandFilterRef}>
                 <button
-                  key={brand}
                   type="button"
-                  onClick={() => setListBrand(listBrand === brand ? null : brand)}
-                  className={cn('h-11 pl-3 pr-5 rounded-full border text-sm font-semibold whitespace-nowrap shrink-0 flex items-center gap-2.5 transition-colors cursor-pointer shadow-2xs', listBrand === brand ? 'bg-foreground text-background border-foreground' : 'bg-card border-border/70 text-foreground hover:bg-muted/50')}
+                  onClick={() => { setBrandFilterOpen((o) => !o); setBrandFilterQuery(''); }}
+                  aria-expanded={brandFilterOpen}
+                  className={cn(
+                    'h-full min-h-11 w-[15rem] max-w-[40vw] pl-2.5 pr-3 rounded-xl border flex items-center gap-2.5 text-sm font-semibold transition-colors cursor-pointer',
+                    listBrand ? 'bg-foreground/[0.04] border-foreground/40 text-foreground' : 'bg-card border-border text-foreground hover:bg-muted/50'
+                  )}
                 >
-                  <BrandLogo brand={brand === 'Outros' ? '' : brand} size={34} fill={92} className="border-0 bg-transparent rounded-md dark:bg-white" />
-                  {brand} ({count})
+                  {listBrand ? (
+                    <BrandLogo brand={listBrand === 'Outros' ? '' : listBrand} size={30} fill={92} className="border-0 bg-transparent rounded-md dark:bg-white shrink-0" />
+                  ) : (
+                    <span className="w-[1.875rem] h-[1.875rem] rounded-md bg-muted flex items-center justify-center shrink-0"><Settings className="w-4 h-4 text-muted-foreground" /></span>
+                  )}
+                  <span className="flex-1 min-w-0 text-left leading-tight">
+                    <span className="block text-[0.6875rem] font-bold uppercase tracking-wide text-muted-foreground">Marca</span>
+                    <span className="block truncate">{listBrand ?? `Todas (${catalog.length})`}</span>
+                  </span>
+                  {listBrand ? (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      title="Limpar filtro de marca"
+                      onClick={(e) => { e.stopPropagation(); setListBrand(null); setBrandFilterOpen(false); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setListBrand(null); } }}
+                      className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </span>
+                  ) : (
+                    <ChevronDown className={cn('w-4 h-4 text-muted-foreground shrink-0 transition-transform', brandFilterOpen && 'rotate-180')} />
+                  )}
                 </button>
-              ))}
+
+                {brandFilterOpen && (
+                  <div className="absolute right-0 top-full mt-2 z-50 w-[20rem] max-w-[calc(100vw-4rem)] rounded-xl border border-border bg-popover shadow-xl p-1.5 flex flex-col max-h-[min(26rem,60vh)]">
+                    <div className="relative p-1 pb-1.5 shrink-0">
+                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                      <Input
+                        autoFocus
+                        value={brandFilterQuery}
+                        onChange={(e) => setBrandFilterQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setBrandFilterOpen(false); }
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const first = listGroups.brands.find(({ brand }) => brand.toLowerCase().includes(brandFilterQuery.trim().toLowerCase()));
+                            if (first) { setListBrand(first.brand); setBrandFilterOpen(false); }
+                          }
+                        }}
+                        placeholder="Buscar marca..."
+                        className="h-9 pl-9 rounded-lg text-sm bg-muted/50 border-border"
+                      />
+                    </div>
+                    <div className="overflow-y-auto min-h-0">
+                      {!brandFilterQuery.trim() && (
+                        <button
+                          type="button"
+                          onClick={() => { setListBrand(null); setBrandFilterOpen(false); }}
+                          className={cn('w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-muted cursor-pointer', !listBrand && 'bg-muted font-semibold')}
+                        >
+                          <span className="w-[1.875rem] h-[1.875rem] rounded-md bg-muted flex items-center justify-center shrink-0"><Settings className="w-4 h-4 text-muted-foreground" /></span>
+                          <span className="flex-1 text-left">Todas as marcas</span>
+                          <span className="text-xs font-semibold text-muted-foreground tabular-nums">{catalog.length}</span>
+                          {!listBrand && <Check className="w-4 h-4 text-foreground" />}
+                        </button>
+                      )}
+                      {listGroups.brands
+                        .filter(({ brand }) => brand.toLowerCase().includes(brandFilterQuery.trim().toLowerCase()))
+                        .map(({ brand, count }) => (
+                          <button
+                            key={brand}
+                            type="button"
+                            onClick={() => { setListBrand(brand); setBrandFilterOpen(false); }}
+                            className={cn('w-full flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm hover:bg-muted cursor-pointer', listBrand === brand && 'bg-muted font-semibold')}
+                          >
+                            <BrandLogo brand={brand === 'Outros' ? '' : brand} size={30} fill={92} className="border-0 bg-transparent rounded-md dark:bg-white shrink-0" />
+                            <span className="flex-1 min-w-0 text-left truncate">{brand}</span>
+                            <span className="text-xs font-semibold text-muted-foreground tabular-nums">{count}</span>
+                            {listBrand === brand && <Check className="w-4 h-4 text-foreground" />}
+                          </button>
+                        ))}
+                      {listGroups.brands.every(({ brand }) => !brand.toLowerCase().includes(brandFilterQuery.trim().toLowerCase())) && (
+                        <div className="px-3 py-4 text-center text-sm text-muted-foreground">Nenhuma marca encontrada.</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* Resumo do filtro */}
+            {(listBrand || listQuery.trim()) && (
+              <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+                <span>
+                  {listGroups.total} motor{listGroups.total === 1 ? '' : 'es'} encontrado{listGroups.total === 1 ? '' : 's'}
+                  {listBrand && <> em <strong className="text-foreground">{listBrand}</strong></>}
+                </span>
+                <button type="button" onClick={() => { setListBrand(null); setListQuery(''); }} className="font-semibold text-foreground underline-offset-2 hover:underline cursor-pointer">
+                  Limpar filtros
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-5">
@@ -1090,7 +1186,7 @@ export function MotorSpecsCard({
                       {m.engineModels.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1">
                           {m.engineModels.map((em) => (
-                            <span key={em} className="px-1.5 py-px rounded-md bg-muted border border-border text-[11px] font-semibold text-muted-foreground uppercase">{em}</span>
+                            <span key={em} className="px-1.5 py-px rounded-md bg-muted border border-border text-[0.6875rem] font-semibold text-muted-foreground uppercase">{em}</span>
                           ))}
                         </div>
                       )}
@@ -1118,66 +1214,140 @@ export function MotorSpecsCard({
 
       {/* ═══ DIALOG: cadastrar / editar motor no catálogo ═══ */}
       <Dialog open={catalogDialog !== null} onOpenChange={(o) => { if (!o) setCatalogDialog(null); }}>
-        <DialogContent className="max-w-lg z-[1100] rounded-2xl p-6" overlayClassName="z-[1099]">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold">{catalogDialog?.originalName ? 'Editar motor cadastrado' : 'Cadastrar novo motor'}</DialogTitle>
-            <DialogDescription>Fica disponível na busca de todas as O.S.</DialogDescription>
+        <DialogContent showCloseButton={false} className="relative sm:max-w-[38rem] max-h-[calc(100dvh-3rem)] z-[1100] p-0 gap-0 rounded-2xl bg-popover border-border overflow-hidden flex flex-col" overlayClassName="z-[1099]">
+          {/* Cabeçalho */}
+          <button
+            type="button"
+            onClick={() => setCatalogDialog(null)}
+            title="Fechar"
+            className="absolute top-5 right-5 w-10 h-10 rounded-xl border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer z-10"
+          >
+            <X className="w-4 h-4" />
+          </button>
+          <DialogHeader className="flex-row items-center gap-4 px-6 pt-6 pb-5 pr-16 space-y-0 text-left border-b border-border shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-info/10 text-info flex items-center justify-center shrink-0">
+              {catalogDialog?.originalName ? <Pencil className="w-5 h-5 stroke-[1.75]" /> : <Plus className="w-6 h-6 stroke-[1.75]" />}
+            </div>
+            <div className="min-w-0">
+              <DialogTitle className="text-xl font-bold tracking-tight text-foreground">{catalogDialog?.originalName ? 'Editar motor cadastrado' : 'Cadastrar novo motor'}</DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground mt-0.5">Fica disponível na busca de todas as O.S.</DialogDescription>
+            </div>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-1.5" ref={brandRef}>
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Marca / fabricante *</label>
-              <div className="relative">
-                <div className="absolute left-2 top-1/2 -translate-y-1/2"><BrandLogo brand={catBrand} size={26} className="rounded-md" /></div>
-                <Input
-                  value={catBrand}
-                  placeholder="Selecione ou digite a marca"
-                  onChange={(e) => { setCatBrand(e.target.value); setBrandMenuOpen(true); }}
-                  onFocus={() => setBrandMenuOpen(true)}
-                  className="h-11 pl-11 rounded-lg text-sm"
-                />
-                {brandMenuOpen && (
-                  <div className="absolute z-50 left-0 right-0 mt-1.5 max-h-60 overflow-y-auto rounded-xl border border-border bg-popover shadow-lg p-1.5">
-                    {MOTOR_BRANDS.filter((b) => b.toLowerCase().includes(catBrand.toLowerCase())).map((b) => (
-                      <button key={b} type="button" onClick={() => { setCatBrand(b); setBrandMenuOpen(false); }} className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm hover:bg-muted cursor-pointer">
-                        <BrandLogo brand={b} size={26} className="rounded-md" /> {b}
-                      </button>
-                    ))}
-                    {catBrand.trim() && !MOTOR_BRANDS.some((b) => b.toLowerCase() === catBrand.trim().toLowerCase()) && (
-                      <button type="button" onClick={() => setBrandMenuOpen(false)} className="w-full text-left rounded-lg px-2.5 py-2 text-sm italic text-muted-foreground hover:bg-muted cursor-pointer">
-                        Usar “{catBrand.trim()}” como nova marca
-                      </button>
+
+          <form
+            className="flex flex-col min-h-0 flex-1"
+            onSubmit={(e) => { e.preventDefault(); if (catBrand.trim() && catName.trim() && !savingCatalog) submitCatalog(); }}
+          >
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 pt-5 pb-6 space-y-5">
+              {/* Marca + motor lado a lado */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div
+                  className="space-y-1.5"
+                  ref={brandRef}
+                  // sair do campo com Tab fecha a lista de marcas
+                  onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setBrandMenuOpen(false); }}
+                >
+                  <FieldLabel htmlFor="cat-brand" required>Marca / fabricante</FieldLabel>
+                  <div className="relative client-field">
+                    <div className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 z-10"><BrandLogo brand={catBrand} size={26} className="rounded-md" /></div>
+                    <Input
+                      id="cat-brand"
+                      value={catBrand}
+                      autoComplete="off"
+                      placeholder="Selecione ou digite"
+                      onChange={(e) => { setCatBrand(e.target.value); setBrandMenuOpen(true); }}
+                      onFocus={() => setBrandMenuOpen(true)}
+                      onKeyDown={(e) => { if (e.key === 'Escape' && brandMenuOpen) { e.preventDefault(); e.stopPropagation(); setBrandMenuOpen(false); } }}
+                      className={cn(iconInputClass, 'pl-11 pr-9')}
+                    />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      title="Ver marcas"
+                      onClick={() => setBrandMenuOpen((o) => !o)}
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
+                    >
+                      <ChevronDown className={cn('w-4 h-4 transition-transform', brandMenuOpen && 'rotate-180')} />
+                    </button>
+                    {brandMenuOpen && (
+                      <div className="absolute z-50 left-0 right-0 mt-1.5 max-h-60 overflow-y-auto rounded-xl border border-border bg-popover shadow-lg p-1.5">
+                        {MOTOR_BRANDS.filter((b) => b.toLowerCase().includes(catBrand.toLowerCase())).map((b) => {
+                          const active = b.toLowerCase() === catBrand.trim().toLowerCase();
+                          return (
+                            <button key={b} type="button" onClick={() => { setCatBrand(b); setBrandMenuOpen(false); }} className={cn('w-full flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm hover:bg-muted cursor-pointer', active && 'bg-muted font-semibold')}>
+                              <BrandLogo brand={b} size={26} className="rounded-md" />
+                              <span className="flex-1 text-left">{b}</span>
+                              {active && <Check className="w-4 h-4 text-foreground" />}
+                            </button>
+                          );
+                        })}
+                        {catBrand.trim() && !MOTOR_BRANDS.some((b) => b.toLowerCase() === catBrand.trim().toLowerCase()) && (
+                          <button type="button" onClick={() => setBrandMenuOpen(false)} className="w-full flex items-center gap-2 text-left rounded-lg px-2.5 py-2 text-sm text-muted-foreground hover:bg-muted cursor-pointer">
+                            <Plus className="w-4 h-4" /> Usar “{catBrand.trim()}” como nova marca
+                          </button>
+                        )}
+                      </div>
                     )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <FieldLabel htmlFor="cat-name" required>Motor</FieldLabel>
+                  <IconField icon={Settings}>
+                    <Input id="cat-name" autoComplete="off" value={catName} onChange={(e) => setCatName(e.target.value.toUpperCase())} placeholder="Ex.: POWER, FIRE, COROLLA 2.0" className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
+                  </IconField>
+                  <p className="text-xs text-muted-foreground">Nome usado na busca da O.S.</p>
+                </div>
+              </div>
+
+              {/* Modelos do motor */}
+              <div className="space-y-1.5">
+                <FieldLabel htmlFor="cat-models">Modelos do motor</FieldLabel>
+                <IconField icon={Package}>
+                  <Input id="cat-models" autoComplete="off" value={catModels} onChange={(e) => setCatModels(e.target.value)} placeholder="Ex.: EA111 1.0, EA111 1.6" className={iconInputClass} />
+                </IconField>
+                <p className="text-xs text-muted-foreground">Separe por vírgula: cada um vira uma opção na O.S.</p>
+                {splitOptionsList(catModels).length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {splitOptionsList(catModels).map((t) => (
+                      <span key={t} className="inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-lg bg-muted border border-border text-xs font-semibold uppercase">
+                        {t}
+                        <button type="button" title={`Remover ${t}`} onClick={() => setCatModels(splitOptionsList(catModels).filter((x) => x !== t).join(', '))} className="w-5 h-5 rounded-md flex items-center justify-center text-muted-foreground hover:text-danger hover:bg-danger/10 cursor-pointer">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Veículos compatíveis */}
+              <div className="space-y-1.5">
+                <FieldLabel htmlFor="cat-cars">Veículos compatíveis</FieldLabel>
+                <IconField icon={Car}>
+                  <Input id="cat-cars" autoComplete="off" value={catCars} onChange={(e) => setCatCars(e.target.value)} placeholder="Ex.: Gol, Fox, Polo" className={iconInputClass} />
+                </IconField>
+                <p className="text-xs text-muted-foreground">Separe por vírgula. A busca também encontra o motor pelo carro.</p>
+                {splitOptionsList(catCars).length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {splitOptionsList(catCars).map((t) => (
+                      <span key={t} className="inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-lg bg-muted border border-border text-xs font-semibold">
+                        {t}
+                        <button type="button" title={`Remover ${t}`} onClick={() => setCatCars(splitOptionsList(catCars).filter((x) => x !== t).join(', '))} className="w-5 h-5 rounded-md flex items-center justify-center text-muted-foreground hover:text-danger hover:bg-danger/10 cursor-pointer">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
                   </div>
                 )}
               </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Motor (como será pesquisado) *</label>
-              <Input value={catName} onChange={(e) => setCatName(e.target.value.toUpperCase())} placeholder="Ex.: POWER, FIRE, COROLLA 2.0" className="h-11 rounded-lg text-sm uppercase placeholder:normal-case" />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Modelo do motor</label>
-              <Input value={catModels} onChange={(e) => setCatModels(e.target.value)} placeholder="Ex.: EA111 1.0, EA111 1.6" className="h-11 rounded-lg text-sm" />
-              <p className="text-xs text-muted-foreground">Separe por vírgula para virarem opções na O.S.</p>
-              {splitOptionsList(catModels).length > 0 && (
-                <div className="flex flex-wrap gap-1">{splitOptionsList(catModels).map((t) => <span key={t} className="px-2 py-0.5 rounded-md bg-muted border border-border text-xs font-semibold uppercase">{t}</span>)}</div>
-              )}
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Veículos compatíveis</label>
-              <Input value={catCars} onChange={(e) => setCatCars(e.target.value)} placeholder="Ex.: Gol, Fox, Polo" className="h-11 rounded-lg text-sm" />
-              <p className="text-xs text-muted-foreground">Separe por vírgula. A busca também encontra o motor pelo carro.</p>
-              {splitOptionsList(catCars).length > 0 && (
-                <div className="flex flex-wrap gap-1">{splitOptionsList(catCars).map((t) => <span key={t} className="px-2 py-0.5 rounded-md bg-muted border border-border text-xs font-semibold">{t}</span>)}</div>
-              )}
-            </div>
-          </div>
-          <DialogFooter className="gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setCatalogDialog(null)} className="h-10 rounded-lg">Cancelar</Button>
-            <Button type="button" onClick={submitCatalog} disabled={!catBrand.trim() || !catName.trim() || savingCatalog} className="solid-btn h-10 rounded-lg font-bold">
-              {catalogDialog?.originalName ? 'Salvar alterações' : 'Cadastrar Motor'}
-            </Button>
-          </DialogFooter>
+
+            <ClientDialogFooter
+              onCancel={() => setCatalogDialog(null)}
+              saveDisabled={!catBrand.trim() || !catName.trim() || savingCatalog}
+              saveLabel={savingCatalog ? 'Salvando...' : catalogDialog?.originalName ? 'Salvar alterações' : 'Cadastrar motor'}
+            />
+          </form>
         </DialogContent>
       </Dialog>
 

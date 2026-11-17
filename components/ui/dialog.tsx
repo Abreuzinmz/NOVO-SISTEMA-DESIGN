@@ -103,14 +103,16 @@ function DialogContent({
       <DialogPortal>
         <DialogOverlay className={overlayClassName} style={{ zIndex: finalOverlayZIndex }} forceRender={forceOverlay} />
         <div
-          className="fixed inset-0 flex items-center justify-center p-6 overflow-hidden pointer-events-none"
+          // centraliza com margem automática (my-auto) e deixa rolar: um modal mais alto que a janela
+          // não fica cortado em cima/embaixo (fonte grande ou tela baixa)
+          className="fixed inset-0 flex justify-center p-6 overflow-y-auto overflow-x-hidden overscroll-contain pointer-events-none"
           style={{ zIndex: finalZIndex }}
         >
           <DialogPrimitive.Popup
             ref={contentRef}
             data-slot="dialog-content"
             className={cn(
-              "pointer-events-auto w-full gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+              "pointer-events-auto my-auto w-full gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
               className
             )}
             style={{

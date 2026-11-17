@@ -10,6 +10,7 @@ import { PriceManager } from '@/components/price-manager';
 import { useStore, Order } from '@/lib/store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import { OPEN_CLIENT_EVENT, type OpenClientDetail } from '@/lib/app-navigation';
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
@@ -18,6 +19,22 @@ export default function Home() {
   const [newOrderClientId, setNewOrderClientId] = useState<string | undefined>(undefined);
   const { isLoaded } = useStore();
   const mainRef = useRef<HTMLElement>(null);
+  // cliente a abrir na tela Clientes (vindo do perfil do cliente no modal da O.S.)
+  const [focusClient, setFocusClient] = useState<{ id: string; nonce: number } | null>(null);
+
+  useEffect(() => {
+    const onOpenClient = (e: Event) => {
+      const { clientId } = (e as CustomEvent<OpenClientDetail>).detail || {};
+      if (!clientId) return;
+      setEditingOrder(null);
+      setNewOrderClientId(undefined);
+      setIsReadOnly(false);
+      setFocusClient({ id: clientId, nonce: Date.now() });
+      setCurrentView('clients');
+    };
+    window.addEventListener(OPEN_CLIENT_EVENT, onOpenClient);
+    return () => window.removeEventListener(OPEN_CLIENT_EVENT, onOpenClient);
+  }, []);
 
   // The <main> scroll container is shared across every view — it isn't remounted when
   // currentView changes, so without this its scroll position carries over from whatever
@@ -64,7 +81,8 @@ export default function Home() {
       case 'dashboard':
         return <Dashboard onEdit={handleEditOrder} onView={handleViewOrder} />;
       case 'clients':
-        return <Clients onEdit={handleEditOrder} onView={handleViewOrder} onNewOrder={handleNewOrderForClient} />;
+        // key: remonta ao abrir um cliente pelo perfil (fecha modais abertos e já seleciona o cliente)
+        return <Clients key={focusClient?.nonce ?? 0} initialClientId={focusClient?.id} onEdit={handleEditOrder} onView={handleViewOrder} onNewOrder={handleNewOrderForClient} />;
       case 'history':
         return <History />;
       case 'prices':
@@ -100,7 +118,7 @@ export default function Home() {
         }}
       />
 
-      <main ref={mainRef} className={`flex-1 p-8 overflow-y-auto ${currentView === 'dashboard' ? 'dashboard-content' : ''}`} style={{ overflowAnchor: 'none' }}>
+      <main ref={mainRef} className={`flex-1 min-w-0 p-8 overflow-y-auto overflow-x-hidden ${currentView === 'dashboard' ? 'dashboard-content' : ''}`} style={{ overflowAnchor: 'none' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={currentView}

@@ -36,13 +36,13 @@ const HistoryOrderRow = React.memo(({ order, client, mechanic, groupedPayment, o
 
   return (
     <div 
-      className="grid grid-cols-[80px_1.4fr_1fr_1.2fr_120px_115px_160px] gap-x-2 md:gap-x-4 items-center border-b border-border last:border-b-0 hover:bg-secondary/20 transition-all cursor-pointer px-3 md:px-4 py-3.5 min-w-[850px]"
+      className="grid grid-cols-[5rem_minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.2fr)_7.5rem_7.1875rem_10rem] gap-x-2 md:gap-x-4 items-center border-b border-border last:border-b-0 hover:bg-secondary/20 transition-all cursor-pointer px-3 md:px-4 py-3.5 min-w-[46rem]"
       onClick={() => onView(order)}
     >
       <div className="font-mono font-bold text-foreground text-xs">#{order.osNumber || order.id}</div>
       <div className="min-w-0 pr-2 flex flex-col justify-center gap-0.5">
         {client?.nickname && (
-          <span className="font-semibold text-[13px] text-info uppercase tracking-wide truncate">
+          <span className="font-semibold text-[0.8125rem] text-info uppercase tracking-wide truncate">
             {client.nickname.toUpperCase()}
           </span>
         )}
@@ -171,7 +171,7 @@ export function History() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 relative z-10">
+    <div className="space-y-4 md:space-y-6 relative z-10 mx-auto w-full max-w-[120rem]">
       <div>
         <h2 className="text-2xl font-extrabold tracking-tight text-foreground">Histórico de O.S. Finalizadas</h2>
         <p className="text-muted-foreground mt-0.5 text-xs font-medium">Consulta e auditoria de serviços concluídos.</p>
@@ -207,9 +207,9 @@ export function History() {
       </div>
 
       <div className="rounded-lg border bg-card border-border transition-colors duration-200 overflow-x-auto shadow-sm">
-        <div className="min-w-[850px] w-full">
+        <div className="min-w-[46rem] w-full">
           {/* Header */}
-          <div className="grid grid-cols-[80px_1.4fr_1fr_1.2fr_120px_115px_160px] gap-x-2 md:gap-x-4 items-center border-b border-border bg-muted/20 py-3 px-3 md:px-4 font-bold text-xs font-mono uppercase tracking-wider text-muted-foreground/80">
+          <div className="grid grid-cols-[5rem_minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.2fr)_7.5rem_7.1875rem_10rem] gap-x-2 md:gap-x-4 items-center border-b border-border bg-muted/20 py-3 px-3 md:px-4 font-bold text-xs font-mono uppercase tracking-wider text-muted-foreground/80">
             <div>Nº O.S.</div>
             <div>Cliente</div>
             <div className="pr-4">Mec. Responsável</div>

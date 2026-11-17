@@ -38,37 +38,48 @@ export function MaskedInput({
 }: MaskedInputProps) {
   const ref = React.useRef<HTMLInputElement>(null)
   const displayValue = mask(value)
+  // quantos dígitos havia antes do cursor na última digitação (aplicado após o React atualizar o campo)
+  const pendingDigits = React.useRef<number | null>(null)
+
+  // Devolve o cursor para logo depois do mesmo dígito em que estava, já com a máscara reaplicada.
+  const restoreCaret = React.useCallback(() => {
+    const digitsBeforeCaret = pendingDigits.current
+    const el = ref.current
+    if (digitsBeforeCaret == null || !el) return
+    pendingDigits.current = null
+    if (document.activeElement !== el) return
+    const shown = el.value
+    let pos = shown.length
+    if (digitsBeforeCaret === 0) {
+      pos = 0
+    } else {
+      let seen = 0
+      for (let i = 0; i < shown.length; i++) {
+        if (/\d/.test(shown[i])) {
+          seen++
+          if (seen === digitsBeforeCaret) {
+            pos = i + 1
+            break
+          }
+        }
+      }
+    }
+    el.setSelectionRange(pos, pos)
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target
     const typedDisplay = input.value
     const caret = input.selectionStart ?? typedDisplay.length
-    const digitsBeforeCaret = typedDisplay.slice(0, caret).replace(/\D/g, "").length
-
-    const newRaw = unmask(typedDisplay)
-    onValueChange(newRaw)
-
-    requestAnimationFrame(() => {
-      if (!ref.current) return
-      const newDisplay = mask(newRaw)
-      let seen = 0
-      let pos = newDisplay.length
-      if (digitsBeforeCaret === 0) {
-        pos = 0
-      } else {
-        for (let i = 0; i < newDisplay.length; i++) {
-          if (/\d/.test(newDisplay[i])) {
-            seen++
-            if (seen === digitsBeforeCaret) {
-              pos = i + 1
-              break
-            }
-          }
-        }
-      }
-      ref.current.setSelectionRange(pos, pos)
-    })
+    pendingDigits.current = typedDisplay.slice(0, caret).replace(/\D/g, "").length
+    onValueChange(unmask(typedDisplay))
+    // se os dígitos não mudaram (ex.: apagou só um "(" ou "-"), o React restaura o campo sem
+    // renderizar de novo; então o cursor é ajustado logo depois do evento
+    queueMicrotask(restoreCaret)
   }
+
+  // Antes da tela ser pintada (sem o cursor "piscar" no fim)
+  React.useLayoutEffect(restoreCaret)
 
   return (
     <input

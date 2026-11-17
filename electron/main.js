@@ -30,6 +30,9 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    // tamanho mínimo de janela desktop (abaixo disso o layout de colunas fica apertado demais)
+    minWidth: 900,
+    minHeight: 600,
     autoHideMenuBar: true,
     icon: path.join(__dirname, process.platform === 'win32' ? 'assets/icon.ico' : 'assets/icon.png'),
     webPreferences: {

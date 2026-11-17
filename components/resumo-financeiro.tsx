@@ -1,4 +1,5 @@
 'use client';
+import { PlainInput } from '@/components/ui/input';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
@@ -623,7 +624,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
               <CalendarIcon className="w-3.5 h-3.5 text-success" /> Data
             </label>
             <div className="flex items-center gap-1.5 shrink-0">
-              <div className="w-[132px] shrink-0">
+              <div className="w-[8.25rem] shrink-0">
                 <DatePicker
                   value={date}
                   onChange={(dateStr) => setDate(dateStr)}
@@ -646,7 +647,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
               <CreditCard className="w-3.5 h-3.5 text-success" /> Forma de pagamento
             </label>
             <Select value={method} onValueChange={(val) => setMethod(val as PaymentMethodType | null)}>
-              <SelectTrigger className="h-8 w-[140px] rounded-lg text-xs font-bold bg-card border-border justify-between gap-1.5">
+              <SelectTrigger className="h-8 w-[8.75rem] rounded-lg text-xs font-bold bg-card border-border justify-between gap-1.5">
                 <SelectValue placeholder="Selecione">
                   {(val: PaymentMethodType | null) => val ? (
                     <span className="flex items-center gap-1.5">
@@ -675,7 +676,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
                 Parcelas
               </label>
               <Select value={installment} onValueChange={(val) => val && setInstallment(val)}>
-                <SelectTrigger className="h-8 w-[140px] rounded-lg text-xs font-bold bg-card border-border justify-between gap-1.5">
+                <SelectTrigger className="h-8 w-[8.75rem] rounded-lg text-xs font-bold bg-card border-border justify-between gap-1.5">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="z-[9999] bg-card dark:bg-background border border-border rounded-lg shadow-2xl">
@@ -693,7 +694,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
                 <User className="w-3.5 h-3.5 text-success" /> Pago por
               </label>
               <div className="flex items-center gap-2">
-                <input
+                <PlainInput
                   type="text"
                   value={payer}
                   onChange={e => setPayer(e.target.value.toUpperCase())}
@@ -1194,39 +1195,54 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
 
                   {/* Inputs Area */}
                   <div className="form-inputs-group-rf">
-                    <div className={pagoMethod === 'pix' ? 'form-row-rf' : 'flex justify-start'}>
-                      {pagoMethod === 'pix' && (
-                        <div className="input-field-wrapper-rf">
-                          <label className="field-label-rf">
-                            <User size={14} className="label-icon-rf" /> PAGO POR
-                          </label>
-                          <input
+                    {/* Pago por (largura limitada) e data na mesma linha; em espaço estreito a data desce */}
+                    <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
+                    {pagoMethod === 'pix' && (
+                      <div className="input-field-wrapper-rf flex-1 min-w-[min(100%,20rem)] max-w-[32rem]">
+                        <label className="field-label-rf">
+                          <User size={14} className="label-icon-rf" /> PAGO POR
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <PlainInput
                             type="text"
                             value={pagoClientName}
                             onChange={e => setPagoClientName(e.target.value.toUpperCase())}
                             placeholder="Nome de quem pagou"
-                            className="h-[42px] px-3.5 rounded-xl border border-border bg-card text-sm font-semibold uppercase placeholder:normal-case outline-none focus:border-success focus:ring-2 focus:ring-success/20 transition-all"
+                            className="flex-1 min-w-[8rem] h-[2.625rem] px-3.5 rounded-xl border border-border bg-card text-sm font-semibold uppercase placeholder:normal-case outline-none focus:border-success focus:ring-2 focus:ring-success/20 transition-all"
                           />
+                          <button
+                            type="button"
+                            className="btn-action-grey-rf w-auto! shrink-0 px-4 whitespace-nowrap"
+                            title="Preencher com o nome do cliente da O.S."
+                            onClick={() => {
+                              const name = clientName || 'CLIENTE';
+                              setPagoClientName(name.toUpperCase());
+                              toast.success(`Nome do cliente inserido: ${name.toUpperCase()}`);
+                            }}
+                          >
+                            <User size={16} /> USAR NOME DO CLIENTE
+                          </button>
                         </div>
-                      )}
+                      </div>
+                    )}
 
-                      <div className="input-field-wrapper-rf">
+                      <div className="input-field-wrapper-rf shrink-0">
                         <label className="field-label-rf">
                           <CalendarIcon size={14} className="label-icon-rf" /> DATA
                         </label>
                         <div className="flex items-center gap-2">
-                          <div className="w-[170px] shrink-0">
+                          <div className="w-[10.625rem] shrink-0">
                             <DatePicker
                               value={pagoDate}
                               onChange={(dateStr) => setPagoDate(dateStr)}
                               align="right"
-                              className="h-[42px] rounded-xl border-border bg-card text-sm font-bold"
+                              className="h-[2.625rem] rounded-xl border-border bg-card text-sm font-bold"
                             />
                           </div>
                           <button
                             type="button"
                             onClick={() => setPagoDate(getTodayDateString())}
-                            className="h-[42px] px-3.5 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wide text-muted-foreground dark:text-foreground/80 hover:bg-muted/60 dark:hover:bg-muted transition-colors shrink-0"
+                            className="h-[2.625rem] px-3.5 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wide text-muted-foreground dark:text-foreground/80 hover:bg-muted/60 dark:hover:bg-muted transition-colors shrink-0"
                           >
                             Hoje
                           </button>
@@ -1234,20 +1250,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                       </div>
                     </div>
 
-                    {pagoMethod === 'pix' && (
-                      <button
-                        type="button"
-                        className="btn-action-grey-rf"
-                        onClick={() => {
-                          const name = clientName || 'CLIENTE';
-                          setPagoClientName(name.toUpperCase());
-                          toast.success(`Nome do cliente inserido: ${name.toUpperCase()}`);
-                        }}
-                      >
-                        <User size={16} /> USAR NOME DO CLIENTE
-                      </button>
-                    )}
-
+                    {/* Confirmar embaixo, largura toda */}
                     <button
                       type="button"
                       disabled={isSaving}
@@ -1274,7 +1277,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
 
                   <div className="flex flex-col @sm:flex-row">
                     {/* Left: success illustration */}
-                    <div className="flex flex-col items-center justify-center text-center gap-1.5 p-4 @sm:w-[150px] @sm:shrink-0 border-b @sm:border-b-0 @sm:border-r border-border">
+                    <div className="flex flex-col items-center justify-center text-center gap-1.5 p-4 @sm:w-[9.375rem] @sm:shrink-0 border-b @sm:border-b-0 @sm:border-r border-border">
                       <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
                         <div className="w-9 h-9 rounded-full bg-success flex items-center justify-center">
                           <Check className="w-4 h-4 text-white stroke-[3]" />
@@ -1444,20 +1447,20 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                       <CheckCircle2 className="w-5 h-5 text-success" />
                     </div>
                     <p className="text-xs font-bold uppercase tracking-wide text-foreground">Pagamento já quitado</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed max-w-[220px]">
+                    <p className="text-xs text-muted-foreground leading-relaxed max-w-[13.75rem]">
                       Para lançar um novo valor, edite ou remova um dos lançamentos ao lado.
                     </p>
                   </div>
                 ) : (
                 <>
                 {/* Inputs Row: Valor & Data */}
-                <div className="grid grid-cols-[1fr_170px] gap-3 items-end">
+                <div className="grid grid-cols-[1fr_10.625rem] gap-3 items-end">
                   <div className="input-field-wrapper-rf">
                     <label className="field-label-sm-rf">
                       <span className="text-muted-foreground font-extrabold mr-0.5">$</span>{' '}
                       {isFinalizeMode ? 'VALOR RESTANTE' : editingIndex !== null ? 'EDITAR ENTRADA' : 'VALOR DA ENTRADA'}
                     </label>
-                    <div className="flex items-center gap-1.5 h-[42px] px-3.5 rounded-xl border border-border bg-card focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-500/20 transition-all">
+                    <div className="flex items-center gap-1.5 h-[2.625rem] px-3.5 rounded-xl border border-border bg-card focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-500/20 transition-all">
                       <span className="text-xs font-bold text-muted-foreground shrink-0">R$</span>
                       <input
                         ref={entradaValInputRef}
@@ -1478,7 +1481,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                       value={entradaDate}
                       onChange={(dateStr) => setEntradaDate(dateStr)}
                       align="right"
-                      className="h-[42px] rounded-xl border-border bg-card text-xs font-bold"
+                      className="h-[2.625rem] rounded-xl border-border bg-card text-xs font-bold"
                     />
                   </div>
                 </div>
@@ -1511,18 +1514,18 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                       <label className="field-label-sm-rf flex items-center gap-1">
                         <User size={12} className="text-success" /> PAGO POR
                       </label>
-                      <input
+                      <PlainInput
                         type="text"
                         value={entradaClientName}
                         onChange={e => setEntradaClientName(e.target.value.toUpperCase())}
                         placeholder="Nome de quem pagou"
-                        className="h-[38px] px-3 rounded-xl border border-border bg-card text-xs font-semibold uppercase placeholder:normal-case outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                        className="h-[2.375rem] px-3 rounded-xl border border-border bg-card text-xs font-semibold uppercase placeholder:normal-case outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
                       />
                     </div>
 
                     <button
                       type="button"
-                      className="btn-action-grey-rf !h-[34px] !text-xs"
+                      className="btn-action-grey-rf !h-[2.125rem] !text-xs"
                       onClick={() => {
                         const name = clientName || 'CLIENTE';
                         setEntradaClientName(name.toUpperCase());
@@ -1569,7 +1572,7 @@ export const ResumoFinanceiro: React.FC<ResumoFinanceiroProps> = ({
                   // Cancelar sempre disponível: limpa o formulário (e sai da edição/finalização)
                   {
                     return (
-                      <div className="grid grid-cols-2 gap-2 items-stretch [&_button]:!h-[44px] [&_button]:!m-0 [&_button]:!text-xs">
+                      <div className="grid grid-cols-2 gap-2 items-stretch [&_button]:!h-[2.75rem] [&_button]:!m-0 [&_button]:!text-xs">
                         <div className="min-w-0">
                           <button
                             type="button"

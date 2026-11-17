@@ -2628,10 +2628,10 @@ function OSFormImpl({
 
   return (
     <>
-      <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className={cn("@container/osform space-y-4 w-full pb-10 print:p-0 print:m-0 print:max-w-none", readOnly && "opacity-100")}>
+      <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className={cn("@container/osform space-y-4 w-full mx-auto max-w-[96rem] pb-10 print:p-0 print:m-0 print:max-w-none", readOnly && "opacity-100")}>
 
         {/* ═══ TOPBAR / HEADER ═══ */}
-        <div className={cn("flex items-center justify-between print:hidden mb-2 max-w-[980px] mx-auto", stepped && "@[1000px]/osform:max-w-[900px]")}>
+        <div className={cn("flex items-center justify-between print:hidden mb-2 max-w-[61.25rem] mx-auto", stepped && "@[62.5rem]/osform:max-w-[56.25rem]")}>
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-foreground">
               {readOnly ? "Visualizar O.S." : order ? "Editar Ordem de Serviço" : "Nova Ordem de Serviço"}
@@ -2662,9 +2662,9 @@ function OSFormImpl({
         </div>
 
         {/* ═══ ETAPAS DA O.S.: lateral vertical em telas largas, faixa horizontal nas estreitas ═══ */}
-        <div ref={stepperRef} className={cn("w-full max-w-[980px] mx-auto scroll-mt-4", stepped && "@[1000px]/osform:max-w-none @[1000px]/osform:grid @[1000px]/osform:grid-cols-[230px_minmax(0,1fr)_230px] @[1000px]/osform:gap-6 @[1000px]/osform:items-start")}>
+        <div ref={stepperRef} className={cn("w-full max-w-[61.25rem] mx-auto scroll-mt-4", stepped && "@[62.5rem]/osform:max-w-none @[62.5rem]/osform:grid @[62.5rem]/osform:grid-cols-[14.375rem_minmax(0,1fr)_14.375rem] @[62.5rem]/osform:gap-6 @[62.5rem]/osform:items-start")}>
         {stepped && (
-        <aside className="hidden @[1000px]/osform:block sticky top-4 print:hidden">
+        <aside className="hidden @[62.5rem]/osform:block sticky top-4 print:hidden">
           <div className="financial-card os-card-rf max-w-none! p-5! flex flex-col bg-gradient-to-b from-card to-blue-50/40 dark:to-blue-500/5">
             <ol className="flex flex-col">
               {OS_STEPS.map((st, idx) => {
@@ -2689,17 +2689,17 @@ function OSFormImpl({
                           {state === 'done' ? <Check className="w-4 h-4 stroke-[3]" /> : <StepIcon className="w-4 h-4" />}
                         </span>
                         {!isLast && (
-                          <span className={cn("w-[3px] flex-1 min-h-[34px] my-1.5 rounded-full", state === 'done' ? "bg-emerald-500" : "bg-border")} />
+                          <span className={cn("w-[0.1875rem] flex-1 min-h-[2.125rem] my-1.5 rounded-full", state === 'done' ? "bg-emerald-500" : "bg-border")} />
                         )}
                       </span>
                       <span className={cn("min-w-0 pt-0.5", !isLast && "pb-4")}>
-                        <span className="block text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Etapa {idx + 1}</span>
+                        <span className="block text-[0.625rem] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Etapa {idx + 1}</span>
                         <span className={cn(
                           "block text-sm font-bold leading-tight transition-colors",
                           state === 'pending' ? "text-muted-foreground" : "text-foreground",
                           "group-hover:text-indigo-600"
                         )}>{st.title}</span>
-                        <span className="block text-[11px] text-muted-foreground leading-snug mt-0.5">{st.subtitle}</span>
+                        <span className="block text-[0.6875rem] text-muted-foreground leading-snug mt-0.5">{st.subtitle}</span>
                       </span>
                     </button>
                   </li>
@@ -2710,9 +2710,9 @@ function OSFormImpl({
         </aside>
         )}
 
-        <div className="min-w-0 space-y-4 w-full @[1000px]/osform:max-w-[900px] @[1000px]/osform:mx-auto">
+        <div className="min-w-0 space-y-4 w-full @[62.5rem]/osform:max-w-[56.25rem] @[62.5rem]/osform:mx-auto">
           {stepped && (
-          <div className="@[1000px]/osform:hidden financial-card os-card-rf max-w-none! py-4! print:hidden">
+          <div className="@[62.5rem]/osform:hidden financial-card os-card-rf max-w-none! py-4! print:hidden">
             <ol className="grid grid-cols-3 gap-3">
               {OS_STEPS.map((st, idx) => {
                 const state = idx < step ? 'done' : idx === step ? 'current' : 'pending';
@@ -2732,10 +2732,10 @@ function OSFormImpl({
                           state === 'pending' && "bg-blue-200 dark:bg-blue-500/25"
                         )}>
                           {state === 'done' && <Check className="w-4 h-4 stroke-[3]" />}
-                          {state === 'current' && <span className="w-[18px] h-[18px] rounded-full bg-blue-600" />}
+                          {state === 'current' && <span className="w-[1.125rem] h-[1.125rem] rounded-full bg-blue-600" />}
                         </span>
                         {idx < OS_STEPS.length - 1 && (
-                          <span className="flex-1 h-[3px] rounded-full overflow-hidden bg-blue-200 dark:bg-blue-500/25">
+                          <span className="flex-1 h-[0.1875rem] rounded-full overflow-hidden bg-blue-200 dark:bg-blue-500/25">
                             <span className={cn(
                               "block h-full rounded-full transition-all duration-300",
                               state === 'done' ? "w-full bg-emerald-600" : state === 'current' ? "w-1/2 bg-blue-600" : "w-0"
@@ -2744,11 +2744,11 @@ function OSFormImpl({
                         )}
                       </div>
                       <div className="mt-2.5">
-                        <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Etapa {idx + 1}</div>
+                        <div className="text-[0.625rem] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Etapa {idx + 1}</div>
                         <div className="text-sm sm:text-base font-bold text-foreground leading-tight group-hover:text-blue-600 transition-colors">{st.title}</div>
-                        <div className="hidden sm:block text-[11px] text-muted-foreground leading-snug mt-0.5">{st.subtitle}</div>
+                        <div className="hidden sm:block text-[0.6875rem] text-muted-foreground leading-snug mt-0.5">{st.subtitle}</div>
                         <div className={cn(
-                          "text-[11px] font-semibold mt-1",
+                          "text-[0.6875rem] font-semibold mt-1",
                           state === 'done' && "text-emerald-600",
                           state === 'current' && "text-blue-600",
                           state === 'pending' && "text-muted-foreground"
@@ -2785,7 +2785,7 @@ function OSFormImpl({
             <div className="flex flex-wrap items-start gap-x-8 gap-y-4 pt-1">
               {/* O.S. Nº */}
               <div className="space-y-2">
-                <Label className="text-[13px] font-bold text-foreground/80">O.S. Nº</Label>
+                <Label className="text-[0.8125rem] font-bold text-foreground/80">O.S. Nº</Label>
                 <div className="relative w-32">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-mono text-sm font-bold text-muted-foreground/60 pointer-events-none">#</span>
                   <Input
@@ -2803,7 +2803,7 @@ function OSFormImpl({
                   <button
                     type="button"
                     onClick={handleAutoGenerateOS}
-                    className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    className="block text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                     title="Gerar próximo número sequencial de O.S."
                   >
                     Gerar O.S. automática
@@ -2813,7 +2813,7 @@ function OSFormImpl({
 
               {/* DATA DE CHEGADA */}
               <div className="space-y-2">
-                <Label className="text-[13px] font-bold text-foreground/80">Data de Chegada</Label>
+                <Label className="text-[0.8125rem] font-bold text-foreground/80">Data de Chegada</Label>
                 <div className="flex items-center gap-2.5">
                   <div className="w-44 min-w-0">
                     <DatePicker
@@ -2839,8 +2839,8 @@ function OSFormImpl({
             {/* Linha 2: Status do Serviço e Observação do Status */}
             <div className="flex flex-wrap items-start gap-x-8 gap-y-4 pt-1">
               {/* STATUS DO SERVIÇO */}
-              <div className="space-y-2 w-full sm:w-[220px]">
-                <Label className="text-[13px] font-bold uppercase tracking-wider text-foreground/80">STATUS DO SERVIÇO</Label>
+              <div className="space-y-2 w-full sm:w-[13.75rem]">
+                <Label className="text-[0.8125rem] font-bold uppercase tracking-wider text-foreground/80">STATUS DO SERVIÇO</Label>
                 <Select
                   value={serviceStatus}
                   onValueChange={(v) => {
@@ -2852,7 +2852,7 @@ function OSFormImpl({
                   }}
                   disabled={readOnly}
                 >
-                  <SelectTrigger className="h-10 w-full sm:w-[220px] rounded-xl border border-border bg-muted/50 hover:bg-muted transition-all px-3.5 group text-sm font-semibold text-foreground focus:outline-none focus:border-foreground/30 flex items-center justify-between gap-2.5 cursor-pointer shadow-none">
+                  <SelectTrigger className="h-10 w-full sm:w-[13.75rem] rounded-xl border border-border bg-muted/50 hover:bg-muted transition-all px-3.5 group text-sm font-semibold text-foreground focus:outline-none focus:border-foreground/30 flex items-center justify-between gap-2.5 cursor-pointer shadow-none">
                     <div className="flex items-center gap-2.5">
                       <div className={cn(
                         "w-2.5 h-2.5 rounded-full shadow-sm ring-2 ring-offset-1 ring-offset-background",
@@ -2866,7 +2866,7 @@ function OSFormImpl({
                       <SelectValue className="font-semibold text-sm text-foreground" />
                     </div>
                   </SelectTrigger>
-                  <SelectContent className="z-[9999] bg-popover border border-border rounded-xl shadow-xl p-1.5 min-w-[220px]">
+                  <SelectContent className="z-[9999] bg-popover border border-border rounded-xl shadow-xl p-1.5 min-w-[13.75rem]">
                     {([
                       ['Na Fila', 'bg-gray-400'],
                       ['Em Andamento', 'bg-blue-500'],
@@ -2887,7 +2887,7 @@ function OSFormImpl({
 
                 {serviceStatus === 'Levou' && (
                   <div className="space-y-1.5 pt-1.5">
-                    <label className="text-[11px] font-bold text-levou uppercase tracking-wider ml-1 flex items-center gap-1">
+                    <label className="text-[0.6875rem] font-bold text-levou uppercase tracking-wider ml-1 flex items-center gap-1">
                       <CalendarIcon className="w-3.5 h-3.5" /> Data em que o cliente levou
                     </label>
                     <DatePicker
@@ -2900,9 +2900,9 @@ function OSFormImpl({
               </div>
 
               {/* OBSERVAÇÃO DO STATUS */}
-              <div className="space-y-2 flex-1 min-w-[220px]">
-                <Label className="text-[13px] font-bold uppercase tracking-wider text-foreground/80">
-                  OBSERVAÇÃO DO STATUS <span className="text-[11px] text-muted-foreground font-normal tracking-normal">(OPCIONAL)</span>
+              <div className="space-y-2 flex-1 min-w-[13.75rem]">
+                <Label className="text-[0.8125rem] font-bold uppercase tracking-wider text-foreground/80">
+                  OBSERVAÇÃO DO STATUS <span className="text-[0.6875rem] text-muted-foreground font-normal tracking-normal">(OPCIONAL)</span>
                 </Label>
                 <Input
                   placeholder="Ex: Aguardando pistões 0.50"
@@ -2980,6 +2980,8 @@ function OSFormImpl({
               <div className="space-y-4">
                 {/* Linha de Busca Full-Width */}
                 <div className="relative w-full">
+                  {/* campo (lupa e limpar centralizados só no campo, não na mensagem de erro) */}
+                  <div className="relative">
                   <Search className={searchFieldIconClass} />
                   <Input
                     ref={clientTriggerRef}
@@ -3029,6 +3031,7 @@ function OSFormImpl({
                       </button>
                     </div>
                   )}
+                  </div>
                   {clientError && (
                     <p role="alert" className="mt-1.5 ml-1 text-sm font-semibold text-danger">{clientError}</p>
                   )}
@@ -3053,7 +3056,7 @@ function OSFormImpl({
                           <span className="font-normal text-xs text-muted-foreground">O nome "{clientSearchText}" já existe. Selecione o cliente na lista abaixo para prosseguir.</span>
                         </div>
                       )}
-                      <div className="max-h-[300px] overflow-y-auto space-y-0.5">
+                      <div className="max-h-[18.75rem] overflow-y-auto space-y-0.5">
                         {isLoadingClients ? (
                           <p className="p-4 text-xs text-muted-foreground/60 italic text-center">
                             Carregando clientes...
@@ -3118,7 +3121,7 @@ function OSFormImpl({
                         ) : (
                           <>
                           {isSimilarClientResult && (
-                            <p className="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            <p className="px-3 pt-2 pb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-muted-foreground">
                               Nenhum resultado exato · clientes parecidos
                             </p>
                           )}
@@ -3151,7 +3154,7 @@ function OSFormImpl({
                                 )}
                               >
                                 <div className="flex flex-col min-w-0 pr-3">
-                                  <span className="font-bold text-[13.5px] text-foreground tracking-tight">
+                                  <span className="font-bold text-[0.8438rem] text-foreground tracking-tight">
                                     {client.nickname ? client.nickname.toUpperCase() : client.name}
                                   </span>
                                   {client.nickname && (
@@ -3173,11 +3176,11 @@ function OSFormImpl({
                                 </div>
                                 <div className="shrink-0 flex items-center gap-1.5">
                                   {client.clientType === 'mechanic' ? (
-                                    <span className="text-[10px] font-bold tracking-wider bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/30 rounded-lg px-2.5 py-0.5 uppercase">
+                                    <span className="text-[0.625rem] font-bold tracking-wider bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/30 rounded-lg px-2.5 py-0.5 uppercase">
                                       MECÂNICO
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] font-bold tracking-wider bg-muted text-muted-foreground border border-border rounded-lg px-2.5 py-0.5 uppercase">
+                                    <span className="text-[0.625rem] font-bold tracking-wider bg-muted text-muted-foreground border border-border rounded-lg px-2.5 py-0.5 uppercase">
                                       CLIENTE
                                     </span>
                                   )}
@@ -3234,34 +3237,34 @@ function OSFormImpl({
                   const fullAddress = selectedClient?.city || '';
                   const cleanDoc = normalizeNumber(selectedClient?.document || '');
                   const docLabel = cleanDoc.length > 11 ? 'CNPJ' : 'CPF';
-                  const infoTile = "rounded-2xl border border-border bg-card p-3.5 sm:p-4 flex items-center justify-between gap-3 hover:border-foreground/20 transition-all group";
-                  const infoIcon = "w-10 h-10 rounded-xl bg-muted text-muted-foreground border border-border flex items-center justify-center shrink-0";
+                  const infoTile = "rounded-xl border border-slate-200/80 dark:border-border bg-card shadow-2xs px-3 py-2.5 flex items-center justify-between gap-2.5 hover:border-foreground/20 transition-all group";
+                  const infoIcon = "w-8 h-8 rounded-lg bg-muted text-muted-foreground border border-border flex items-center justify-center shrink-0";
                   const copyBtn = "opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer";
-                  const waBtn = "w-8 h-8 rounded-lg border border-emerald-300 dark:border-emerald-700/80 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:scale-105 active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer";
-                  const value = (filled: boolean) => cn("text-sm sm:text-[15px] select-all truncate mt-0.5", filled ? "font-black font-mono tracking-tight text-foreground" : "font-medium text-muted-foreground");
+                  const waBtn = "w-7 h-7 rounded-lg border border-emerald-300 dark:border-emerald-700/80 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:scale-105 active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer";
+                  const value = (filled: boolean) => cn("text-sm select-all truncate", filled ? "font-black font-mono tracking-tight text-foreground" : "font-medium text-muted-foreground");
 
                   return (
-                    <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 space-y-4 shadow-sm">
+                    <div className="rounded-2xl border border-slate-200 dark:border-border bg-slate-100/70 dark:bg-white/[0.03] p-4 space-y-3">
                       {/* Cabeçalho do card: avatar + apelido/nome e tag do tipo */}
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-4 min-w-0">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
                           <div className={cn(
-                            "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm text-white",
+                            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white",
                             // mecânico em azul, cliente padrão em cinza
                             isMechanicClient ? "bg-blue-600 dark:bg-blue-500" : "bg-slate-500 dark:bg-slate-600"
                           )}>
-                            {isMechanicClient ? <Wrench className="w-6 h-6 stroke-[1.75]" /> : <User className="w-6 h-6 stroke-[1.75]" />}
+                            {isMechanicClient ? <Wrench className="w-5 h-5 stroke-[1.75]" /> : <User className="w-5 h-5 stroke-[1.75]" />}
                           </div>
 
-                          <div className="flex flex-col justify-center gap-0.5 min-w-0">
+                          <div className="flex flex-col justify-center min-w-0">
                             {/* apelido acima do nome (sem rótulo; só aparece se tiver) */}
                             {selectedClient?.nickname && (
-                              <span className="text-sm sm:text-base font-extrabold text-muted-foreground uppercase tracking-tight leading-tight truncate">
+                              <span className="text-xs font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wide leading-tight truncate">
                                 {selectedClient.nickname}
                               </span>
                             )}
                             <h3
-                              className="text-xl sm:text-2xl font-black text-foreground uppercase tracking-tight leading-tight truncate select-all"
+                              className="text-lg font-black text-foreground uppercase tracking-tight leading-tight truncate select-all"
                               title={selectedClient?.name || ''}
                             >
                               {selectedClient?.name || '—'}
@@ -3269,14 +3272,14 @@ function OSFormImpl({
                           </div>
                         </div>
 
-                        <div className="shrink-0 pt-1">
+                        <div className="shrink-0">
                           {isMechanicClient ? (
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-semibold">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-semibold">
                               <Wrench className="w-4 h-4 stroke-[2]" />
                               <span>Mecânico</span>
                             </div>
                           ) : (
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-500/10 text-slate-600 dark:text-slate-300 text-sm font-semibold">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-500/10 text-slate-600 dark:text-slate-300 text-sm font-semibold">
                               <User className="w-4 h-4 stroke-[2]" />
                               <span>Cliente Padrão</span>
                             </div>
@@ -3284,16 +3287,16 @@ function OSFormImpl({
                         </div>
                       </div>
 
-                      <div className="border-t border-border pt-1" />
+                      <div className="border-t border-border" />
 
                       {/* Grade 2x2 */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                         {/* 1. CPF / CNPJ */}
                         <div className={infoTile}>
                           <div className="flex items-center gap-3 min-w-0">
                             <div className={infoIcon}><FileText className="w-4 h-4 stroke-[2]" /></div>
                             <div className="flex flex-col min-w-0">
-                              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{docLabel}</span>
+                              <span className="text-[0.6875rem] font-bold text-muted-foreground uppercase tracking-wider">{docLabel}</span>
                               <span className={value(!!selectedClient?.document)}>
                                 {selectedClient?.document ? maskCPFCNPJ(selectedClient.document) : 'Não informado'}
                               </span>
@@ -3311,7 +3314,7 @@ function OSFormImpl({
                           <div className="flex items-center gap-3 min-w-0">
                             <div className={infoIcon}><MapPin className="w-4 h-4 stroke-[2]" /></div>
                             <div className="flex flex-col min-w-0">
-                              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">ENDEREÇO / CIDADE</span>
+                              <span className="text-[0.6875rem] font-bold text-muted-foreground uppercase tracking-wider">ENDEREÇO / CIDADE</span>
                               <span className={cn(value(!!fullAddress), 'font-sans')} title={fullAddress || ''}>
                                 {fullAddress || 'Não informado'}
                               </span>
@@ -3334,7 +3337,7 @@ function OSFormImpl({
                           <div className="flex items-center gap-3 min-w-0">
                             <div className={infoIcon}><Phone className="w-4 h-4 stroke-[2]" /></div>
                             <div className="flex flex-col min-w-0">
-                              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">TELEFONE 1</span>
+                              <span className="text-[0.6875rem] font-bold text-muted-foreground uppercase tracking-wider">TELEFONE 1</span>
                               <span className={value(!!selectedClient?.phone)}>
                                 {selectedClient?.phone ? maskPhone(selectedClient.phone) : 'Não cadastrado'}
                               </span>
@@ -3357,7 +3360,7 @@ function OSFormImpl({
                           <div className="flex items-center gap-3 min-w-0">
                             <div className={infoIcon}><Smartphone className="w-4 h-4 stroke-[2]" /></div>
                             <div className="flex flex-col min-w-0">
-                              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">TELEFONE 2</span>
+                              <span className="text-[0.6875rem] font-bold text-muted-foreground uppercase tracking-wider">TELEFONE 2</span>
                               <span className={value(!!selectedClient?.phone2)}>
                                 {selectedClient?.phone2 ? maskPhone(selectedClient.phone2) : 'Não cadastrado'}
                               </span>
@@ -3387,7 +3390,7 @@ function OSFormImpl({
                       if (!mechanic) return null;
                       return (
                         <div className="space-y-2 pt-1">
-                          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                          <p className="text-[0.6875rem] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                             <Wrench className="w-3.5 h-3.5" />
                             <span>MECÂNICO RESPONSÁVEL</span>
                           </p>
@@ -3397,11 +3400,11 @@ function OSFormImpl({
                                 <Wrench className="w-5 h-5 stroke-[2]" />
                               </div>
                               <div className="flex flex-col min-w-0">
-                                <span className="text-[11px] font-medium text-muted-foreground truncate">
+                                <span className="text-[0.6875rem] font-medium text-muted-foreground truncate">
                                   Apelido: {mechanic.nickname || 'Não informado'}
                                 </span>
                                 <div className="flex items-baseline gap-1.5 min-w-0 mt-0.5">
-                                  <span className="text-[11px] font-medium text-muted-foreground shrink-0">Nome:</span>
+                                  <span className="text-[0.6875rem] font-medium text-muted-foreground shrink-0">Nome:</span>
                                   <strong className="text-sm sm:text-base font-black text-foreground uppercase tracking-tight truncate">
                                     {mechanic.name}
                                   </strong>
@@ -3409,14 +3412,14 @@ function OSFormImpl({
                                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground font-medium">
                                   {mechanic.document && (
                                     <div className="flex items-center gap-1.5 font-mono text-xs">
-                                      <span className="text-[10px] font-bold uppercase text-muted-foreground/80">{normalizeNumber(mechanic.document).length > 11 ? 'CNPJ' : 'CPF'}</span>
+                                      <span className="text-[0.625rem] font-bold uppercase text-muted-foreground/80">{normalizeNumber(mechanic.document).length > 11 ? 'CNPJ' : 'CPF'}</span>
                                       <FileText className="w-3.5 h-3.5 shrink-0" />
                                       <span>{maskCPFCNPJ(mechanic.document)}</span>
                                     </div>
                                   )}
                                   {mechanic.phone && (
                                     <div className="flex items-center gap-1.5 font-mono text-xs">
-                                      <span className="text-[10px] font-bold uppercase text-muted-foreground/80">TELEFONE 1</span>
+                                      <span className="text-[0.625rem] font-bold uppercase text-muted-foreground/80">TELEFONE 1</span>
                                       <Phone className="w-3.5 h-3.5 shrink-0" />
                                       <span>{maskPhone(mechanic.phone)}</span>
                                       <a
@@ -3464,14 +3467,14 @@ function OSFormImpl({
                   ) : (
                     /* Quando não há mecânico vinculado */
                     <div className="space-y-2 pt-1">
-                      <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
+                      <label className="text-[0.6875rem] font-bold text-muted-foreground uppercase tracking-wider block">
                         MECÂNICO RESPONSÁVEL <span className="normal-case font-normal tracking-normal">(opcional)</span>
                       </label>
 
                       {defaultMechanicOfClient && (
                         <div className="p-2.5 rounded-xl bg-muted/50 border border-border flex items-center justify-between gap-3 max-w-lg mb-2">
                           <div className="min-w-0">
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Mecânico habitual do cliente</p>
+                            <p className="text-[0.625rem] font-bold text-muted-foreground uppercase tracking-wider">Mecânico habitual do cliente</p>
                             <p className="text-xs font-bold text-foreground truncate">
                               {defaultMechanicOfClient.nickname ? `${defaultMechanicOfClient.nickname.toUpperCase()} (${defaultMechanicOfClient.name})` : defaultMechanicOfClient.name}
                             </p>
@@ -3527,7 +3530,7 @@ function OSFormImpl({
                         </div>
 
                         {isMechanicSelectorOpen && (
-                          <div className="absolute z-[1200] w-full mt-1.5 max-h-[240px] overflow-y-auto bg-popover border border-border rounded-2xl shadow-[0_12px_28px_-4px_rgba(15,23,42,0.12),0_4px_10px_-2px_rgba(15,23,42,0.04)] p-1.5 space-y-0.5">
+                          <div className="absolute z-[1200] w-full mt-1.5 max-h-[15rem] overflow-y-auto bg-popover border border-border rounded-2xl shadow-[0_12px_28px_-4px_rgba(15,23,42,0.12),0_4px_10px_-2px_rgba(15,23,42,0.04)] p-1.5 space-y-0.5">
                             {filteredMechanicsForOS.length > 0 ? (
                               filteredMechanicsForOS.map((mech) => {
                                 const handleSelect = () => {
@@ -3551,7 +3554,7 @@ function OSFormImpl({
                                     className="w-full flex items-center justify-between py-2 px-3 rounded-xl cursor-pointer hover:bg-muted/60 transition-colors text-left"
                                   >
                                     <div className="flex flex-col min-w-0 pr-3">
-                                      <span className="font-bold text-[13px] text-foreground tracking-tight">
+                                      <span className="font-bold text-[0.8125rem] text-foreground tracking-tight">
                                         {mech.nickname ? mech.nickname.toUpperCase() : mech.name}
                                       </span>
                                       {mech.nickname && (
@@ -3569,7 +3572,7 @@ function OSFormImpl({
                                         </div>
                                       )}
                                     </div>
-                                    <span className="text-[10px] font-bold tracking-wider bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/30 rounded-lg px-2 py-0.5 uppercase shrink-0">
+                                    <span className="text-[0.625rem] font-bold tracking-wider bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/30 rounded-lg px-2 py-0.5 uppercase shrink-0">
                                       MECÂNICO
                                     </span>
                                   </button>
@@ -3577,7 +3580,7 @@ function OSFormImpl({
                               })
                             ) : filteredNonMechanicsForOS.length > 0 ? (
                               <>
-                                <div className="px-3 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/60 rounded-lg">
+                                <div className="px-3 py-1.5 text-[0.625rem] font-bold text-muted-foreground uppercase tracking-wider bg-muted/60 rounded-lg">
                                   Não marcados como mecânico ainda
                                 </div>
                                 {filteredNonMechanicsForOS.map((client) => {
@@ -3607,7 +3610,7 @@ function OSFormImpl({
                                           e.stopPropagation();
                                           handleMarkAsMechanic(client);
                                         }}
-                                        className="shrink-0 flex items-center gap-1 px-2.5 py-1 text-[10px] font-extrabold text-foreground/80 bg-muted hover:bg-accent border border-border rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                                        className="shrink-0 flex items-center gap-1 px-2.5 py-1 text-[0.625rem] font-extrabold text-foreground/80 bg-muted hover:bg-accent border border-border rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                                       >
                                         <Plus className="w-3 h-3 stroke-[2.5]" />
                                         <span>{isUpdating ? 'Marcando...' : 'Marcar como mecânico'}</span>
@@ -3643,7 +3646,7 @@ function OSFormImpl({
                     MATERIAIS E PEÇAS
                   </span>
                   {(partsLeft.length > 0 || additionalParts.length > 0) && (
-                    <span className="text-[10px] font-bold bg-muted text-foreground/80 px-2.5 py-0.5 rounded-full border border-border font-mono tracking-normal">
+                    <span className="text-[0.625rem] font-bold bg-muted text-foreground/80 px-2.5 py-0.5 rounded-full border border-border font-mono tracking-normal">
                       {partsLeft.length} deixados • {additionalParts.length} adicionais
                     </span>
                   )}
@@ -3655,7 +3658,7 @@ function OSFormImpl({
                   <button
                     type="button"
                     onClick={handleClearAllParts}
-                    className="h-7 px-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-danger hover:bg-danger/10 border border-transparent hover:border-danger/20 flex items-center gap-1 transition-all cursor-pointer"
+                    className="h-7 px-2.5 rounded-lg text-[0.625rem] font-bold uppercase tracking-wider text-danger hover:bg-danger/10 border border-transparent hover:border-danger/20 flex items-center gap-1 transition-all cursor-pointer"
                     title="Desmarcar todos os materiais e peças"
                   >
                     <RotateCcw className="w-2.5 h-2.5" />
@@ -3704,13 +3707,13 @@ function OSFormImpl({
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-9 h-9 rounded-xl bg-blue-50 text-slate-800 dark:bg-blue-500/10 dark:text-blue-200 flex items-center justify-center shrink-0">
-                          <group.Icon className="w-[18px] h-[18px] stroke-[1.75]" />
+                          <group.Icon className="w-[1.125rem] h-[1.125rem] stroke-[1.75]" />
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-extrabold uppercase tracking-tight text-foreground">{group.label}</span>
                             {group.selected.length > 0 && (
-                              <span className="h-5 px-2 rounded-full bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30 text-[11px] font-bold flex items-center tabular-nums">
+                              <span className="h-5 px-2 rounded-full bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/30 text-[0.6875rem] font-bold flex items-center tabular-nums">
                                 {group.selected.length}
                               </span>
                             )}
@@ -3723,7 +3726,7 @@ function OSFormImpl({
                         <button
                           type="button"
                           onClick={handleSelectCompleteMotor}
-                          className="h-8 px-3 rounded-lg text-[11px] font-bold uppercase tracking-wider shrink-0 text-foreground/80 bg-muted hover:bg-accent border border-border flex items-center gap-2 transition-all cursor-pointer shadow-2xs"
+                          className="h-8 px-3 rounded-lg text-[0.6875rem] font-bold uppercase tracking-wider shrink-0 text-foreground/80 bg-muted hover:bg-accent border border-border flex items-center gap-2 transition-all cursor-pointer shadow-2xs"
                           title="Marcar Bloco, Cabeçote, Eixo e Pistões"
                         >
                           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
@@ -3735,7 +3738,7 @@ function OSFormImpl({
                         <button
                           type="button"
                           onClick={() => setPartsModal('peca')}
-                          className="h-8 px-3 rounded-lg text-[11px] font-bold uppercase tracking-wider shrink-0 text-foreground/80 bg-card hover:bg-muted border border-border flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                          className="h-8 px-3 rounded-lg text-[0.6875rem] font-bold uppercase tracking-wider shrink-0 text-foreground/80 bg-card hover:bg-muted border border-border flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                         >
                           <Plus className="w-3.5 h-3.5" />
                           Adicionar peças
@@ -3777,7 +3780,7 @@ function OSFormImpl({
                             role="checkbox"
                             aria-checked={isChecked}
                             className={cn(
-                              "group relative flex flex-col items-center justify-between gap-1.5 min-h-[124px] px-3 pt-2.5 pb-2.5 rounded-xl border transition-all cursor-pointer select-none",
+                              "group relative flex flex-col items-center justify-between gap-1.5 min-h-[7.75rem] px-3 pt-2.5 pb-2.5 rounded-xl border transition-all cursor-pointer select-none",
                               isChecked
                                 ? "bg-blue-50/70 border-blue-400 ring-1 ring-blue-400/30 dark:bg-blue-500/10 dark:border-blue-400/60"
                                 : "bg-card border-border hover:border-blue-300 hover:shadow-sm dark:hover:border-blue-400/40"
@@ -3787,7 +3790,7 @@ function OSFormImpl({
                             <span
                               id={partId}
                               className={cn(
-                                "absolute top-2 right-2 w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center transition-colors",
+                                "absolute top-2 right-2 w-[1.125rem] h-[1.125rem] rounded-full border-2 flex items-center justify-center transition-colors",
                                 isChecked ? "border-blue-500 bg-card" : "border-border bg-card"
                               )}
                             >
@@ -3805,7 +3808,7 @@ function OSFormImpl({
                               </button>
                             )}
 
-                            <div className="w-full h-[72px] flex items-center justify-center px-4">
+                            <div className="w-full h-[4.5rem] flex items-center justify-center px-4">
                               {partImage ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={partImage} alt="" draggable={false} className="max-w-full max-h-full object-contain drop-shadow-md transition-transform duration-200 group-hover:scale-[1.03]" />
@@ -3835,7 +3838,7 @@ function OSFormImpl({
                                   >
                                     <Minus className="w-3 h-3 stroke-[2.5]" />
                                   </button>
-                                  <span className="min-w-[18px] text-center text-xs font-black font-mono text-foreground">
+                                  <span className="min-w-[1.125rem] text-center text-xs font-black font-mono text-foreground">
                                     {qty}
                                   </span>
                                   <button
@@ -3850,7 +3853,7 @@ function OSFormImpl({
                                 </div>
                               )}
                               {/* sem marcar: guarda o espaço da quantidade (todos os cartões com a mesma altura) */}
-                              {!isChecked && <div className="h-[30px]" aria-hidden />}
+                              {!isChecked && <div className="h-[1.875rem]" aria-hidden />}
                             </div>
                           </div>
                         );
@@ -3859,7 +3862,7 @@ function OSFormImpl({
                         <button
                           type="button"
                           onClick={() => setPartsModal(group.modalKind)}
-                          className="min-h-[124px] rounded-xl border border-dashed border-foreground/25 bg-card/60 hover:bg-muted hover:border-foreground/40 text-foreground/70 hover:text-foreground flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer"
+                          className="min-h-[7.75rem] rounded-xl border border-dashed border-foreground/25 bg-card/60 hover:bg-muted hover:border-foreground/40 text-foreground/70 hover:text-foreground flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer"
                         >
                           <span className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><Plus className="w-4 h-4 stroke-[2.5]" /></span>
                           <span className="text-xs font-bold">{group.moreLabel}</span>
@@ -3975,7 +3978,7 @@ function OSFormImpl({
                 value={observations}
                 onChange={e => setObservations(e.target.value.toUpperCase())}
                 placeholder="Observações sobre o serviço (opcional)"
-                className="min-h-[90px] rounded-xl premium-input p-3.5 text-xs resize-none uppercase placeholder:normal-case"
+                className="min-h-[5.625rem] rounded-xl premium-input p-3.5 text-xs resize-none uppercase placeholder:normal-case"
               />
             </div>
           </div>
@@ -3983,7 +3986,7 @@ function OSFormImpl({
           {/* CARD 7: FINALIZADO E ENTREGUE (na nova O.S. e ao editar) */}
           {(order || !readOnly) && (
           <div className="flex justify-end w-full">
-            <div className="bg-card border border-border rounded-xl p-5 shadow-sm flex flex-col gap-4 select-none hover:border-foreground/10 transition-all w-full max-w-[320px]">
+            <div className="bg-card border border-border rounded-xl p-5 shadow-sm flex flex-col gap-4 select-none hover:border-foreground/10 transition-all w-full max-w-[20rem]">
               <div
                 className="flex items-center space-x-3 cursor-pointer"
                 onClick={() => {
@@ -4040,7 +4043,7 @@ function OSFormImpl({
 
 
         {/* Barra de ações fixa no rodapé: salvar sempre à vista */}
-        <div className={cn("sticky bottom-0 z-30 -mb-10 max-w-[980px] mx-auto px-2 py-3 flex items-center justify-between gap-3 bg-background/95 backdrop-blur border-t border-border pointer-events-auto print:hidden", stepped && "@[1000px]/osform:max-w-[900px]")}>
+        <div className={cn("sticky bottom-0 z-30 -mb-10 max-w-[61.25rem] mx-auto px-2 py-3 flex items-center justify-between gap-3 bg-background/95 backdrop-blur border-t border-border pointer-events-auto print:hidden", stepped && "@[62.5rem]/osform:max-w-[56.25rem]")}>
           <Button
             type="button"
             variant="outline"
@@ -4274,13 +4277,13 @@ function OSFormImpl({
                   </IconField>
                   <ClientConflictWarning conflicts={newClientConflicts} onOpenClient={openEditClientModalFor} />
                 </div>
-                <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+                <div className="space-y-1.5 sm:max-w-[calc(50%-0.5rem)]">
                   <FieldLabel htmlFor="os-new-client-nickname" optional>Apelido / Nome fantasia</FieldLabel>
                   <IconField icon={Tag}>
                     <Input id="os-new-client-nickname" value={newClientNickname} onChange={e => setNewClientNickname(e.target.value)} placeholder="Apelido ou nome fantasia" className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
                   </IconField>
                 </div>
-                <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+                <div className="space-y-1.5 sm:max-w-[calc(50%-0.5rem)]">
                   <FieldLabel htmlFor="os-new-client-doc" optional>CPF/CNPJ</FieldLabel>
                   <IconField icon={FileText}>
                     <MaskedInput id="os-new-client-doc" value={newClientDoc} mask={maskCPFCNPJ} unmask={(v) => normalizeNumber(v).slice(0, 14)} onValueChange={setNewClientDoc} placeholder="000.000.000-00" className={iconInputClass} />
@@ -4308,7 +4311,7 @@ function OSFormImpl({
                     ) },
                   ]}
                 />
-              <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_280px] gap-4 items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_17.5rem] gap-4 items-end">
                 <div className="space-y-1.5">
                   <FieldLabel htmlFor="os-new-client-city" optional>Cidade / Endereço</FieldLabel>
                   <IconField icon={MapPin}>
@@ -4328,7 +4331,7 @@ function OSFormImpl({
 
       {/* Modal: Perfil do mecânico (visualização) */}
       <Dialog open={!!profileClient} onOpenChange={(open) => { if (!open) setProfileClient(null); }}>
-        <DialogContent className="sm:max-w-[460px] rounded-2xl bg-popover border-border p-0 gap-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[28.75rem] rounded-2xl bg-popover border-border p-0 gap-0 overflow-hidden">
           {profileClient && (() => {
             const pc = clients.find(c => c.id === profileClient.id) || profileClient;
             const isMech = pc.clientType === 'mechanic';
@@ -4350,13 +4353,13 @@ function OSFormImpl({
                   </div>
                   <div className="min-w-0 flex-1">
                     <DialogTitle className="sr-only">Perfil de {pc.name}</DialogTitle>
-                    <p className="text-[11px] font-medium text-muted-foreground truncate">Apelido: {pc.nickname || 'Não informado'}</p>
+                    <p className="text-[0.6875rem] font-medium text-muted-foreground truncate">Apelido: {pc.nickname || 'Não informado'}</p>
                     <div className="flex items-center gap-2 min-w-0 mt-0.5">
                       <strong className="text-base font-black text-foreground uppercase tracking-tight truncate">{pc.name}</strong>
                       {isMech ? (
-                        <span className="text-[10px] font-bold tracking-wider bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/30 rounded-lg px-2 py-0.5 uppercase shrink-0">MECÂNICO</span>
+                        <span className="text-[0.625rem] font-bold tracking-wider bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/30 rounded-lg px-2 py-0.5 uppercase shrink-0">MECÂNICO</span>
                       ) : (
-                        <span className="text-[10px] font-bold tracking-wider bg-muted text-muted-foreground border border-border rounded-lg px-2 py-0.5 uppercase shrink-0">CLIENTE</span>
+                        <span className="text-[0.625rem] font-bold tracking-wider bg-muted text-muted-foreground border border-border rounded-lg px-2 py-0.5 uppercase shrink-0">CLIENTE</span>
                       )}
                     </div>
                   </div>
@@ -4378,7 +4381,7 @@ function OSFormImpl({
                     {rows.map(({ icon: Icon, label, value }) => (
                       <div key={label} className="flex items-center gap-3 px-3.5 py-2.5">
                         <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground w-24 shrink-0">{label}</span>
+                        <span className="text-[0.6875rem] font-bold uppercase tracking-wider text-muted-foreground w-24 shrink-0">{label}</span>
                         <span className={cn('text-sm truncate', value ? 'font-semibold text-foreground font-mono' : 'text-muted-foreground/60 italic')}>
                           {value || 'Não informado'}
                         </span>
@@ -4436,13 +4439,13 @@ function OSFormImpl({
                   </IconField>
                 </div>
                 <ClientConflictWarning conflicts={editClientConflicts} />
-                <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+                <div className="space-y-1.5 sm:max-w-[calc(50%-0.5rem)]">
                   <FieldLabel htmlFor="os-edit-client-nickname" optional>Apelido / Nome fantasia</FieldLabel>
                   <IconField icon={Tag}>
                     <Input id="os-edit-client-nickname" placeholder="Apelido ou nome fantasia" value={editClientNickname} onChange={e => setEditClientNickname(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
                   </IconField>
                 </div>
-                <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+                <div className="space-y-1.5 sm:max-w-[calc(50%-0.5rem)]">
                   <FieldLabel htmlFor="os-edit-client-document" optional>CPF/CNPJ</FieldLabel>
                   <IconField icon={FileText}>
                     <MaskedInput id="os-edit-client-document" value={editClientDoc} mask={maskCPFCNPJ} unmask={(v) => normalizeNumber(v).slice(0, 14)} onValueChange={setEditClientDoc} placeholder="000.000.000-00" className={iconInputClass} />
@@ -4470,7 +4473,7 @@ function OSFormImpl({
                     ) },
                   ]}
                 />
-              <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_280px] gap-4 items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_17.5rem] gap-4 items-end">
                 <div className="space-y-1.5">
                   <FieldLabel htmlFor="os-edit-client-city" optional>Cidade / Endereço</FieldLabel>
                   <IconField icon={MapPin}>
@@ -4526,7 +4529,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
               Ocorreu um erro inesperado ao carregar ou atualizar o formulário. Por favor, tente recarregar a página ou voltar para o painel.
             </p>
             {this.state.error?.message && (
-              <pre className="p-3 bg-muted dark:bg-card border dark:border-border rounded-lg text-xs text-destructive font-mono overflow-auto max-h-[150px]">
+              <pre className="p-3 bg-muted dark:bg-card border dark:border-border rounded-lg text-xs text-destructive font-mono overflow-auto max-h-[9.375rem]">
                 {this.state.error.message}
               </pre>
             )}

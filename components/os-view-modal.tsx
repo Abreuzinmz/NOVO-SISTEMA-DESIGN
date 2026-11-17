@@ -85,13 +85,13 @@ function PaymentHistoryRow({ entry, onOpen, number }: { entry: any; onOpen: () =
       className="w-full text-left flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-50 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15 pl-2 pr-1.5 py-2 transition-colors cursor-pointer"
     >
       {number !== undefined && (
-        <span className="w-6 h-6 rounded-full bg-emerald-600 text-white text-[11px] font-extrabold flex items-center justify-center shrink-0 tabular-nums">{number}</span>
+        <span className="w-6 h-6 rounded-full bg-emerald-600 text-white text-[0.6875rem] font-extrabold flex items-center justify-center shrink-0 tabular-nums">{number}</span>
       )}
       <span className="w-9 h-9 rounded-lg bg-white dark:bg-white/10 border border-emerald-100 dark:border-emerald-500/20 flex items-center justify-center shrink-0">{icon}</span>
       <span className="flex-1 min-w-0">
         {number !== undefined && (
           <span className={cn(
-            "inline-block mb-0.5 text-[9.5px] font-extrabold uppercase tracking-wider rounded px-1.5 py-px",
+            "inline-block mb-0.5 text-[0.5938rem] font-extrabold uppercase tracking-wider rounded px-1.5 py-px",
             number === 1 ? "bg-emerald-600 text-white" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
           )}>
             {number}ª entrada{number === 1 ? ' · primeira' : ''}
@@ -99,10 +99,10 @@ function PaymentHistoryRow({ entry, onOpen, number }: { entry: any; onOpen: () =
         )}
         <span className="flex items-baseline gap-1.5 min-w-0">
           <span className="text-sm font-extrabold text-foreground tabular-nums whitespace-nowrap">{amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-          <span className="text-[11px] font-semibold uppercase text-muted-foreground whitespace-nowrap truncate">{label}</span>
+          <span className="text-[0.6875rem] font-semibold uppercase text-muted-foreground whitespace-nowrap truncate">{label}</span>
         </span>
-        {entry.date && <span className="block text-[11px] text-muted-foreground">{formatEntryDate(entry.date)}</span>}
-        {payer && <span className="block text-[11px] font-semibold uppercase text-foreground/75 truncate" title={payer}>{payer}</span>}
+        {entry.date && <span className="block text-[0.6875rem] text-muted-foreground">{formatEntryDate(entry.date)}</span>}
+        {payer && <span className="block text-[0.6875rem] font-semibold uppercase text-foreground/75 truncate" title={payer}>{payer}</span>}
       </span>
       <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
     </button>
@@ -125,7 +125,7 @@ function ViewCardHeader({ icon: Icon, title, count, right }: { icon: React.Eleme
         <span className="text-xs font-extrabold uppercase tracking-wide text-foreground truncate">{title}</span>
       </div>
       {right ?? (count !== undefined && (
-        <span className="h-5 px-2 rounded-md bg-muted text-[11px] font-semibold text-muted-foreground flex items-center tabular-nums shrink-0">
+        <span className="h-5 px-2 rounded-md bg-muted text-[0.6875rem] font-semibold text-muted-foreground flex items-center tabular-nums shrink-0">
           {count} {count === 1 ? 'item' : 'itens'}
         </span>
       ))}
@@ -137,7 +137,6 @@ function ViewCardHeader({ icon: Icon, title, count, right }: { icon: React.Eleme
 // classes completas (o Tailwind precisa encontrá-las escritas no código)
 // Linhas que o cartão de pagamento ocupa na grade da visualização
 const PAYMENT_ROW_SPAN: Record<number, string> = { 1: 'md:row-span-1', 2: 'md:row-span-2', 3: 'md:row-span-3' };
-const TILE_COLS: Record<number, string> = { 1: 'sm:grid-cols-1', 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3', 4: 'sm:grid-cols-4', 5: 'sm:grid-cols-5' };
 
 /**
  * Até 4 itens: 4 colunas; com 5 ou mais: 5 colunas (todos do mesmo tamanho). row = lado a lado com a outra seção: todos numa linha.
@@ -146,15 +145,19 @@ const TILE_COLS: Record<number, string> = { 1: 'sm:grid-cols-1', 2: 'sm:grid-col
 function PartTiles({ parts, row, fill }: { parts: string[]; row?: boolean; fill?: boolean }) {
   const cols = row ? parts.length : fill ? Math.min(Math.max(parts.length, 3), 5) : parts.length >= 5 ? 5 : 4;
   return (
-    <div className={cn("grid gap-2 grid-cols-2", TILE_COLS[cols], fill && "flex-1 auto-rows-fr")}>
+    <div
+      className={cn("grid gap-2", fill && "flex-1 auto-rows-fr")}
+      // até `cols` colunas; se cada quadrinho ficar menor que 6,25rem (tela estreita ou fonte grande), usa menos colunas
+      style={{ gridTemplateColumns: `repeat(auto-fill, minmax(max(6.25rem, calc((100% - ${cols - 1} * 0.5rem) / ${cols})), 1fr))` }}
+    >
       {parts.map((p, i) => {
         const [name, qtyStr] = p.includes('|') ? p.split('|') : [p, '1'];
         const qty = parseInt(qtyStr) || 1;
         const img = getPartImage(name);
         return (
           <div key={i} className="relative rounded-xl border border-border bg-card flex flex-col items-center justify-center gap-1 px-2 pt-2 pb-1.5 min-w-0">
-            <span className="absolute top-1.5 right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-muted text-[11px] font-bold text-foreground flex items-center justify-center tabular-nums">{qty}</span>
-            <div className={cn("w-full flex items-center justify-center", fill ? "flex-1 basis-0 min-h-14 max-h-24 px-4" : "h-11 px-5")}>
+            <span className="absolute top-1.5 right-1.5 min-w-[1.25rem] h-5 px-1 rounded-full bg-muted text-[0.6875rem] font-bold text-foreground flex items-center justify-center tabular-nums">{qty}</span>
+            <div className={cn("w-full flex items-center justify-center", fill ? "flex-1 basis-0 min-h-14 max-h-24 px-[12%]" : "h-11 px-[15%]")}>
               {img ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={img} alt="" draggable={false} className="max-w-full max-h-full object-contain" />
@@ -162,7 +165,7 @@ function PartTiles({ parts, row, fill }: { parts: string[]; row?: boolean; fill?
                 <Package className={cn("text-muted-foreground/40", fill ? "w-10 h-10" : "w-8 h-8")} />
               )}
             </div>
-            <span className={cn("w-full text-center font-bold uppercase leading-tight text-foreground line-clamp-2 break-words", cols === 5 ? "text-[11px] tracking-tight" : fill ? "text-[13px]" : "text-xs")} title={name}>{name}</span>
+            <span className={cn("w-full text-center font-bold uppercase leading-tight text-foreground line-clamp-2 break-words", cols === 5 ? "text-[0.6875rem] tracking-tight" : fill ? "text-[0.8125rem]" : "text-xs")} title={name}>{name}</span>
           </div>
         );
       })}
@@ -980,37 +983,37 @@ function OSViewModalContent({
   const getStatusBadge = (status: ServiceStatus) => {
     switch (status) {
       case 'Na Fila': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[0.1875rem] rounded-full text-[0.6562rem] font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border">
           <span className="w-1.5 h-1.5 rounded-full bg-secondary-foreground/60 shrink-0" />
           NA FILA
         </span>
       );
       case 'Em Andamento': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-info/10 text-info border border-info/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[0.1875rem] rounded-full text-[0.6562rem] font-extrabold tracking-wider bg-info/10 text-info border border-info/20">
           <span className="w-1.5 h-1.5 rounded-full bg-info shrink-0" />
           EM ANDAMENTO
         </span>
       );
       case 'Aguardando Peça': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-warning/10 text-warning border border-warning/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[0.1875rem] rounded-full text-[0.6562rem] font-extrabold tracking-wider bg-warning/10 text-warning border border-warning/20">
           <span className="w-1.5 h-1.5 rounded-full bg-warning shrink-0" />
           AGUARDANDO PEÇA
         </span>
       );
       case 'Pronto': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-success/10 text-success border border-success/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[0.1875rem] rounded-full text-[0.6562rem] font-extrabold tracking-wider bg-success/10 text-success border border-success/20">
           <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
           PRONTO
         </span>
       );
       case 'Levou': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-danger/10 text-danger border border-danger/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[0.1875rem] rounded-full text-[0.6562rem] font-extrabold tracking-wider bg-danger/10 text-danger border border-danger/20">
           <span className="w-1.5 h-1.5 rounded-full bg-danger shrink-0" />
           LEVOU
         </span>
       );
       case 'Cancelada': return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-muted text-muted-foreground border border-border">
+        <span className="inline-flex items-center gap-1 px-2.5 py-[0.1875rem] rounded-full text-[0.6562rem] font-extrabold tracking-wider bg-muted text-muted-foreground border border-border">
           <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60 shrink-0" />
           CANCELADA
         </span>
@@ -1062,22 +1065,22 @@ function OSViewModalContent({
   const getPaymentBadge = (status: string) => {
     switch (status) {
       case 'Não Pago': return (
-        <span className="inline-flex items-center justify-center px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-danger/10 text-danger border border-danger/20">
+        <span className="inline-flex items-center justify-center px-2.5 py-[0.1875rem] rounded-full text-[0.6562rem] font-extrabold tracking-wider bg-danger/10 text-danger border border-danger/20">
           NÃO PAGO
         </span>
       );
       case 'Entrada': return (
-        <span className="inline-flex items-center justify-center px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-warning/10 text-warning border border-warning/20">
+        <span className="inline-flex items-center justify-center px-2.5 py-[0.1875rem] rounded-full text-[0.6562rem] font-extrabold tracking-wider bg-warning/10 text-warning border border-warning/20">
           ENTRADA
         </span>
       );
       case 'Pago': return (
-        <span className="inline-flex items-center justify-center px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-success/10 text-success border border-success/20">
+        <span className="inline-flex items-center justify-center px-2.5 py-[0.1875rem] rounded-full text-[0.6562rem] font-extrabold tracking-wider bg-success/10 text-success border border-success/20">
           PAGO
         </span>
       );
       default: return (
-        <span className="inline-flex items-center justify-center px-2.5 py-[3px] rounded-full text-[10.5px] font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border">
+        <span className="inline-flex items-center justify-center px-2.5 py-[0.1875rem] rounded-full text-[0.6562rem] font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border">
           {status.toUpperCase()}
         </span>
       );
@@ -1142,8 +1145,8 @@ function OSViewModalContent({
         useFlexLayout={true}
         className={cn(
           "print-friendly-modal",
-          wideModal ? "w-[min(1200px,calc(100vw-48px))] md:w-[min(1200px,calc(100vw-140px))]" : "w-[min(1000px,calc(100vw-48px))] md:w-[min(1000px,calc(100vw-140px))]",
-          "max-h-[calc(100vh-48px)] p-0 border-0 bg-transparent ring-0 rounded-none overflow-visible shadow-none outline-none flex flex-col gap-0 print:block print:!static print:!w-full print:!max-w-none print:!h-auto print:border-none print:shadow-none print:bg-card print:overflow-visible"
+          wideModal ? "w-[min(75rem,calc(100vw-3rem))] md:w-[min(75rem,calc(100vw-8.75rem))]" : "w-[min(62.5rem,calc(100vw-3rem))] md:w-[min(62.5rem,calc(100vw-8.75rem))]",
+          "max-h-[calc(100vh-3rem)] p-0 border-0 bg-transparent ring-0 rounded-none overflow-visible shadow-none outline-none flex flex-col gap-0 print:block print:!static print:!w-full print:!max-w-none print:!h-auto print:border-none print:shadow-none print:bg-card print:overflow-visible"
         )}
         style={{ transform: 'none' }}
         finalFocus={false}
@@ -1232,7 +1235,7 @@ function OSViewModalContent({
                       <strong className={cn("font-semibold", days >= 30 ? "text-danger" : days >= 15 ? "text-warning" : "text-foreground")}>{daysLabel}</strong>
                     </div>
                     {order.statusObservation && !isCancelled && (
-                      <div className="text-xs text-muted-foreground font-semibold break-words mt-2 max-w-[220px]">{order.statusObservation}</div>
+                      <div className="text-xs text-muted-foreground font-semibold break-words mt-2 max-w-[13.75rem]">{order.statusObservation}</div>
                     )}
                     {order.finished && (order.finishedAt || order.deliveryDate) && (
                       <div className="text-xs font-bold text-success mt-2">
@@ -1267,7 +1270,7 @@ function OSViewModalContent({
                       <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
                         Tipo:{' '}
                         <span className={cn(
-                          "inline-block ml-1 text-[11px] font-extrabold tracking-wider uppercase rounded-full border px-2.5 py-0.5 align-middle",
+                          "inline-block ml-1 text-[0.6875rem] font-extrabold tracking-wider uppercase rounded-full border px-2.5 py-0.5 align-middle",
                           client.clientType === 'mechanic' ? "bg-info/10 text-info border-info/20" : "bg-card text-secondary-foreground border-border"
                         )}>
                           {client.clientType === 'mechanic' ? 'Mecânico' : 'Cliente'}
@@ -1287,12 +1290,13 @@ function OSViewModalContent({
                     client?.city?.trim() ? { icon: MapPin, label: 'CID.', value: client.city } : null,
                   ].filter(Boolean) as { icon: React.ElementType; label: string; value: string }[];
                   return (
-                    <div className="flex items-center min-w-0">
+                    <div className="flex flex-wrap items-center gap-y-1.5 min-w-0">
                       {rows.map((r, i) => (
-                        <div key={r.label} className={cn("flex items-center gap-2 min-w-0", i < rows.length - 1 && "shrink-0", i > 0 && "pl-3 ml-3 border-l border-blue-200/70 dark:border-blue-500/20")}>
+                        // sem espaço na linha (tela estreita ou fonte grande), o último contato desce em vez de sumir
+                        <div key={r.label} className={cn("flex items-center gap-2 min-w-0", i < rows.length - 1 ? "shrink-0" : "min-w-[8rem] flex-1", i > 0 && "pl-3 ml-3 border-l border-blue-200/70 dark:border-blue-500/20")}>
                           <r.icon className="w-4 h-4 text-muted-foreground shrink-0" />
-                          <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground shrink-0">{r.label}</span>
-                          <span className="min-w-0 text-[13px] font-semibold text-foreground truncate" title={r.value}>{r.value}</span>
+                          <span className="text-[0.625rem] font-bold uppercase tracking-wide text-muted-foreground shrink-0">{r.label}</span>
+                          <span className="min-w-0 text-[0.8125rem] font-semibold text-foreground truncate" title={r.value}>{r.value}</span>
                         </div>
                       ))}
                     </div>
@@ -1308,12 +1312,12 @@ function OSViewModalContent({
                 const displayName = nickname ? nickname.toUpperCase() : name;
                 return displayName ? (
                   <div className="shrink-0 md:pl-4 md:border-l border-blue-200/70 dark:border-blue-500/20 flex items-center">
-                    <div className="md:w-[215px] rounded-xl border border-info/20 bg-info/5 dark:bg-info/10 px-3 py-2.5 flex items-center gap-2.5 min-w-0">
+                    <div className="md:w-[13.4375rem] rounded-xl border border-info/20 bg-info/5 dark:bg-info/10 px-3 py-2.5 flex items-center gap-2.5 min-w-0">
                       <span className="w-10 h-10 rounded-lg bg-info/15 text-info flex items-center justify-center shrink-0">
                         <Wrench className="w-5 h-5" />
                       </span>
                       <div className="min-w-0">
-                        <div className="text-[10px] font-bold uppercase whitespace-nowrap text-info">Mecânico responsável</div>
+                        <div className="text-[0.625rem] font-bold uppercase whitespace-nowrap text-info">Mecânico responsável</div>
                         <div className="text-sm font-extrabold uppercase text-foreground truncate" title={name || displayName}>{displayName}</div>
                         {nickname && name && name.toUpperCase() !== nickname.toUpperCase() && (
                           <div className="text-xs font-medium uppercase text-muted-foreground truncate">{name}</div>
@@ -1345,7 +1349,7 @@ function OSViewModalContent({
             {/* Top Section: Motor + Cards + Financial */}
             <div className={cn(
               "flex flex-col p-4 gap-4 min-w-0",
-              isEditing ? "md:flex-row" : cn("md:grid md:grid-cols-[minmax(0,1fr)_320px]", partsRows === 2
+              isEditing ? "md:flex-row" : cn("md:grid md:grid-cols-[minmax(0,1fr)_20rem]", partsRows === 2
                 ? (hasObservations ? "md:grid-rows-[auto_auto_auto_1fr]" : "md:grid-rows-[auto_auto_1fr]")
                 : (hasObservations ? "md:grid-rows-[auto_auto_1fr]" : "md:grid-rows-[auto_1fr]"))
             )}>
@@ -1615,13 +1619,13 @@ function OSViewModalContent({
                       {(() => {
                         // Com 2+ motores, separa os serviços como no relatório: comuns, motor 1, motor 2...
                         const renderService = (s: ServiceItem) => (
-                          <div key={s.id} className="flex justify-between items-center gap-3 px-3 py-1.5 text-[13px] hover:bg-secondary/20 transition-colors">
+                          <div key={s.id} className="flex justify-between items-center gap-3 px-3 py-1.5 text-[0.8125rem] hover:bg-secondary/20 transition-colors">
                             <div className="flex items-center gap-2.5 min-w-0">
                               <span className="w-6 h-6 rounded-full bg-muted text-xs font-bold text-foreground/80 flex items-center justify-center shrink-0 tabular-nums">
                                 {s.quantity || 1}
                               </span>
                               {isPartItem(s) && (
-                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-amber-500/10 text-amber-700 border border-amber-500/30 dark:text-amber-300 shrink-0">Peça</span>
+                                <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-bold uppercase tracking-wide bg-amber-500/10 text-amber-700 border border-amber-500/30 dark:text-amber-300 shrink-0">Peça</span>
                               )}
                               <span className="font-semibold uppercase text-foreground break-words">
                                 {s.id === 'eix-retificar' && s.measure ? `Retificar Eixo — ${s.measure}` : s.name}
@@ -1683,13 +1687,13 @@ function OSViewModalContent({
                                   <span className="font-mono text-sm tabular-nums">{fmt(partsTotal)}</span>
                                 </div>
                                 <div className="flex items-center justify-between border-t border-blue-200/70 dark:border-blue-500/20 pt-1">
-                                  <span className="text-[13px] font-bold text-foreground">Total</span>
+                                  <span className="text-[0.8125rem] font-bold text-foreground">Total</span>
                                   <span className="text-base font-extrabold font-mono text-foreground tabular-nums">{fmt(svcTotal + partsTotal)}</span>
                                 </div>
                               </>
                             ) : (
                               <div className="flex items-center justify-between">
-                                <span className="text-[13px] font-bold text-foreground">Total dos serviços</span>
+                                <span className="text-[0.8125rem] font-bold text-foreground">Total dos serviços</span>
                                 <span className="text-base font-extrabold font-mono text-foreground tabular-nums">{fmt(svcTotal)}</span>
                               </div>
                             )}
@@ -1712,7 +1716,7 @@ function OSViewModalContent({
                           value={editObservations}
                           onChange={(e) => setEditObservations(e.target.value)}
                           placeholder="Observações sobre o serviço (opcional)"
-                          className="min-h-[100px] w-full p-3 border border-border bg-card rounded-lg focus:outline-none focus:border-secondary-foreground transition-all text-xs font-semibold uppercase placeholder:normal-case resize-y leading-relaxed"
+                          className="min-h-[6.25rem] w-full p-3 border border-border bg-card rounded-lg focus:outline-none focus:border-secondary-foreground transition-all text-xs font-semibold uppercase placeholder:normal-case resize-y leading-relaxed"
                         />
                       ) : (
                         <p className="whitespace-pre-wrap font-bold text-foreground uppercase tracking-tight text-xs leading-relaxed">
@@ -1725,7 +1729,7 @@ function OSViewModalContent({
               </div>
 
               {/* Right Column: Motor + Pagamento */}
-              <div className={isEditing ? "w-full md:w-[300px] shrink-0 min-w-0 flex flex-col gap-4" : "contents"}>
+              <div className={isEditing ? "w-full md:w-[18.75rem] shrink-0 min-w-0 flex flex-col gap-4" : "contents"}>
                 {!isEditing && motors.length > 0 && (
                   <div className={cn("border border-border rounded-xl bg-background p-3 shadow-sm min-w-0 md:col-start-2 md:row-start-1", partsRows === 2 && "md:self-start")}>
                     <ViewCardHeader icon={Gauge} title={motors.length > 1 ? `Motores (${motors.length})` : 'Motor'} right={<span />} />
@@ -1765,8 +1769,8 @@ function OSViewModalContent({
                             <div className="grid grid-cols-3 gap-1.5">
                               {tiles.map((t) => (
                                 <div key={t.label} className="rounded-lg border border-border bg-card px-2 py-1.5 min-w-0">
-                                  <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground truncate">{t.label}</div>
-                                  <div className="text-[13px] font-bold text-foreground truncate">{t.value}</div>
+                                  <div className="text-[0.625rem] font-semibold uppercase tracking-wide text-muted-foreground truncate">{t.label}</div>
+                                  <div className="text-[0.8125rem] font-bold text-foreground truncate">{t.value}</div>
                                 </div>
                               ))}
                             </div>
@@ -1782,8 +1786,8 @@ function OSViewModalContent({
                                       extras.length === 3 && ti === 2 && "col-span-2"
                                     )}
                                   >
-                                    <div className={cn("text-[10px] font-semibold uppercase tracking-wide truncate", t.orange ? "text-orange-600/80 dark:text-orange-300/80" : "text-muted-foreground")}>{t.label}</div>
-                                    <div className={cn("text-[13px] font-bold leading-tight break-words line-clamp-2", t.orange ? "text-orange-600 dark:text-orange-400" : "text-foreground")}>{t.value}</div>
+                                    <div className={cn("text-[0.625rem] font-semibold uppercase tracking-wide truncate", t.orange ? "text-orange-600/80 dark:text-orange-300/80" : "text-muted-foreground")}>{t.label}</div>
+                                    <div className={cn("text-[0.8125rem] font-bold leading-tight break-words line-clamp-2", t.orange ? "text-orange-600 dark:text-orange-400" : "text-foreground")}>{t.value}</div>
                                   </div>
                                 ))}
                               </div>
@@ -1964,7 +1968,7 @@ function OSViewModalContent({
                                 totalValue: groupedPayment.valorTotal,
                                 paidElsewhere: groupedPayment.valorPago,
                               })}
-                              className="w-full max-w-[220px] h-8 solid-btn font-bold text-xs uppercase tracking-wider gap-1.5 shadow-sm rounded-lg cursor-pointer"
+                              className="w-full max-w-[13.75rem] h-8 solid-btn font-bold text-xs uppercase tracking-wider gap-1.5 shadow-sm rounded-lg cursor-pointer"
                             >
                               <CreditCard className="w-3.5 h-3.5 stroke-[2.5]" />
                               NOVA ENTRADA NO GRUPO
@@ -1978,7 +1982,7 @@ function OSViewModalContent({
                       {/* ═══ NÃO PAGO ═══ */}
                       {order.paymentStatus === 'Não Pago' && (
                         <div className="space-y-2 text-center py-3">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 block">SITUAÇÃO</span>
+                          <span className="text-[0.6875rem] font-bold uppercase tracking-wider text-muted-foreground/60 block">SITUAÇÃO</span>
                           <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 dark:text-red-400 dark:bg-red-500/10 dark:border-red-500/30 px-3.5 py-1 rounded-full inline-block">
                             AGUARDANDO PAGAMENTO
                           </span>
@@ -2031,11 +2035,11 @@ function OSViewModalContent({
                                   <CheckCircle2 className="w-5 h-5" />
                                 </span>
                                 <div className="min-w-0 flex-1">
-                                  <div className="text-[11px] font-extrabold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Pagamento finalizado</div>
+                                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Pagamento finalizado</div>
                                   <div className="text-lg font-extrabold text-foreground tabular-nums leading-tight">
                                     {totalPaid.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                   </div>
-                                  <div className="text-[11px] font-semibold uppercase text-emerald-800/80 dark:text-emerald-200/80 truncate" title={methods.join(', ')}>
+                                  <div className="text-[0.6875rem] font-semibold uppercase text-emerald-800/80 dark:text-emerald-200/80 truncate" title={methods.join(', ')}>
                                     {methods.join(' · ')}
                                   </div>
                                 </div>
@@ -2045,7 +2049,7 @@ function OSViewModalContent({
                               <button
                                 type="button"
                                 onClick={() => setShowPaidHistory(true)}
-                                className="w-full h-8 rounded-lg border border-border bg-card hover:bg-muted text-[11px] font-bold uppercase tracking-wide text-foreground/80 flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                                className="w-full h-8 rounded-lg border border-border bg-card hover:bg-muted text-[0.6875rem] font-bold uppercase tracking-wide text-foreground/80 flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                               >
                                 <Clock className="w-3.5 h-3.5" />
                                 Ver histórico de pagamentos ({ordered.length})
@@ -2054,10 +2058,10 @@ function OSViewModalContent({
 
                               {/* Modal: registros dos pagamentos */}
                               <Dialog open={showPaidHistory} onOpenChange={setShowPaidHistory}>
-                                <DialogContent showCloseButton={false} className="sm:max-w-[440px] z-[1100] rounded-2xl bg-popover border border-border ring-1 ring-foreground/15 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] p-0 gap-0 overflow-hidden" overlayClassName="z-[1099] bg-black/55 supports-backdrop-filter:backdrop-blur-[2px]" forceOverlay>
+                                <DialogContent showCloseButton={false} className="sm:max-w-[27.5rem] z-[1100] rounded-2xl bg-popover border border-border ring-1 ring-foreground/15 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] p-0 gap-0 overflow-hidden" overlayClassName="z-[1099] bg-black/55 supports-backdrop-filter:backdrop-blur-[2px]" forceOverlay>
                                   <div className="flex items-center gap-3 px-5 pt-5 pb-3">
                                     <span className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300 flex items-center justify-center shrink-0">
-                                      <Clock className="w-[18px] h-[18px]" />
+                                      <Clock className="w-[1.125rem] h-[1.125rem]" />
                                     </span>
                                     <div className="flex-1 min-w-0">
                                       <DialogTitle className="text-sm font-extrabold uppercase tracking-wide text-foreground">Histórico de pagamentos</DialogTitle>
@@ -2156,7 +2160,7 @@ function OSViewModalContent({
                             discount: order.discount || 0,
                             showDiscount: true,
                           })}
-                          className="w-full max-w-[240px] h-9 font-bold text-xs uppercase tracking-wider gap-1.5 shadow-sm rounded-lg cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white"
+                          className="w-full max-w-[15rem] h-9 font-bold text-xs uppercase tracking-wider gap-1.5 shadow-sm rounded-lg cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white"
                         >
                           <DollarSign className="w-4 h-4 stroke-[2.5]" />
                           Registrar pagamento
@@ -2172,7 +2176,7 @@ function OSViewModalContent({
                             setIsGroupModalOpen(true);
                           }}
                           title="Agrupar com outras O.S. deste cliente para pagamento conjunto"
-                          className="w-full max-w-[240px] h-9 font-bold text-xs uppercase tracking-wider gap-1.5 rounded-lg border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100 hover:text-violet-800 dark:border-violet-500/40 dark:bg-violet-500/10 dark:text-violet-300"
+                          className="w-full max-w-[15rem] h-9 font-bold text-xs uppercase tracking-wider gap-1.5 rounded-lg border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100 hover:text-violet-800 dark:border-violet-500/40 dark:bg-violet-500/10 dark:text-violet-300"
                         >
                           <Layers className="w-4 h-4 shrink-0" />
                           <span className="truncate">Agrupar pagamento conjunto</span>
@@ -2341,7 +2345,7 @@ function OSViewModalContent({
           <Dialog open={isStatusConfirmOpen} onOpenChange={setIsStatusConfirmOpen}>
             <DialogContent
               showCloseButton={false}
-              className="max-w-[340px] p-6 bg-card border border-border rounded-xl shadow-2xl flex flex-col gap-4 outline-none"
+              className="max-w-[21.25rem] p-6 bg-card border border-border rounded-xl shadow-2xl flex flex-col gap-4 outline-none"
               finalFocus={false}
             >
               <div className="space-y-1.5">
@@ -2379,7 +2383,7 @@ function OSViewModalContent({
           <Dialog open={isConfirmingConcluir} onOpenChange={setIsConfirmingConcluir}>
             <DialogContent
               showCloseButton={false}
-              className="max-w-[320px] p-6 bg-card border border-border rounded-xl shadow-2xl flex flex-col gap-4 outline-none"
+              className="max-w-[20rem] p-6 bg-card border border-border rounded-xl shadow-2xl flex flex-col gap-4 outline-none"
               finalFocus={false}
             >
               <div className="space-y-1">
@@ -2533,7 +2537,7 @@ function OSViewModalContent({
 
         {/* ═══ VISUALIZAÇÃO DE UM LANÇAMENTO (com Editar / Excluir) ═══ */}
         <Dialog open={!!viewEntry} onOpenChange={(o) => { if (!o) setViewEntry(null); }}>
-          <DialogContent showCloseButton={false} className="sm:max-w-[400px] z-[1100] rounded-2xl bg-popover border border-border ring-1 ring-foreground/15 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] p-0 gap-0 overflow-hidden" overlayClassName="z-[1099] bg-black/55 supports-backdrop-filter:backdrop-blur-[2px]" forceOverlay>
+          <DialogContent showCloseButton={false} className="sm:max-w-[25rem] z-[1100] rounded-2xl bg-popover border border-border ring-1 ring-foreground/15 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] p-0 gap-0 overflow-hidden" overlayClassName="z-[1099] bg-black/55 supports-backdrop-filter:backdrop-blur-[2px]" forceOverlay>
             {viewEntry && (() => {
               const e = viewEntry.entry;
               const amount = parseFloat(e.amount) || 0;
@@ -2665,7 +2669,7 @@ function OSViewModalContent({
                     value={cancelOther}
                     onChange={(e) => setCancelOther(e.target.value)}
                     placeholder="Descreva o motivo"
-                    className="min-h-[70px] text-sm"
+                    className="min-h-[4.375rem] text-sm"
                   />
                 )}
                 {groupedPayment && (

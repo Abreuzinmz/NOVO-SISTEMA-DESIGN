@@ -87,7 +87,27 @@ const EXPLICIT_BRANDS: Record<string, string> = {
   'LIFAN': 'Lifan',
   'MAN': 'MAN',
   'NEW HOLLAND': 'New Holland',
+  'MAH': 'Deutz',
+  'HS': 'Maxion',
 };
+
+/** Marcas corrigidas uma vez (mesmo que o motor já tenha outra marca salva). */
+const BRAND_FIXES_KEY = 'motor_brand_fixes_v1';
+const FORCED_BRANDS: Record<string, string> = {
+  'MAH': 'Deutz',
+  'HS': 'Maxion',
+};
+
+async function runBrandFixes(db: LocalDb): Promise<void> {
+  const done = await db.dbQuery('SELECT value FROM settings WHERE key = ?', [BRAND_FIXES_KEY]);
+  if (done.length > 0) return;
+  const now = new Date().toISOString();
+  for (const [name, brand] of Object.entries(FORCED_BRANDS)) {
+    await db.dbRun('UPDATE modelos SET brand = ?, updated_at = ? WHERE UPPER(TRIM(id)) = ?', [brand, now, name]);
+  }
+  await db.dbRun('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [BRAND_FIXES_KEY, now]);
+  console.log('[Motores] Marcas corrigidas: MAH → Deutz, HS → Maxion.');
+}
 
 /** Troca um modelo dentro de "AP (4 CIL), FIRE" mantendo o sufixo de cilindros. */
 function renameInMotorList(list: string, renames: Record<string, string>): string {
@@ -181,5 +201,10 @@ export async function runMotorCatalogCleanup(db: LocalDb): Promise<void> {
     await fillMissingBrands(db);
   } catch (err) {
     console.error('[Motores] Falha ao preencher as marcas:', err);
+  }
+  try {
+    await runBrandFixes(db);
+  } catch (err) {
+    console.error('[Motores] Falha ao corrigir as marcas:', err);
   }
 }

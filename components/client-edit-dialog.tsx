@@ -97,13 +97,13 @@ export function ClientEditDialog({ client, open, onOpenChange, onDelete, nested 
                 </IconField>
               </div>
               <ClientConflictWarning conflicts={editConflicts} />
-              <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+              <div className="space-y-1.5 sm:max-w-[calc(50%-0.5rem)]">
                 <FieldLabel htmlFor="edit-nickname" optional>Apelido / Nome fantasia</FieldLabel>
                 <IconField icon={Tag}>
                   <Input id="edit-nickname" placeholder="Apelido ou nome fantasia" value={editNickname} onChange={e => setEditNickname(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
                 </IconField>
               </div>
-              <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+              <div className="space-y-1.5 sm:max-w-[calc(50%-0.5rem)]">
                 <FieldLabel htmlFor="edit-document" optional>CPF/CNPJ</FieldLabel>
                 <IconField icon={FileText}>
                   <MaskedInput id="edit-document" placeholder="000.000.000-00" value={editDocument} mask={maskCPFCNPJ} unmask={cleanNumeric} onValueChange={setEditDocument} className={iconInputClass} />
@@ -131,7 +131,7 @@ export function ClientEditDialog({ client, open, onOpenChange, onDelete, nested 
                   ) },
                 ]}
               />
-            <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_280px] gap-4 items-end">
+            <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_17.5rem] gap-4 items-end">
               <div className="space-y-1.5">
                 <FieldLabel htmlFor="edit-city" optional>Cidade / Endereço</FieldLabel>
                 <IconField icon={MapPin}>

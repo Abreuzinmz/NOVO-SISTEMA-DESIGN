@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useStore, type MotorPrice } from '@/lib/store';
+import { useFontScale } from '@/hooks/use-font-scale';
 import { fetchMotorsWithFavorites, addMotor, deleteMotor, toggleModelFavorite, normalizeForComparison, type MotorModel } from '@/lib/motors';
 import { SERVICE_CATEGORIES, type CatalogService } from '@/lib/service-catalog';
 import { 
@@ -40,7 +41,7 @@ import {
   Star
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { List } from 'react-window';
+import { List, useDynamicRowHeight } from 'react-window';
 
 // Wrapper component for MotorRow to use with react-window List
 interface MotorRowPropsData {
@@ -180,7 +181,7 @@ const CatalogRowWrapper = React.memo(({
       <div style={style} className="pb-1.5 pr-2.5">
         <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/60 dark:bg-card/30 border border-border text-xs font-semibold group h-full">
           <div className="flex flex-col min-w-0">
-            <span className="font-extrabold text-foreground uppercase truncate">
+            <span className="font-extrabold text-foreground uppercase truncate" title={item.name}>
               {item.name}
             </span>
             {item.defaultPrice > 0 && (
@@ -223,8 +224,8 @@ const CatalogRowWrapper = React.memo(({
   // standard item
   return (
     <div style={style} className="pb-1.5 pr-2.5">
-      <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/60 dark:bg-card/30 border border-border dark:border-border/40 text-xs h-full">
-        <span className="font-extrabold text-foreground dark:text-foreground/80 uppercase tracking-wide truncate max-w-[150px] lg:max-w-full">
+      <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-muted/60 dark:bg-card/30 border border-border dark:border-border/40 text-xs h-full">
+        <span className="min-w-0 font-extrabold text-foreground dark:text-foreground/80 uppercase tracking-wide truncate" title={item.name}>
           {item.name}
         </span>
         <Badge variant="outline" className="text-xs uppercase tracking-wider bg-muted dark:bg-background font-bold shrink-0 text-muted-foreground border-border">
@@ -355,9 +356,9 @@ const ServiceCard = React.memo(({
   return (
     <div className="pt-3 px-4 pb-3 bg-muted/60 dark:bg-card border border-border rounded-xl hover:border-border transition-all space-y-2 min-h-0 mb-3">
       {/* Service title row */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1 min-w-0">
-          <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+        <div className="space-y-1 min-w-[8rem] flex-1">
+          <span className="block truncate text-xs font-bold uppercase text-muted-foreground tracking-wider">
             {svc.category}
           </span>
           <h4 className="font-extrabold text-xs text-foreground uppercase tracking-wide truncate">
@@ -549,17 +550,8 @@ export function PriceManager() {
   const catalogContainerRef = useRef<HTMLDivElement>(null);
   const catalogContainerHeight = useContainerHeight(catalogContainerRef);
 
-  const [scale, setScale] = useState(1);
-
-  useEffect(() => {
-    const updateScale = () => {
-      const baseFontSize = parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
-      setScale(baseFontSize / 16);
-    };
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
-  }, []);
+  // acompanha o tamanho de fonte do sistema (as alturas das listas são em px)
+  const scale = useFontScale();
 
   // Loading states
   const [isLoadingMotors, setIsLoadingMotors] = useState(false);
@@ -963,11 +955,11 @@ export function PriceManager() {
 
   const getCatalogItemSize = useCallback((index: number) => {
     const item = combinedCatalogList[index];
-    if (!item) return 44;
-    if (item.type === 'header') return 24;
-    if (item.type === 'custom' && item.defaultPrice > 0) return 54;
-    return 44;
-  }, [combinedCatalogList]);
+    if (!item) return Math.round(44 * scale);
+    if (item.type === 'header') return Math.round(24 * scale);
+    if (item.type === 'custom' && item.defaultPrice > 0) return Math.round(54 * scale);
+    return Math.round(44 * scale);
+  }, [combinedCatalogList, scale]);
 
   // Combine standard and custom services for the selected motor pricing column
   const combinedPricingList = useMemo(() => {
@@ -1033,31 +1025,11 @@ export function PriceManager() {
     return list.sort((a, b) => (a.category || '').localeCompare(b.category || '') || (a.name || '').localeCompare(b.name || ''));
   }, [selectedMotor, motorPrices, customServices, debouncedServiceSearch, onlyPriced, resolveMotorName, resolveServiceId]);
 
-  const getItemSize = useCallback((index: number) => {
-    const svc = combinedPricingList[index];
-    if (!svc) return Math.round(174 * scale);
-
-    let size = 92; // base: título + categoria + botão na mesma linha + observação + espaçamento
-    
-    const standardPriceItem = svc.prices.find(p => p.subName === '');
-    const observationText = standardPriceItem?.observation || '';
-    if (observationText) {
-      size += 55;
-    }
-
-    const pricedVariations = svc.prices.filter(p => p.price > 0 || p.subName !== '');
-    if (pricedVariations.length > 0) {
-      size += pricedVariations.length * 52 + 16;
-    }
-    
-    return Math.round((size + 12) * scale);
-  }, [combinedPricingList, scale]);
-
-  useEffect(() => {
-    if (servicesListRef.current && typeof servicesListRef.current.resetAfterIndex === 'function') {
-      servicesListRef.current.resetAfterIndex(0);
-    }
-  }, [combinedPricingList, scale]);
+  // Altura de cada cartão medida na tela (muda com observação, medidas, largura e tamanho da fonte)
+  const servicesRowHeight = useDynamicRowHeight({
+    defaultRowHeight: Math.round(120 * scale),
+    key: `${selectedMotor}|${debouncedServiceSearch}|${onlyPriced}|${combinedPricingList.length}|${scale}`,
+  });
 
   // Counters
   const catalogedServicesCount = SERVICE_CATEGORIES.reduce((acc, cat) => acc + cat.services.length, 0) + customServices.length;
@@ -1070,7 +1042,7 @@ export function PriceManager() {
   }, [motorPrices, selectedMotor, resolveMotorName]);
 
   return (
-    <div className="space-y-6 select-none max-w-7xl mx-auto h-[calc(100vh-4rem)] flex flex-col">
+    <div className="space-y-6 select-none max-w-[120rem] mx-auto h-[calc(100vh-4rem)] flex flex-col">
       {/* ═══ BARRA SUPERIOR DE STATS ═══ */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 shrink-0">
         <div>
@@ -1101,19 +1073,19 @@ export function PriceManager() {
       </div>
 
       {/* ═══ CONTEÚDO PRINCIPAL (3 COLUNAS) ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0 pb-2">
+      <div className="grid grid-cols-[minmax(11rem,1fr)_minmax(0,2.2fr)_minmax(10.5rem,1fr)] lg:grid-cols-[minmax(12.5rem,1fr)_minmax(0,2.4fr)_minmax(11.5rem,1fr)] xl:grid-cols-[minmax(13rem,1fr)_minmax(0,2fr)_minmax(13rem,1fr)] gap-4 xl:gap-6 flex-1 min-h-0 pb-2">
         
         {/* ═══ COLUNA 1: MOTORES (3/12 width) ═══ */}
-        <div className="lg:col-span-3 bg-card dark:bg-background border border-border rounded-xl p-4 flex flex-col min-h-0 shadow-lg relative">
-          <div className="flex items-center justify-between mb-4 shrink-0">
-            <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider text-foreground">
-              <Layers className="w-4 h-4 text-muted-foreground" />
-              <span>Motores ({motors.length})</span>
+        <div className="min-w-0 bg-card dark:bg-background border border-border rounded-xl p-4 flex flex-col min-h-0 shadow-lg relative">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4 shrink-0">
+            <div className="flex items-center gap-2 min-w-0 font-bold text-xs uppercase tracking-wider text-foreground">
+              <Layers className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span className="min-w-0 leading-tight">Motores ({motors.length})</span>
             </div>
             <Button
               size="xs"
               onClick={() => setIsNewMotorOpen(true)}
-              className="solid-btn text-xs font-bold px-2.5 h-7 rounded-lg"
+              className="solid-btn text-xs font-bold px-2.5 h-7 rounded-lg shrink-0"
             >
               <Plus className="w-3 h-3 mr-1" />
               Novo
@@ -1162,7 +1134,7 @@ export function PriceManager() {
               <List<MotorRowPropsData>
                 style={{ height: motorsContainerHeight, width: "100%" }}
                 rowCount={filteredMotors.length}
-                rowHeight={72}
+                rowHeight={Math.round(72 * scale)}
                 rowComponent={MotorRowWrapper as any}
                 rowProps={{
                   filteredMotors,
@@ -1183,12 +1155,12 @@ export function PriceManager() {
         </div>
 
         {/* ═══ COLUNA 2: TABELA DE PREÇOS DO MOTOR (6/12 width) ═══ */}
-        <div className="lg:col-span-6 bg-card dark:bg-background border border-border rounded-xl p-4 flex flex-col min-h-0 shadow-lg">
+        <div className="min-w-0 bg-card dark:bg-background border border-border rounded-xl p-4 flex flex-col min-h-0 shadow-lg">
           {/* Header block */}
-          <div className="p-3.5 bg-secondary/40 border border-border rounded-xl text-foreground flex items-center justify-between mb-4 shrink-0">
-            <div className="space-y-0.5">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Preços do motor</span>
-              <h3 className="font-bold text-sm uppercase tracking-wide">{selectedMotor || 'SELECIONE UM MOTOR'}</h3>
+          <div className="p-3.5 bg-secondary/40 border border-border rounded-xl text-foreground flex flex-wrap items-center justify-between gap-2 mb-4 shrink-0">
+            <div className="space-y-0.5 min-w-0">
+              <span className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">Preços do motor</span>
+              <h3 className="font-bold text-sm uppercase tracking-wide break-words">{selectedMotor || 'SELECIONE UM MOTOR'}</h3>
             </div>
             
             {selectedMotor && (
@@ -1205,8 +1177,8 @@ export function PriceManager() {
           </div>
 
           {/* Search/Filters bar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4 shrink-0">
-            <div className="relative flex-1">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4 shrink-0">
+            <div className="relative flex-1 min-w-[10rem]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
               <Input
                 type="text"
@@ -1226,7 +1198,7 @@ export function PriceManager() {
               />
               <label 
                 htmlFor="only-priced" 
-                className="text-xs font-bold uppercase tracking-wider text-muted-foreground select-none cursor-pointer"
+                className="text-xs font-bold uppercase tracking-wider text-muted-foreground select-none cursor-pointer whitespace-nowrap"
               >
                 Apenas precificados
               </label>
@@ -1240,7 +1212,7 @@ export function PriceManager() {
                 listRef={servicesListRef}
                 style={{ height: servicesContainerHeight, width: "100%" }}
                 rowCount={combinedPricingList.length}
-                rowHeight={getItemSize}
+                rowHeight={servicesRowHeight}
                 rowComponent={ServiceCardWrapper as any}
                 rowProps={{
                   combinedPricingList,
@@ -1265,17 +1237,17 @@ export function PriceManager() {
         </div>
 
         {/* ═══ COLUNA 3: SERVIÇOS CATALOGADOS (3/12 width) ═══ */}
-        <div className="lg:col-span-3 bg-card dark:bg-background border border-border rounded-xl p-4 flex flex-col min-h-0 shadow-lg justify-between">
+        <div className="min-w-0 bg-card dark:bg-background border border-border rounded-xl p-4 flex flex-col min-h-0 shadow-lg justify-between">
           <div className="flex flex-col min-h-0 flex-1">
-            <div className="flex items-center justify-between mb-4 shrink-0">
-              <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider text-foreground">
-                <Wrench className="w-4 h-4 text-muted-foreground" />
-                <span>Serviços Catalogados ({catalogedServicesCount})</span>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4 shrink-0">
+              <div className="flex items-center gap-2 min-w-0 font-bold text-xs uppercase tracking-wider text-foreground">
+                <Wrench className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span className="min-w-0 leading-tight">Serviços Catalogados ({catalogedServicesCount})</span>
               </div>
               <Button
                 size="xs"
                 onClick={() => setIsNewServiceOpen(true)}
-                className="solid-btn text-xs font-bold px-2.5 h-7 rounded-lg"
+                className="solid-btn text-xs font-bold px-2.5 h-7 rounded-lg shrink-0"
               >
                 <Plus className="w-3 h-3 mr-1" />
                 Novo
@@ -1696,7 +1668,7 @@ export function PriceManager() {
                     placeholder="Ex: Preço válido somente para eixo sem solda..."
                     value={obsValue}
                     onChange={e => setObsValue(e.target.value)}
-                    className="w-full min-h-[80px] p-3 text-xs font-semibold rounded-lg border border-border bg-muted/60 dark:bg-card text-foreground focus-visible:ring-primary/40 focus:outline-none focus:ring-2 focus:ring-danger/30 resize-y"
+                    className="w-full min-h-[5rem] p-3 text-xs font-semibold rounded-lg border border-border bg-muted/60 dark:bg-card text-foreground focus-visible:ring-primary/40 focus:outline-none focus:ring-2 focus:ring-danger/30 resize-y"
                     maxLength={500}
                   />
                 </div>

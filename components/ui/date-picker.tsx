@@ -91,7 +91,7 @@ export function DatePickerCard({
     <div
       className={cn(
         "bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-2xl shadow-xl select-none font-sans text-slate-800 dark:text-zinc-100",
-        compact ? "w-[220px] p-2" : "w-[270px] p-3"
+        compact ? "w-[13.75rem] p-2" : "w-[16.875rem] p-3"
       )}
     >
       {/* Header: Month / Year & Navigation */}
@@ -108,7 +108,7 @@ export function DatePickerCard({
           <ChevronLeft className="w-3.5 h-3.5 stroke-[2.5]" />
         </button>
 
-        <span className={cn("font-bold text-slate-900 dark:text-zinc-100 capitalize", compact ? "text-[11px]" : "text-xs")}>
+        <span className={cn("font-bold text-slate-900 dark:text-zinc-100 capitalize", compact ? "text-[0.6875rem]" : "text-xs")}>
           {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
         </span>
 
@@ -128,7 +128,7 @@ export function DatePickerCard({
       {/* Weekday headers */}
       <div className="grid grid-cols-7 text-center mb-1">
         {weekDays.map((day, idx) => (
-          <div key={idx} className={cn("font-medium text-slate-400 dark:text-zinc-400", compact ? "text-[10px] py-0.5" : "text-[11px] py-1")}>
+          <div key={idx} className={cn("font-medium text-slate-400 dark:text-zinc-400", compact ? "text-[0.625rem] py-0.5" : "text-[0.6875rem] py-1")}>
             {day}
           </div>
         ))}
@@ -148,7 +148,7 @@ export function DatePickerCard({
               onClick={(e) => handleDayClick(day, e)}
               className={cn(
                 "mx-auto flex items-center justify-center font-medium transition-all cursor-pointer rounded-lg",
-                compact ? "h-6 w-6 text-[10px]" : "h-7 w-7 text-xs",
+                compact ? "h-6 w-6 text-[0.625rem]" : "h-7 w-7 text-xs",
                 // Selected Day styling (Solid blue rounded square)
                 isSelectedDay && "bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700",
                 // Today Day styling (marked ONLY with blue font, no weird border)
@@ -172,7 +172,7 @@ export function DatePickerCard({
           onClick={handleCancelClick}
           className={cn(
             "flex-1 font-semibold text-slate-700 dark:text-zinc-200 bg-white dark:bg-zinc-700 border border-slate-200 dark:border-zinc-600 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-600 transition-all cursor-pointer text-center",
-            compact ? "py-1 px-2 text-[10px]" : "py-1.5 px-3 text-xs"
+            compact ? "py-1 px-2 text-[0.625rem]" : "py-1.5 px-3 text-xs"
           )}
         >
           Cancelar
@@ -182,7 +182,7 @@ export function DatePickerCard({
           onClick={handleConfirmClick}
           className={cn(
             "flex-1 font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-sm cursor-pointer text-center",
-            compact ? "py-1 px-2 text-[10px]" : "py-1.5 px-3 text-xs"
+            compact ? "py-1 px-2 text-[0.625rem]" : "py-1.5 px-3 text-xs"
           )}
         >
           OK
@@ -205,7 +205,8 @@ export function DatePicker({
   compact = false,
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [popoverPos, setPopoverPos] = React.useState<{ top: number; left: number } | null>(null);
+  const [popoverPos, setPopoverPos] = React.useState<{ top: number; left: number; above: boolean } | null>(null);
+  const popoverRef = React.useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -230,26 +231,47 @@ export function DatePicker({
 
   const containerRef = React.useRef<HTMLDivElement>(null);
 
+  // Posição do calendário: abaixo do campo se couber; senão acima; senão o mais perto possível,
+  // sempre dentro da janela. Usa o tamanho real do calendário (acompanha o tamanho da fonte).
   const updatePos = React.useCallback(() => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const popoverWidth = compact ? 220 : 270;
-      let left = rect.left;
-      if (align === "right") {
-        left = rect.right - popoverWidth;
-      } else if (align === "center") {
-        left = rect.left + rect.width / 2 - popoverWidth / 2;
-      }
-      if (left < 10) left = 10;
-      if (typeof window !== "undefined" && left + popoverWidth > window.innerWidth - 10) {
-        left = window.innerWidth - popoverWidth - 10;
-      }
-      setPopoverPos({
-        top: rect.bottom + 6,
-        left: left,
-      });
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const scale = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) / 16;
+    const popoverWidth = popoverRef.current?.offsetWidth || (compact ? 220 : 270) * scale;
+    const popoverHeight = popoverRef.current?.offsetHeight || (compact ? 300 : 360) * scale;
+    const margin = 8;
+    const gap = 6;
+
+    let left = rect.left;
+    if (align === "right") {
+      left = rect.right - popoverWidth;
+    } else if (align === "center") {
+      left = rect.left + rect.width / 2 - popoverWidth / 2;
     }
+    left = Math.max(margin, Math.min(left, window.innerWidth - popoverWidth - margin));
+
+    const spaceBelow = window.innerHeight - rect.bottom - gap - margin;
+    const spaceAbove = rect.top - gap - margin;
+    let top: number;
+    let above = false;
+    if (popoverHeight <= spaceBelow) {
+      top = rect.bottom + gap;
+    } else if (popoverHeight <= spaceAbove) {
+      top = rect.top - gap - popoverHeight;
+      above = true;
+    } else {
+      // não cabe inteiro em nenhum dos lados: fica dentro da janela, do lado com mais espaço
+      above = spaceAbove > spaceBelow;
+      top = Math.max(margin, Math.min(above ? rect.top - gap - popoverHeight : rect.bottom + gap, window.innerHeight - popoverHeight - margin));
+    }
+    setPopoverPos({ top, left, above });
   }, [align, compact]);
+
+  // depois de aparecer, mede o tamanho real e reposiciona (antes de pintar, sem "pular")
+  React.useLayoutEffect(() => {
+    if (isOpen && popoverPos && popoverRef.current) updatePos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, popoverPos === null]);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -348,10 +370,12 @@ export function DatePicker({
       {isOpen && mounted && popoverPos && createPortal(
         <div
           id="date-picker-popover-portal"
+          ref={popoverRef}
           style={{
             position: "fixed",
             top: `${popoverPos.top}px`,
             left: `${popoverPos.left}px`,
+            transformOrigin: popoverPos.above ? "bottom" : "top",
           }}
           className="z-[9999] shadow-2xl bg-white dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700 animate-in fade-in zoom-in-95 duration-150"
         >

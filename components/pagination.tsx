@@ -95,7 +95,7 @@ export function Pagination({
               size="icon-sm"
               onClick={() => onPageChange(page)}
               className={cn(
-                'min-w-[28px] h-7 text-xs font-bold rounded-lg transition-all',
+                'min-w-[1.75rem] h-7 text-xs font-bold rounded-lg transition-all',
                 currentPage === page 
                   ? 'bg-foreground text-background hover:opacity-90 shadow-sm' 
                   : 'text-muted-foreground hover:bg-secondary/40 hover:text-foreground'

@@ -132,11 +132,11 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, extraItems,
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="sm:max-w-[620px] w-[calc(100vw-32px)] max-h-[calc(100vh-48px)] z-[1100] rounded-2xl p-0 gap-0 overflow-hidden"
+        className="sm:max-w-[38.75rem] w-[calc(100vw-2rem)] max-h-[calc(100dvh-3rem)] z-[1100] rounded-2xl p-0 gap-0 overflow-hidden flex flex-col"
         overlayClassName="z-[1099]"
       >
         {/* Cabeçalho */}
-        <div className="flex items-start gap-4 px-6 pt-6 pb-4">
+        <div className="flex items-start gap-4 px-6 pt-6 pb-4 shrink-0">
           <div className="w-11 h-11 rounded-xl bg-muted border border-border flex items-center justify-center shadow-2xs shrink-0">
             <Package className="w-5 h-5 text-foreground/80" />
           </div>
@@ -155,7 +155,7 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, extraItems,
         </div>
 
         {/* Busca */}
-        <div className="px-6 pb-4 border-b border-border">
+        <div className="px-6 pb-4 border-b border-border shrink-0">
           <div className="relative">
             <Search className={searchFieldIconClass} />
             <Input
@@ -170,6 +170,38 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, extraItems,
         {/* Itens */}
         <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Cadastrar novo (primeiro da lista) */}
+            {adding ? (
+              <div className="flex items-center gap-2 min-h-[4.75rem] px-2 py-1.5 rounded-xl border-2 border-dashed border-foreground/30 bg-muted/30">
+                <Input
+                  ref={newInputRef}
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); submitNew(); }
+                    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setAdding(false); }
+                  }}
+                  placeholder={cfg.newPlaceholder}
+                  className="h-9 flex-1 rounded-lg text-sm uppercase placeholder:normal-case bg-card"
+                />
+                <Button type="button" onClick={submitNew} disabled={!newName.trim()} className="solid-btn h-9 px-3 rounded-lg text-xs font-bold disabled:opacity-40">
+                  Salvar
+                </Button>
+                <button type="button" title="Cancelar" onClick={() => setAdding(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={startAdding}
+                className="flex items-center justify-center gap-2 min-h-[4.75rem] px-4 rounded-xl border-2 border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-muted/30 transition-colors cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="text-xs font-bold uppercase tracking-[0.1em]">Cadastrar novo</span>
+              </button>
+            )}
+
             {items.map((name) => {
               const already = inListSet.has(name.toUpperCase());
               const isPicked = picked.includes(name);
@@ -184,7 +216,7 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, extraItems,
                   onClick={() => !already && togglePick(name)}
                   onKeyDown={(e) => { if (!already && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); togglePick(name); } }}
                   className={cn(
-                    'group relative flex items-center gap-3 min-h-[76px] px-4 py-2 rounded-xl border transition-all select-none outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                    'group relative flex items-center gap-3 min-h-[4.75rem] px-4 py-2 rounded-xl border transition-all select-none outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
                     already
                       ? 'bg-muted/40 border-border opacity-60 cursor-not-allowed'
                       : isPicked
@@ -208,7 +240,7 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, extraItems,
                   )}
                   <div className="min-w-0 flex-1">
                     <div className={cn('text-sm font-bold uppercase tracking-tight leading-snug', isPicked ? 'text-foreground' : 'text-muted-foreground')}>{name}</div>
-                    {already && <div className="text-[11px] font-semibold text-muted-foreground">Já está na O.S.</div>}
+                    {already && <div className="text-[0.6875rem] font-semibold text-muted-foreground">Já está na O.S.</div>}
                   </div>
                   {custom.includes(name) && !already && (
                     <button
@@ -224,37 +256,7 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, extraItems,
               );
             })}
 
-            {/* Cadastrar novo */}
-            {adding ? (
-              <div className="flex items-center gap-2 min-h-[76px] px-2 py-1.5 rounded-xl border-2 border-dashed border-foreground/30 bg-muted/30">
-                <Input
-                  ref={newInputRef}
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value.toUpperCase())}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') { e.preventDefault(); submitNew(); }
-                    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setAdding(false); }
-                  }}
-                  placeholder={cfg.newPlaceholder}
-                  className="h-9 flex-1 rounded-lg text-sm uppercase placeholder:normal-case bg-card"
-                />
-                <Button type="button" onClick={submitNew} disabled={!newName.trim()} className="solid-btn h-9 px-3 rounded-lg text-xs font-bold disabled:opacity-40">
-                  Salvar
-                </Button>
-                <button type="button" title="Cancelar" onClick={() => setAdding(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={startAdding}
-                className="flex items-center justify-center gap-2 min-h-[76px] px-4 rounded-xl border-2 border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-muted/30 transition-colors cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase tracking-[0.1em]">Cadastrar novo</span>
-              </button>
-            )}
+
           </div>
           {items.length === 0 && !adding && (
             <p className="text-xs text-muted-foreground mt-3">
@@ -264,7 +266,7 @@ export function PartsPickerModal({ kind, open, onOpenChange, inList, extraItems,
         </div>
 
         {/* Rodapé */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border shrink-0">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="h-11 px-6 rounded-xl text-sm font-bold border-border">
             Cancelar
           </Button>

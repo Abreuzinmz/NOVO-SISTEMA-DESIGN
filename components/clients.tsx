@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { List } from 'react-window';
+import { List, useListRef } from 'react-window';
 import { useStore, Client, Order, PagamentoAgrupado } from '@/lib/store';
+import { useFontScale } from '@/hooks/use-font-scale';
 import { ServiceStatusBadge, PaymentBadge } from '@/components/ui/status-badges';
 import { getOrderPaymentSummary, formatBRL } from '@/lib/payment';
 import { 
@@ -84,6 +85,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 function useElementSize<T extends HTMLElement>() {
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [element, setRef] = useState<T | null>(null);
+
+  // mede logo ao aparecer (antes da pintura), sem esperar o primeiro aviso do ResizeObserver
+  React.useLayoutEffect(() => {
+    if (!element) return;
+    // clientWidth/Height: mesma medida do contentRect (sem borda; o contêiner não tem padding)
+    setSize({ width: element.clientWidth, height: element.clientHeight });
+  }, [element]);
 
   useEffect(() => {
     if (!element) return;
@@ -180,7 +188,7 @@ const ClientRow = React.memo(({ index, style, filteredClients, selectedClientId,
         </div>
         <div className="flex-1 flex flex-col justify-center min-w-0 leading-tight gap-1">
           {client.nickname ? (
-            <span className="text-[11px] font-semibold text-muted-foreground tracking-wide uppercase truncate block min-w-0">
+            <span className="text-[0.6875rem] font-semibold text-muted-foreground tracking-wide uppercase truncate block min-w-0">
               {client.nickname}
             </span>
           ) : null}
@@ -208,13 +216,13 @@ const ClientRow = React.memo(({ index, style, filteredClients, selectedClientId,
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="w-[84px] flex justify-center">
+          <span className="w-[5.25rem] flex justify-center">
             {client.clientType === 'mechanic' ? (
-              <span className="h-[22px] text-[11px] font-bold tracking-wide bg-info/10 text-info border border-info/20 rounded-md px-2 flex items-center justify-center">
+              <span className="h-[1.375rem] text-[0.6875rem] font-bold tracking-wide bg-info/10 text-info border border-info/20 rounded-md px-2 flex items-center justify-center">
                 MECÂNICO
               </span>
             ) : (
-              <span className="h-[22px] text-[11px] font-bold tracking-wide bg-secondary text-secondary-foreground border border-border rounded-md px-2 flex items-center justify-center">
+              <span className="h-[1.375rem] text-[0.6875rem] font-bold tracking-wide bg-secondary text-secondary-foreground border border-border rounded-md px-2 flex items-center justify-center">
                 CLIENTE
               </span>
             )}
@@ -271,6 +279,9 @@ interface ClientListProps {
 }
 
 const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectClient, addClient }: ClientListProps) => {
+  const fontScale = useFontScale();
+  const listRef = useListRef(null);
+  const scrolledToSelected = useRef(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'regular' | 'mechanic'>('all');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -408,6 +419,20 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
       .sort((a, b) => (a?.name || '').localeCompare(b?.name || '', 'pt-BR', { sensitivity: 'base' }));
   }, [clients, debouncedSearchTerm, typeFilter]);
 
+  // ao abrir já com um cliente selecionado, rola a lista até ele (uma vez)
+  useEffect(() => {
+    if (scrolledToSelected.current || !selectedClientId || height <= 0 || !listRef.current) return;
+    const index = filteredClients.findIndex(c => c.id === selectedClientId);
+    if (index < 0) return;
+    // a lista só fica pronta para rolar depois de montar: rola logo em seguida
+    const t = setTimeout(() => {
+      if (!listRef.current) return;
+      listRef.current.scrollToRow({ index, align: 'center' });
+      scrolledToSelected.current = true;
+    }, 0);
+    return () => clearTimeout(t);
+  }, [selectedClientId, filteredClients, height, listRef]);
+
   const itemData = useMemo(() => ({
     filteredClients,
     balances,
@@ -416,9 +441,9 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
   }), [filteredClients, balances, selectedClientId, onSelectClient]);
 
   return (
-    <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-3 min-w-0">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-2xl font-extrabold tracking-tight text-foreground leading-tight min-w-0 truncate">Base de Clientes</h2>
+    <div className="flex flex-col gap-3 min-w-0 min-h-0">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <h2 className="text-2xl font-extrabold tracking-tight text-foreground leading-tight whitespace-nowrap">Base de Clientes</h2>
         <div className="flex items-center justify-end gap-2 shrink-0">
           <span className="h-7 px-2.5 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground flex items-center tabular-nums whitespace-nowrap">{clients.length} Total</span>
           <Dialog open={isModalOpen} onOpenChange={(open) => { setIsModalOpen(open); if (!open) resetForm(); }}>
@@ -442,13 +467,13 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
                       conflicts={newConflicts}
                       onOpenClient={(c) => { setIsModalOpen(false); resetForm(); onSelectClient(c.id); }}
                     />
-                    <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+                    <div className="space-y-1.5 sm:max-w-[calc(50%-0.5rem)]">
                       <FieldLabel htmlFor="nickname" optional>Apelido / Nome fantasia</FieldLabel>
                       <IconField icon={Tag}>
                         <Input id="nickname" placeholder="Apelido ou nome fantasia" value={newNickname} onChange={e => setNewNickname(e.target.value.toUpperCase())} className={cn(iconInputClass, 'uppercase placeholder:normal-case')} />
                       </IconField>
                     </div>
-                    <div className="space-y-1.5 sm:max-w-[calc(50%-8px)]">
+                    <div className="space-y-1.5 sm:max-w-[calc(50%-0.5rem)]">
                       <FieldLabel htmlFor="document" optional>CPF/CNPJ</FieldLabel>
                       <IconField icon={FileText}>
                         <MaskedInput id="document" placeholder="000.000.000-00" value={newDocument} mask={maskCPFCNPJ} unmask={cleanNumeric} onValueChange={setNewDocument} className={iconInputClass} />
@@ -476,7 +501,7 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
                         ) },
                       ]}
                     />
-                  <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_280px] gap-4 items-end">
+                  <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_17.5rem] gap-4 items-end">
                     <div className="space-y-1.5">
                       <FieldLabel htmlFor="city" optional>Cidade / Endereço</FieldLabel>
                       <IconField icon={MapPin}>
@@ -545,8 +570,9 @@ const ClientList = React.memo(({ clients, balances, selectedClientId, onSelectCl
         ) : (
           height > 0 && (
             <List<ClientRowData>
+              listRef={listRef}
               rowCount={filteredClients.length}
-              rowHeight={76}
+              rowHeight={Math.round(76 * fontScale)}
               rowComponent={ClientRow as any}
               rowProps={itemData}
               style={{ height, width: '100%', overscrollBehavior: 'contain' }}
@@ -725,7 +751,7 @@ const ClientDetailsContent = React.memo(({
 
   if (!selectedClient) {
     return (
-      <div className="lg:col-span-7 xl:col-span-8 flex items-center justify-center text-muted-foreground/50 border border-dashed border-border rounded-lg p-12 text-center bg-card/50">
+      <div className="min-w-0 flex items-center justify-center text-muted-foreground/50 border border-dashed border-border rounded-lg p-12 text-center bg-card/50">
         <div className="client-empty-state">
           Selecione um cliente para ver os detalhes
         </div>
@@ -761,25 +787,25 @@ const ClientDetailsContent = React.memo(({
   const openEditModal = () => setIsEditModalOpen(true);
 
   return (
-    <div ref={detailsRef} className="lg:col-span-7 xl:col-span-8 space-y-6 overflow-y-auto pr-2 custom-scrollbar min-w-0">
+    <div ref={detailsRef} className="@container min-w-0 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
       {/* Client Card */}
       <div className="rounded-xl border bg-card border-border shadow-sm overflow-hidden">
         <div className="p-5">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex items-center gap-4 min-w-0">
               <div className="w-14 h-14 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground text-xl font-bold flex-shrink-0">
                 {selectedClient.name.charAt(0)}
               </div>
-              <div>
+              <div className="min-w-0">
                 {selectedClient.nickname && (
-                  <p className="text-[13.5px] font-bold text-muted-foreground uppercase tracking-wide mb-0.5">{selectedClient.nickname}</p>
+                  <p className="text-[0.8438rem] font-bold text-muted-foreground uppercase tracking-wide mb-0.5">{selectedClient.nickname}</p>
                 )}
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-lg font-extrabold text-foreground">{selectedClient.name}</h3>
                   {selectedClient.clientType === 'mechanic' ? (
-                    <span className="h-[22px] text-xs font-extrabold tracking-wider bg-info/10 text-info border border-info/20 rounded-md px-2 flex items-center justify-center">MECÂNICO</span>
+                    <span className="h-[1.375rem] text-xs font-extrabold tracking-wider bg-info/10 text-info border border-info/20 rounded-md px-2 flex items-center justify-center">MECÂNICO</span>
                   ) : (
-                    <span className="h-[22px] text-xs font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border rounded-md px-2 flex items-center justify-center">CLIENTE</span>
+                    <span className="h-[1.375rem] text-xs font-extrabold tracking-wider bg-secondary text-secondary-foreground border border-border rounded-md px-2 flex items-center justify-center">CLIENTE</span>
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-3.5 mt-2.5">
@@ -833,7 +859,7 @@ const ClientDetailsContent = React.memo(({
       </div>
 
       {/* Indicadores */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 @[26rem]:grid-cols-2 @[46rem]:grid-cols-4 gap-3">
         <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card shadow-sm">
           <div className="w-11 h-11 rounded-xl border border-border bg-muted/50 flex items-center justify-center shrink-0">
             <FileText className="w-5 h-5 text-muted-foreground stroke-[1.5]" />
@@ -868,7 +894,7 @@ const ClientDetailsContent = React.memo(({
           <div className="min-w-0">
             <p className="text-sm text-muted-foreground">A receber</p>
             <p className="text-xl font-extrabold text-red-600 dark:text-red-400 tabular-nums truncate">{formatBRL(pendingAmount)}</p>
-            {pendingCount > 0 && <p className="text-[11px] text-muted-foreground">{pendingCount} O.S. com pagamento pendente</p>}
+            {pendingCount > 0 && <p className="text-[0.6875rem] text-muted-foreground">{pendingCount} O.S. com pagamento pendente</p>}
           </div>
         </div>
       </div>
@@ -911,7 +937,7 @@ const ClientDetailsContent = React.memo(({
                   >
                     <ListFilter className="w-4 h-4" />
                     {orderFilterCount > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1">{orderFilterCount}</span>
+                      <span className="absolute -top-1.5 -right-1.5 min-w-[1rem] h-4 rounded-full bg-primary text-primary-foreground text-[0.625rem] font-bold flex items-center justify-center px-1">{orderFilterCount}</span>
                     )}
                   </button>
                 }
@@ -922,7 +948,7 @@ const ClientDetailsContent = React.memo(({
                   ['Pagamento', orderPaymentFilter, setOrderPaymentFilter, ORDER_PAYMENT_OPTIONS],
                 ] as const).map(([title, current, setter, options]) => (
                   <div key={title} className="py-1">
-                    <div className="px-2.5 pt-1 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
+                    <div className="px-2.5 pt-1 pb-1 text-[0.6875rem] font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
                     {options.map((o) => (
                       <button
                         key={o.value}
@@ -972,7 +998,7 @@ const ClientDetailsContent = React.memo(({
               )}
             >
               Todas
-              <span className={cn("min-w-[22px] h-[22px] px-1.5 rounded-full text-xs font-bold flex items-center justify-center tabular-nums", quickFilter === '' ? "bg-background/20" : "bg-muted")}>{clientOrders.length}</span>
+              <span className={cn("min-w-[1.375rem] h-[1.375rem] px-1.5 rounded-full text-xs font-bold flex items-center justify-center tabular-nums", quickFilter === '' ? "bg-background/20" : "bg-muted")}>{clientOrders.length}</span>
             </button>
             {quickChips.map((c) => (
               <button
@@ -987,7 +1013,7 @@ const ClientDetailsContent = React.memo(({
                 )}
               >
                 {c.label}
-                <span className={cn("min-w-[22px] h-[22px] px-1.5 rounded-full text-xs font-bold flex items-center justify-center tabular-nums", quickFilter === c.key ? "bg-white/20" : c.key === 'pendente' ? "bg-white/70 dark:bg-white/10" : "bg-muted")}>{c.count}</span>
+                <span className={cn("min-w-[1.375rem] h-[1.375rem] px-1.5 rounded-full text-xs font-bold flex items-center justify-center tabular-nums", quickFilter === c.key ? "bg-white/20" : c.key === 'pendente' ? "bg-white/70 dark:bg-white/10" : "bg-muted")}>{c.count}</span>
               </button>
             ))}
           </div>
@@ -996,7 +1022,7 @@ const ClientDetailsContent = React.memo(({
           <Table>
             <TableHeader className="bg-secondary/10">
               <TableRow className="border-border">
-                <TableHead className="w-[100px] font-semibold text-xs uppercase tracking-wide text-muted-foreground">Nº O.S.</TableHead>
+                <TableHead className="w-[6.25rem] font-semibold text-xs uppercase tracking-wide text-muted-foreground">Nº O.S.</TableHead>
                 {selectedClient?.clientType === 'mechanic' ? (
                   <TableHead className="font-semibold text-xs uppercase tracking-wide text-muted-foreground">Cliente / Motor</TableHead>
                 ) : (
@@ -1115,7 +1141,7 @@ const ClientDetailsContent = React.memo(({
 
       {/* ═══ DELETE CONFIRMATION DIALOG ═══ */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[450px] rounded-lg bg-popover border-border">
+        <DialogContent className="sm:max-w-[28.125rem] rounded-lg bg-popover border-border">
           <DialogHeader>
             <DialogTitle className="text-md font-extrabold flex items-center gap-2 text-foreground">
               <AlertTriangle className="w-5 h-5 text-danger" />
@@ -1166,7 +1192,7 @@ const ClientDetailsContent = React.memo(({
 
       {/* ═══ CONFIRM DELETE CLIENT DIALOG ═══ */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] rounded-lg bg-popover border-border">
+        <DialogContent className="sm:max-w-[26.5625rem] rounded-lg bg-popover border-border">
           <DialogHeader>
             <DialogTitle className="text-md font-extrabold flex items-center gap-2 text-destructive">
               <AlertTriangle className="w-5 h-5 stroke-[1.5]" />
@@ -1238,7 +1264,7 @@ interface ClientDetailsProps {
 const ClientDetails = React.memo((props: ClientDetailsProps) => {
   if (!props.selectedClientId) {
     return (
-      <div className="lg:col-span-7 xl:col-span-8 flex items-center justify-center text-muted-foreground/50 border border-dashed border-border rounded-lg p-12 text-center bg-card/50">
+      <div className="min-w-0 flex items-center justify-center text-muted-foreground/50 border border-dashed border-border rounded-lg p-12 text-center bg-card/50">
         <div className="client-empty-state">
           Selecione um cliente para ver os detalhes
         </div>
@@ -1262,9 +1288,11 @@ interface ClientsProps {
   onEdit?: (order: Order) => void;
   onView?: (order: Order) => void;
   onNewOrder?: (clientId: string) => void;
+  /** Cliente já selecionado ao abrir a tela (ex.: vindo do perfil do cliente na O.S.) */
+  initialClientId?: string;
 }
 
-export function Clients({ onEdit, onView, onNewOrder }: ClientsProps = {}) {
+export function Clients({ onEdit, onView, onNewOrder, initialClientId }: ClientsProps = {}) {
   const { 
     clients, 
     orders, 
@@ -1284,14 +1312,14 @@ export function Clients({ onEdit, onView, onNewOrder }: ClientsProps = {}) {
     [orders, groupedPayments, getGroupedPaymentForOrder]
   );
 
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(initialClientId ?? null);
 
   const handleSelectClient = useCallback((id: string) => {
     setSelectedClientId(id);
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-120px)] relative z-10">
+    <div className="grid grid-cols-[minmax(18rem,5fr)_minmax(0,7fr)] lg:grid-cols-[minmax(22rem,5fr)_minmax(0,7fr)] xl:grid-cols-[minmax(24rem,1fr)_minmax(0,2fr)] gap-4 xl:gap-6 h-[calc(100vh-7.5rem)] relative z-10 mx-auto w-full max-w-[120rem]">
       <ClientList
         clients={clients}
         balances={balances}

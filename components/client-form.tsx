@@ -29,10 +29,10 @@ export function FormSection({ icon: Icon, title, hint, description, tone = 'info
     <section className="rounded-xl border border-border bg-muted/20 px-4 py-3.5 space-y-3">
       <div className="flex items-center gap-3">
         <span className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0', SECTION_TONES[tone])}>
-          <Icon className="w-[18px] h-[18px] stroke-[1.75]" />
+          <Icon className="w-[1.125rem] h-[1.125rem] stroke-[1.75]" />
         </span>
         <div className="min-w-0">
-          <h3 className="text-[15px] font-bold leading-tight text-foreground">{title}</h3>
+          <h3 className="text-[0.9375rem] font-bold leading-tight text-foreground">{title}</h3>
           {(hint || description) && <p className="text-xs text-muted-foreground mt-0.5">{hint || description}</p>}
         </div>
       </div>
@@ -43,7 +43,7 @@ export function FormSection({ icon: Icon, title, hint, description, tone = 'info
 
 export function FieldLabel({ htmlFor, children, required }: { htmlFor?: string; children: React.ReactNode; required?: boolean; optional?: boolean }) {
   return (
-    <label htmlFor={htmlFor} className="flex items-center gap-1 text-[13px] font-semibold text-foreground">
+    <label htmlFor={htmlFor} className="flex items-center gap-1 text-[0.8125rem] font-semibold text-foreground">
       {children}
       {required && <span className="text-danger">*</span>}
     </label>
@@ -280,4 +280,4 @@ export function ClientDialogFooter({ onCancel, onSave, saveDisabled, saveLabel =
 }
 
 /** Classes do DialogContent do formulário de cliente */
-export const clientDialogClass = 'relative sm:max-w-[680px] max-h-[94vh] p-0 gap-0 rounded-2xl bg-popover border-border overflow-hidden flex flex-col';
+export const clientDialogClass = 'relative sm:max-w-[42.5rem] max-h-[94vh] p-0 gap-0 rounded-2xl bg-popover border-border overflow-hidden flex flex-col';

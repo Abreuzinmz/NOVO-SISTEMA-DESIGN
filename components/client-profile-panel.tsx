@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { User, Wrench, Phone, MessageCircle, FileText, MapPin, Pencil, X, ChevronRight, ClipboardList } from 'lucide-react';
+import { User, Wrench, Phone, MessageCircle, FileText, MapPin, Pencil, X, ChevronRight, ClipboardList, Users } from 'lucide-react';
+import { openClientInClientsView } from '@/lib/app-navigation';
 import { useStore, Order } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { getOrderPaymentSummary, formatBRL } from '@/lib/payment';
@@ -71,7 +72,7 @@ export function ClientProfilePanel({ clientId, currentOrderId, open, onOpenChang
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
           showCloseButton={false}
-          className="ml-auto self-stretch w-[min(480px,100%)] z-[1200] rounded-2xl bg-popover border border-border ring-1 ring-foreground/15 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] p-0 gap-0 overflow-hidden flex flex-col data-open:slide-in-from-right-8"
+          className="ml-auto my-0 self-stretch w-[min(30rem,100%)] z-[1200] rounded-2xl bg-popover border border-border ring-1 ring-foreground/15 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] p-0 gap-0 overflow-hidden flex flex-col data-open:slide-in-from-right-8"
           overlayClassName="z-[1199] bg-black/40 supports-backdrop-filter:backdrop-blur-[1px]"
           forceOverlay
         >
@@ -90,7 +91,7 @@ export function ClientProfilePanel({ clientId, currentOrderId, open, onOpenChang
                 )}
                 <DialogTitle className="text-lg font-extrabold uppercase tracking-tight text-foreground leading-snug break-words">{client.name}</DialogTitle>
                 <span className={cn(
-                  "inline-block mt-1 text-[11px] font-extrabold tracking-wider uppercase rounded-full border px-2.5 py-0.5",
+                  "inline-block mt-1 text-[0.6875rem] font-extrabold tracking-wider uppercase rounded-full border px-2.5 py-0.5",
                   isMechanic ? "bg-info/10 text-info border-info/20" : "bg-card text-secondary-foreground border-border"
                 )}>
                   {isMechanic ? 'Mecânico' : 'Cliente'}
@@ -106,43 +107,54 @@ export function ClientProfilePanel({ clientId, currentOrderId, open, onOpenChang
                 {contacts.map((r) => (
                   <div key={r.label} className="flex items-center gap-2 min-w-0">
                     <r.icon className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground shrink-0">{r.label}</span>
-                    <span className="min-w-0 text-[13px] font-semibold text-foreground truncate" title={r.value}>{r.value}</span>
+                    <span className="text-[0.625rem] font-bold uppercase tracking-wide text-muted-foreground shrink-0">{r.label}</span>
+                    <span className="min-w-0 text-[0.8125rem] font-semibold text-foreground truncate" title={r.value}>{r.value}</span>
                   </div>
                 ))}
               </div>
             )}
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setEditOpen(true)}
-              className="mt-4 w-full h-9 rounded-lg border-border bg-card hover:bg-muted text-xs font-bold uppercase tracking-wide gap-1.5"
-            >
-              <Pencil className="w-3.5 h-3.5" /> Editar cliente
-            </Button>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEditOpen(true)}
+                className="w-full h-9 rounded-lg border-border bg-card hover:bg-muted text-xs font-bold uppercase tracking-wide gap-1.5"
+              >
+                <Pencil className="w-3.5 h-3.5" /> Editar cliente
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                title="Fechar a O.S. e abrir este cliente na tela Clientes"
+                onClick={() => { onOpenChange(false); openClientInClientsView(clientId); }}
+                className="w-full h-9 rounded-lg border-border bg-card hover:bg-muted text-xs font-bold uppercase tracking-wide gap-1.5"
+              >
+                <Users className="w-3.5 h-3.5" /> Ver em Clientes
+              </Button>
+            </div>
           </div>
 
           {/* Resumo */}
           <div className="shrink-0 grid grid-cols-3 gap-2 px-5 py-4 border-b border-border">
             <div className="rounded-xl border border-border bg-card px-3 py-2">
-              <div className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">O.S.</div>
+              <div className="text-[0.625rem] font-bold uppercase tracking-wide text-muted-foreground">O.S.</div>
               <div className="text-lg font-extrabold text-foreground tabular-nums leading-tight">{all.length}</div>
-              <div className="text-[11px] text-muted-foreground">{stats.openCount} em aberto</div>
+              <div className="text-[0.6875rem] text-muted-foreground">{stats.openCount} em aberto</div>
             </div>
             <div className="rounded-xl border border-border bg-card px-3 py-2 min-w-0">
-              <div className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Total gasto</div>
+              <div className="text-[0.625rem] font-bold uppercase tracking-wide text-muted-foreground">Total gasto</div>
               <div className="text-base font-extrabold text-foreground tabular-nums leading-tight truncate" title={formatBRL(stats.spent)}>{formatBRL(stats.spent)}</div>
             </div>
             <div className={cn(
               "rounded-xl border px-3 py-2 min-w-0",
               stats.pending > 0 ? "border-warning/30 bg-warning/5" : "border-border bg-card"
             )}>
-              <div className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">A receber</div>
+              <div className="text-[0.625rem] font-bold uppercase tracking-wide text-muted-foreground">A receber</div>
               {stats.pending > 0 ? (
                 <>
                   <div className="text-base font-extrabold text-warning tabular-nums leading-tight truncate" title={formatBRL(stats.pending)}>{formatBRL(stats.pending)}</div>
-                  <div className="text-[11px] text-muted-foreground">{stats.pendingCount} {stats.pendingCount === 1 ? 'O.S.' : 'O.S.'}</div>
+                  <div className="text-[0.6875rem] text-muted-foreground">{stats.pendingCount} {stats.pendingCount === 1 ? 'O.S.' : 'O.S.'}</div>
                 </>
               ) : (
                 <div className="text-sm font-bold text-success leading-tight mt-0.5">Nada pendente</div>
@@ -164,7 +176,7 @@ export function ClientProfilePanel({ clientId, currentOrderId, open, onOpenChang
                       type="button"
                       onClick={() => setTab(key)}
                       className={cn(
-                        "h-7 px-2.5 rounded-md text-[11px] font-bold cursor-pointer transition-colors",
+                        "h-7 px-2.5 rounded-md text-[0.6875rem] font-bold cursor-pointer transition-colors",
                         tab === key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                       )}
                     >
@@ -197,23 +209,23 @@ export function ClientProfilePanel({ clientId, currentOrderId, open, onOpenChang
                         : "border-border bg-card hover:bg-muted/60 cursor-pointer"
                     )}
                   >
-                    <div className="w-[68px] shrink-0">
+                    <div className="w-[4.25rem] shrink-0">
                       <div className="text-sm font-extrabold text-blue-600 dark:text-blue-400 tabular-nums leading-tight">#{String(o.osNumber || o.id).padStart(4, '0')}</div>
-                      <div className="text-[11px] text-muted-foreground tabular-nums">{date}</div>
+                      <div className="text-[0.6875rem] text-muted-foreground tabular-nums">{date}</div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13px] font-bold uppercase text-foreground truncate" title={o.motorModel}>{motor || 'Motor não informado'}</div>
+                      <div className="text-[0.8125rem] font-bold uppercase text-foreground truncate" title={o.motorModel}>{motor || 'Motor não informado'}</div>
                       {owner ? (
-                        <div className="text-[11px] font-semibold uppercase text-muted-foreground truncate">{owner.nickname || owner.name}</div>
+                        <div className="text-[0.6875rem] font-semibold uppercase text-muted-foreground truncate">{owner.nickname || owner.name}</div>
                       ) : isCurrent ? (
-                        <div className="text-[11px] font-bold uppercase text-blue-600 dark:text-blue-400">Esta O.S.</div>
+                        <div className="text-[0.6875rem] font-bold uppercase text-blue-600 dark:text-blue-400">Esta O.S.</div>
                       ) : (
-                        <ServiceStatusBadge status={o.serviceStatus} finished={o.finished} className="mt-0.5 px-2 py-0 text-[9.5px]" />
+                        <ServiceStatusBadge status={o.serviceStatus} finished={o.finished} className="mt-0.5 px-2 py-0 text-[0.5938rem]" />
                       )}
                     </div>
                     <div className="shrink-0 flex flex-col items-end gap-1">
-                      <span className="text-[13px] font-extrabold text-foreground tabular-nums">{formatBRL(o.netValue || 0)}</span>
-                      <PaymentBadge situation={pay.situation} grouped={!!getGroupedPaymentForOrder(o.id)} className="px-2 py-0 text-[9.5px]" />
+                      <span className="text-[0.8125rem] font-extrabold text-foreground tabular-nums">{formatBRL(o.netValue || 0)}</span>
+                      <PaymentBadge situation={pay.situation} grouped={!!getGroupedPaymentForOrder(o.id)} className="px-2 py-0 text-[0.5938rem]" />
                     </div>
                     {!isCurrent && <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />}
                   </button>

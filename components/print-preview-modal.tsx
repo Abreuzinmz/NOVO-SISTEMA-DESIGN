@@ -142,7 +142,7 @@ export function PrintPreviewModal({
       <DialogContent
         showCloseButton={false}
         useFlexLayout={true}
-        className="w-[min(1200px,calc(100vw-48px))] max-h-[calc(100vh-48px)] p-0 border border-border bg-card rounded-xl overflow-hidden shadow-2xl z-[9999] flex flex-col gap-0"
+        className="w-[min(75rem,calc(100vw-3rem))] max-h-[calc(100vh-3rem)] p-0 border border-border bg-card rounded-xl overflow-hidden shadow-2xl z-[9999] flex flex-col gap-0"
         overlayClassName="z-[9998]"
         style={{ transform: 'none' }}
         finalFocus={false}

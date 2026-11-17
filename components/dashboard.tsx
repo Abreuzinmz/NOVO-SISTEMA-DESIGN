@@ -70,7 +70,7 @@ const STATUS_ACCENT: Record<string, string> = {
   'Cancelada': 'border-l-zinc-300',
 };
 
-const motorChip = 'inline-flex items-center h-5 px-1.5 rounded-md bg-gray-100 border border-gray-200 text-[11px] font-semibold text-gray-500 tabular-nums uppercase dark:bg-white/5 dark:border-white/10 dark:text-gray-300';
+const motorChip = 'inline-flex items-center h-5 px-1.5 rounded-md bg-gray-100 border border-gray-200 text-[0.6875rem] font-semibold text-gray-500 tabular-nums uppercase dark:bg-white/5 dark:border-white/10 dark:text-gray-300';
 
 interface DashboardOrderRowProps {
   order: Order;
@@ -123,7 +123,7 @@ const DashboardOrderRow = React.memo(({
       onClick={() => onView(order)}
       className={cn(
         "relative group rounded-xl border border-l-4 bg-card shadow-sm transition-all duration-150 cursor-pointer hover:shadow-md hover:bg-muted/30",
-        "grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_176px_104px_32px] xl:grid-cols-[88px_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.4fr)_100px_188px_108px_36px] gap-x-3 items-center pl-5 pr-4 py-3.5 min-h-[72px]",
+        "grid grid-cols-[4.5rem_minmax(0,1.5fr)_minmax(0,1fr)_11rem_6.5rem_2rem] @min-[72rem]:grid-cols-[5.5rem_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.4fr)_6.25rem_11.75rem_6.75rem_2.25rem] gap-x-3 items-center pl-5 pr-4 py-3.5 min-h-[4.5rem]",
         "border-t-border/70 border-r-border/70 border-b-border/70",
         STATUS_ACCENT[order.serviceStatus] || 'border-l-border'
       )}
@@ -134,7 +134,7 @@ const DashboardOrderRow = React.memo(({
           #{order.osNumber || order.id}
         </div>
         {arrival && (
-          <div className={cn("xl:hidden text-xs font-semibold", arrival.days >= 15 ? "text-danger" : arrival.days >= 7 ? "text-warning" : "text-muted-foreground")}>
+          <div className={cn("@min-[72rem]:hidden text-xs font-semibold", arrival.days >= 15 ? "text-danger" : arrival.days >= 7 ? "text-warning" : "text-muted-foreground")}>
             {arrival.label}
           </div>
         )}
@@ -142,22 +142,22 @@ const DashboardOrderRow = React.memo(({
 
       {/* Cliente */}
       <div className="min-w-0" title={client?.nickname ? `${client.nickname} (${client.name || ''})` : client?.name}>
-        <div className="font-extrabold text-foreground text-[13px] uppercase leading-tight line-clamp-2 break-words">
+        <div className="font-extrabold text-foreground text-[0.8125rem] uppercase leading-tight line-clamp-2 break-words">
           {client?.nickname || client?.name || 'Cliente removido'}
         </div>
         {client?.nickname && client?.name && (
-          <div className="text-[11px] font-medium uppercase text-muted-foreground truncate mt-0.5">{client.name}</div>
+          <div className="text-[0.6875rem] font-medium uppercase text-muted-foreground truncate mt-0.5">{client.name}</div>
         )}
         {client?.phone && (
-          <div className="text-[11px] font-semibold text-muted-foreground truncate tabular-nums">{client.phone}</div>
+          <div className="text-[0.6875rem] font-semibold text-muted-foreground truncate tabular-nums">{client.phone}</div>
         )}
         {mechanicLabel && (
-          <div className="xl:hidden text-xs text-foreground/75 truncate">Mecânico: {mechanicLabel}</div>
+          <div className="@min-[72rem]:hidden text-xs text-foreground/75 truncate">Mecânico: {mechanicLabel}</div>
         )}
       </div>
 
       {/* Mecânico responsável (em telas menores vai para baixo do cliente) */}
-      <div className="hidden xl:block min-w-0 text-sm font-semibold uppercase truncate" title={mechanicLabel || 'Sem mecânico'}>
+      <div className="hidden @min-[72rem]:block min-w-0 text-sm font-semibold uppercase truncate" title={mechanicLabel || 'Sem mecânico'}>
         {mechanicLabel ? <span className="text-foreground">{mechanicLabel}</span> : <span className="text-muted-foreground">—</span>}
       </div>
 
@@ -166,7 +166,7 @@ const DashboardOrderRow = React.memo(({
         {parsedMotors.length > 0 ? (
           parsedMotors.map((pm, idx) => (
             <div key={idx} className="flex flex-wrap items-center gap-1.5 text-sm leading-tight py-0.5">
-              <span className="font-extrabold text-foreground text-[13px] uppercase">{pm.model}</span>
+              <span className="font-extrabold text-foreground text-[0.8125rem] uppercase">{pm.model}</span>
               {pm.disp && <span className={motorChip}>{pm.disp}</span>}
               {pm.cylinders && <span className={motorChip}>{pm.cylinders}</span>}
             </div>
@@ -177,7 +177,7 @@ const DashboardOrderRow = React.memo(({
       </div>
 
       {/* Chegada */}
-      <div className="hidden xl:block text-sm leading-tight">
+      <div className="hidden @min-[72rem]:block text-sm leading-tight">
         {arrival ? (
           <>
             <div className={cn("font-semibold", arrival.days >= 15 ? "text-danger" : arrival.days >= 7 ? "text-warning" : "text-foreground")}>
@@ -202,7 +202,7 @@ const DashboardOrderRow = React.memo(({
           >
             <ServiceStatusBadge status={order.serviceStatus} withMenu />
           </SelectTrigger>
-          <SelectContent className="z-[9999] bg-card dark:bg-background border border-border/50 dark:border-border rounded-lg shadow-2xl min-w-[180px] w-auto p-1.5">
+          <SelectContent className="z-[9999] bg-card dark:bg-background border border-border/50 dark:border-border rounded-lg shadow-2xl min-w-[11.25rem] w-auto p-1.5">
             {(['Na Fila', 'Em Andamento', 'Aguardando Peça', 'Pronto', 'Levou'] as ServiceStatus[]).map((s) => (
               <SelectItem key={s} value={s} className="rounded-md py-2 px-2 focus:bg-primary/5 dark:focus:bg-foreground/[0.06] cursor-pointer">
                 <ServiceStatusBadge status={s} />
@@ -216,10 +216,10 @@ const DashboardOrderRow = React.memo(({
           </SelectContent>
         </Select>
         {order.serviceStatus === 'Levou' && order.deliveryDate && (
-          <span className="text-[11px] font-semibold text-red-600 dark:text-red-400 tabular-nums">{order.deliveryDate.split('-').reverse().join('/')}</span>
+          <span className="text-[0.6875rem] font-semibold text-red-600 dark:text-red-400 tabular-nums">{order.deliveryDate.split('-').reverse().join('/')}</span>
         )}
         {order.statusObservation && (
-          <span className="text-[11px] font-medium uppercase text-muted-foreground leading-tight line-clamp-2 break-words">
+          <span className="text-[0.6875rem] font-medium uppercase text-muted-foreground leading-tight line-clamp-2 break-words">
             {order.statusObservation}
           </span>
         )}
@@ -240,7 +240,7 @@ const DashboardOrderRow = React.memo(({
               </Button>
             }
           />
-          <DropdownMenuContent align="end" className="min-w-[170px] bg-card border-border rounded-lg shadow-lg">
+          <DropdownMenuContent align="end" className="min-w-[10.625rem] bg-card border-border rounded-lg shadow-lg">
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onView(order); }} className="hover:bg-secondary cursor-pointer rounded mx-1 text-sm">
                 <Eye className="w-4 h-4 mr-2 stroke-[1.5]" /> Abrir O.S.
@@ -639,6 +639,8 @@ export function Dashboard({
         </div>
       </div>
 
+      {/* conteúdo com largura máxima (monitores largos), centralizado */}
+      <div className="space-y-6 mx-auto w-full max-w-[120rem]">
       {/* ═══ SUB TABS ═══ */}
       <div className="flex gap-1 border-b border-border/60 -mt-2">
         <button
@@ -698,14 +700,14 @@ export function Dashboard({
           )}
 
           {/* ═══ TABLE ═══ */}
-          <div className="w-full space-y-3">
+          <div className="@container w-full space-y-3">
             {/* Table Header (Grid matching row cols) */}
-            <div className="hidden md:grid grid-cols-[72px_minmax(0,1.5fr)_minmax(0,1fr)_176px_104px_32px] xl:grid-cols-[88px_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.4fr)_100px_188px_108px_36px] gap-x-3 pl-[25px] pr-4 py-1 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+            <div className="hidden md:grid grid-cols-[4.5rem_minmax(0,1.5fr)_minmax(0,1fr)_11rem_6.5rem_2rem] @min-[72rem]:grid-cols-[5.5rem_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.4fr)_6.25rem_11.75rem_6.75rem_2.25rem] gap-x-3 pl-[1.5625rem] pr-4 py-1 text-[0.6562rem] font-semibold uppercase tracking-wider text-muted-foreground/70">
               <div>Nº O.S.</div>
               <div>Cliente</div>
-              <div className="hidden xl:block">Mec. responsável</div>
+              <div className="hidden @min-[72rem]:block">Mec. responsável</div>
               <div>Motor</div>
-              <div className="hidden xl:block">Chegada</div>
+              <div className="hidden @min-[72rem]:block">Chegada</div>
               <div className="text-center">Status</div>
               <div className="text-center">Pagamento</div>
               <div></div>
@@ -791,6 +793,7 @@ export function Dashboard({
           </div>
         </div>
       )}
+      </div>
 
       {/* ═══ MODAL O.S. (View Mode) ═══ */}
       {isViewModalOpen && (
@@ -811,8 +814,8 @@ export function Dashboard({
       {/* ── Nova O.S. Rápida (Form Panel) ── */}
       <div
         className={cn(
-          "fixed inset-y-0 right-0 w-[95vw] max-w-[850px] bg-background border-l border-border shadow-xl z-[100] transform transition-transform duration-300 ease-out flex flex-col",
-          quickOsOpen ? "translate-x-0" : "translate-x-full"
+          "fixed inset-y-0 right-0 w-[95vw] max-w-[53.125rem] bg-background border-l border-border shadow-xl z-[100] transform transition-[transform,visibility] duration-300 ease-out flex flex-col",
+          quickOsOpen ? "translate-x-0 visible" : "translate-x-full invisible"
         )}
       >
         <div className="flex items-center justify-between px-5 py-3 border-b shrink-0 bg-card">
@@ -840,7 +843,7 @@ export function Dashboard({
 
       {statusChangeData && (
         <Dialog open={!!statusChangeData} onOpenChange={(open) => { if (!open) setStatusChangeData(null); }}>
-          <DialogContent className="w-[min(450px,calc(100vw-32px))] p-6 border border-border/50 dark:border-border bg-card rounded-xl shadow-2xl z-[9999] flex flex-col gap-4" finalFocus={false}>
+          <DialogContent className="w-[min(28.125rem,calc(100vw-2rem))] p-6 border border-border/50 dark:border-border bg-card rounded-xl shadow-2xl z-[9999] flex flex-col gap-4" finalFocus={false}>
             <DialogHeader>
               <DialogTitle className="text-sm font-bold text-foreground uppercase tracking-wider">
                 Alterar Status da O.S. #{statusChangeData.orderId}

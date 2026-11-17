@@ -183,7 +183,7 @@ export function FilterDropdown({
           </button>
         }
       />
-      <PopoverContent align={align} sideOffset={6} className='w-auto min-w-[max(var(--anchor-width),180px)] max-w-[340px] p-1.5 gap-1 rounded-xl border border-border shadow-lg'>
+      <PopoverContent align={align} sideOffset={6} className='w-auto min-w-[max(var(--anchor-width),11.25rem)] max-w-[21.25rem] p-1.5 gap-1 rounded-xl border border-border shadow-lg'>
         {searchable && (
           <div className='relative px-0.5 pt-0.5'>
             <Search className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground' />
@@ -577,7 +577,7 @@ export function FilterBar({
         <Filter className='w-4 h-4' />
         Filtros
         {panelCount > 0 && (
-          <span className='min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center px-1'>{panelCount}</span>
+          <span className='min-w-[1.125rem] h-[1.125rem] rounded-full bg-primary text-primary-foreground text-[0.6875rem] font-bold flex items-center justify-center px-1'>{panelCount}</span>
         )}
         <ChevronDown className={cn('w-3.5 h-3.5 text-muted-foreground transition-transform', panelOpen && 'rotate-180')} />
       </button>
@@ -595,7 +595,7 @@ export function FilterBar({
           }}
         >
           <PopoverTrigger render={filtrosButton} />
-          <PopoverContent align='start' sideOffset={8} className='w-[400px] max-w-[calc(100vw-32px)] max-h-[75vh] overflow-y-auto p-4 gap-0 rounded-xl border border-border shadow-xl'>
+          <PopoverContent align='start' sideOffset={8} className='w-[25rem] max-w-[calc(100vw-2rem)] max-h-[75vh] overflow-y-auto p-4 gap-0 rounded-xl border border-border shadow-xl'>
             {panelBody}
           </PopoverContent>
         </Popover>
@@ -631,7 +631,7 @@ export function FilterBar({
   );
 
   // Filtros à vista (só com inlineFilters): o nome do campo aparece no próprio botão
-  const inlineDrop = 'h-9 w-auto max-w-[200px] rounded-xl';
+  const inlineDrop = 'h-9 w-auto max-w-[12.5rem] rounded-xl';
   const inlineFilterControls = inlineFilters && (
     <>
       {showSearch && (

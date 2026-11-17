@@ -39,6 +39,8 @@ export const MOTOR_BRANDS = [
   'MAN',
   'New Holland',
   'DAF',
+  'Deutz',
+  'Maxion',
 ];
 
 const BRAND_LOGO_FILES: Record<string, string> = {
@@ -77,6 +79,10 @@ const BRAND_LOGO_FILES: Record<string, string> = {
   'New Holland': 'new-holland.png',
   'MAN': 'man.png',
   'DAF': 'daf.png',
+  'Deutz': 'deutz.png',
+  'Maxion': 'maxion.png',
+  'Tobata': 'tobata.png',
+  'Lifan': 'lifan.png',
 };
 
 function findBrandKey(keys: string[], brandName: string): string | undefined {
@@ -134,6 +140,8 @@ const BRAND_KEYWORDS: Array<[string, string[]]> = [
   ['MAN', ['man']],
   ['New Holland', ['new holland']],
   ['DAF', ['daf']],
+  ['Deutz', ['deutz', 'mah']],
+  ['Maxion', ['maxion', 'hs']],
 ];
 
 /** Tenta descobrir a montadora pelo nome do motor/veículo. Vazio se não reconhecer. */

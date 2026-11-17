@@ -6,7 +6,7 @@ import type { PaymentSituation } from '@/lib/payment';
 
 // Selos padronizados: mesmas cores e textos em todas as telas
 // (fundo claro + borda + texto forte, como na referência visual do Dashboard).
-const pill = "inline-flex items-center gap-1.5 px-3 py-[3px] rounded-full border text-[10.5px] font-bold uppercase tracking-wider whitespace-nowrap";
+const pill = "inline-flex items-center gap-1.5 px-3 py-[0.1875rem] rounded-full border text-[0.6562rem] font-bold uppercase tracking-wider whitespace-nowrap";
 
 export const SERVICE_STATUS_STYLE: Record<string, { label: string; className: string; dot: string }> = {
   'Na Fila': { label: 'Na fila', className: 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-white/5 dark:text-gray-300 dark:border-white/10', dot: 'bg-gray-500' },

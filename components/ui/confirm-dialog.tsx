@@ -43,7 +43,7 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
       <Dialog open={isOpen} onOpenChange={(open) => { if (!open) settle(false); }}>
         <DialogContent
           showCloseButton={false}
-          className="w-[min(400px,calc(100vw-48px))] p-0 border border-neutral-300 dark:border-neutral-800 bg-card rounded-2xl overflow-hidden shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08),_0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] outline-none"
+          className="w-[min(25rem,calc(100vw-3rem))] p-0 border border-neutral-300 dark:border-neutral-800 bg-card rounded-2xl overflow-hidden shadow-[0_12px_24px_-4px_rgba(0,0,0,0.08),_0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] outline-none"
         >
           <div className="p-6 flex flex-col items-center text-center gap-3">
             <div className="w-12 h-12 rounded-full bg-[#FF5A5F]/10 flex items-center justify-center shrink-0">
@@ -64,13 +64,13 @@ export function ConfirmDialogProvider({ children }: { children: React.ReactNode 
             <Button
               variant="outline"
               onClick={() => settle(false)}
-              className="flex-1 h-10 rounded-xl border-neutral-300 dark:border-neutral-800 bg-background hover:bg-secondary text-foreground font-black text-[10px] uppercase tracking-wider"
+              className="flex-1 h-10 rounded-xl border-neutral-300 dark:border-neutral-800 bg-background hover:bg-secondary text-foreground font-black text-[0.625rem] uppercase tracking-wider"
             >
               {options.cancelLabel || 'Cancelar'}
             </Button>
             <Button
               onClick={() => settle(true)}
-              className="flex-1 h-10 rounded-xl bg-[#FF5A5F] hover:bg-[#FF5A5F]/90 text-white font-black text-[10px] uppercase tracking-wider gap-1.5"
+              className="flex-1 h-10 rounded-xl bg-[#FF5A5F] hover:bg-[#FF5A5F]/90 text-white font-black text-[0.625rem] uppercase tracking-wider gap-1.5"
             >
               <Trash2 className="w-3.5 h-3.5" />
               {options.confirmLabel || 'Excluir'}
