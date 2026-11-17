@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { runMotorsMigration } from '@/lib/motors';
 import { runMotorCatalogCleanup } from '@/lib/motor-catalog-cleanup';
 import { getLocalDateString, getOrderNetValue } from './utils';
+import { getOrderPaidAmount } from './payment';
 
 
 interface ElectronAPI {
@@ -1012,7 +1013,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const createGroupedPayment = useCallback(async (clientId: string, osIds: number[]): Promise<PagamentoAgrupado> => {
     const db = requireLocalDb();
     const includedOrders = orders.filter(o => osIds.includes(o.id));
-    const valorTotal = includedOrders.reduce((sum, o) => sum + getOrderNetValue(o), 0);
+    // O grupo cobra só o que falta de cada O.S. (entradas já lançadas na O.S. ficam nela)
+    const valorTotal = includedOrders.reduce((sum, o) => sum + Math.max(0, getOrderNetValue(o) - getOrderPaidAmount(o)), 0);
 
     const newId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `gp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const nowIso = new Date().toISOString();
@@ -1329,7 +1331,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (!targetOrder) continue;
 
         const net = getOrderNetValue(targetOrder);
-        const allocatedPaid = Math.round((net * ratio) * 100) / 100;
+        const paidBefore = getOrderPaidAmount(targetOrder);
+        const share = Math.round((Math.max(0, net - paidBefore) * ratio) * 100) / 100;
+        const allocatedPaid = paidBefore + share;
 
         let newStatus: PaymentStatus = 'Não Pago';
         if (allocatedPaid >= net && net > 0) {
@@ -1338,19 +1342,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           newStatus = 'Entrada';
         }
 
+        const hasEntries = Array.isArray(targetOrder.paymentEntries) && targetOrder.paymentEntries.length > 0;
         await updateOrder(osId, {
           paymentStatus: newStatus,
-          entryValue: allocatedPaid,
+          ...(hasEntries
+            ? { paymentEntries: share > 0 ? [...targetOrder.paymentEntries!, { amount: share, method: 'Pagamento agrupado', date: nowIso.split('T')[0] }] : targetOrder.paymentEntries }
+            : { entryValue: allocatedPaid }),
           balanceValue: Math.max(0, net - allocatedPaid),
           paymentDate: nowIso.split('T')[0]
         }, { silent: true });
       }
     } else {
-      // Reset all orders in group to 'Não Pago'
+      // Descarta só o que foi pago no grupo; o que já estava lançado na O.S. continua
       for (const osId of targetGroup.osIds) {
+        const targetOrder = orders.find(o => o.id === osId);
+        const paidBefore = targetOrder ? getOrderPaidAmount(targetOrder) : 0;
         await updateOrder(osId, {
-          paymentStatus: 'Não Pago',
-          entryValue: 0
+          paymentStatus: paidBefore > 0 ? 'Entrada' : 'Não Pago',
+          entryValue: paidBefore
         }, { silent: true });
       }
     }

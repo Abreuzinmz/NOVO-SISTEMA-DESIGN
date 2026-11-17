@@ -52,7 +52,9 @@ import { cn, formatMotorDisplay, formatMotorModelAndCylinders, getLocalDateStrin
 import { PrintPreviewModal } from './print-preview-modal';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PaymentEntryModal, PaymentEntryItem, PixIcon, DinheiroIcon, DebitoIcon, CreditoIcon, normalizeMethodValue } from './resumo-financeiro';
-import { ChevronRight, Ban, RotateCcw } from 'lucide-react';
+import { ChevronRight, Ban, RotateCcw, MoreHorizontal } from 'lucide-react';
+import { getOrderPaidAmount, formatBRL } from '@/lib/payment';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const CANCEL_REASONS = ['Cliente desistiu', 'Orçamento não aprovado', 'Motor sem conserto', 'Outro'];
 import { isPartItem } from '@/lib/service-catalog';
@@ -1807,25 +1809,6 @@ function OSViewModalContent({
                   {groupedPayment ? (
                     /* ═══ REFORMULADO: CARD DE PAGAMENTO AGRUPADO ═══ */
                     <div className="space-y-2 animate-in fade-in duration-200">
-                      {/* Status no topo, fora/acima do card principal */}
-                      <div className="text-center font-bold text-sm tracking-wide py-0.5">
-                        <span
-                          className={
-                            groupedPayment.status === 'pago'
-                              ? 'text-success'
-                              : groupedPayment.status === 'pagamento_parcial'
-                              ? 'text-warning'
-                              : 'text-danger'
-                          }
-                        >
-                          {groupedPayment.status === 'pago'
-                            ? 'Quitado'
-                            : groupedPayment.status === 'pagamento_parcial'
-                            ? 'Pagamento Parcial'
-                            : 'Aguardando o Pagamento'}
-                        </span>
-                      </div>
-
                       {/* Card com borda arredondada */}
                       <div className="bg-card border border-border rounded-xl p-4 space-y-3 shadow-xs">
                         {/* Cabeçalho do Card (Label + Botão Desfazer) */}
@@ -1833,15 +1816,20 @@ function OSViewModalContent({
                           <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70">
                             HISTÓRICO DE ENTRADAS ({groupedPayment.entradas?.length || 0})
                           </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsDissolveModalOpen(true)}
-                            title="Desfazer este Pagamento Agrupado"
-                            className="h-6 px-2 text-xs font-bold text-danger hover:text-danger hover:bg-danger/10 rounded uppercase flex items-center gap-1 cursor-pointer"
-                          >
-                            <Unlink className="w-3 h-3 stroke-[2.5]" /> DESFAZER
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              render={
+                                <Button variant="ghost" size="icon" title="Mais ações do grupo" className="w-7 h-7 rounded-md hover:bg-secondary">
+                                  <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                                </Button>
+                              }
+                            />
+                            <DropdownMenuContent align="end" className="z-[9999] min-w-[10rem] bg-card border-border rounded-lg shadow-lg">
+                              <DropdownMenuItem onClick={() => setIsDissolveModalOpen(true)} className="cursor-pointer rounded mx-1 text-sm text-danger hover:bg-danger/10">
+                                <Unlink className="w-4 h-4 mr-2" /> Desagrupar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
 
                         {/* Lista de Caixinhas de Entradas */}
@@ -1927,36 +1915,69 @@ function OSViewModalContent({
                         )}
 
                         {/* Lista de O.S. do Grupo */}
-                        <div className="space-y-1.5 pt-2.5 border-t border-dashed border-border text-xs">
+                        <div className="space-y-1 pt-2.5 border-t border-dashed border-border text-xs">
+                          <span className="block text-xs font-bold uppercase tracking-wider text-muted-foreground/70 pb-0.5">
+                            O.S. do grupo ({groupedPayment.osIds.length})
+                          </span>
                           {groupedPayment.osIds.map(osId => {
                             const groupOs = orders.find(o => o.id === osId);
                             const netVal = groupOs ? getOrderNetValue(groupOs) : 0;
-                            const osLabel = groupOs ? `O.S - ${groupOs.osNumber || groupOs.id}` : `O.S - ${osId}`;
+                            const paidBefore = groupOs ? Math.min(netVal, getOrderPaidAmount(groupOs)) : 0;
+                            const isCurrent = osId === order.id;
+                            const canOpen = !!groupOs && !isCurrent && !!onOpenOrder;
                             return (
-                              <div key={osId} className="flex justify-between items-center font-medium text-foreground">
-                                <span className="font-bold text-xs">{osLabel}</span>
-                                <span className="font-mono font-bold text-muted-foreground">
-                                  TOTAL {netVal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                              <button
+                                key={osId}
+                                type="button"
+                                disabled={!canOpen}
+                                onClick={() => groupOs && onOpenOrder?.(groupOs)}
+                                title={canOpen ? 'Abrir esta O.S.' : undefined}
+                                className={cn(
+                                  'w-full flex justify-between items-center gap-2 px-2 py-1.5 -mx-2 rounded-md text-left transition-colors',
+                                  canOpen ? 'hover:bg-secondary cursor-pointer' : 'cursor-default'
+                                )}
+                              >
+                                <span className="min-w-0">
+                                  <span className="flex items-center gap-1.5 font-bold text-foreground">
+                                    O.S. #{groupOs?.osNumber || osId}
+                                    {isCurrent && <span className="px-1.5 py-px rounded bg-secondary text-[10px] font-semibold text-muted-foreground">esta</span>}
+                                  </span>
+                                  {paidBefore > 0 && (
+                                    <span className="block text-[11px] text-muted-foreground">
+                                      Total {formatBRL(netVal)} · já pago {formatBRL(paidBefore)}
+                                    </span>
+                                  )}
                                 </span>
-                              </div>
+                                <span className="flex items-center gap-1 shrink-0">
+                                  <span className="font-mono font-bold text-foreground">{formatBRL(Math.max(0, netVal - paidBefore))}</span>
+                                  {canOpen && <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />}
+                                </span>
+                              </button>
                             );
                           })}
 
-                          <div className="flex justify-end items-center gap-1.5 pt-2 text-xs font-bold text-foreground text-right whitespace-nowrap">
-                            <span>TOTAL DO GRUPO</span>
-                            <span className="font-mono">{groupedPayment.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                          <div className="space-y-1 pt-2 mt-1 border-t border-border">
+                            <div className="flex justify-between items-center font-bold text-foreground">
+                              <span className="uppercase">Total do grupo</span>
+                              <span className="font-mono">{formatBRL(groupedPayment.valorTotal)}</span>
+                            </div>
+                            {groupedPayment.valorPago > 0 && (
+                              <div className="flex justify-between items-center font-semibold text-muted-foreground">
+                                <span className="uppercase">Pago</span>
+                                <span className="font-mono">{formatBRL(groupedPayment.valorPago)}</span>
+                              </div>
+                            )}
+                            {groupedPayment.status !== 'pago' ? (
+                              <div className="flex justify-between items-center font-bold text-warning">
+                                <span className="uppercase">Falta pagar</span>
+                                <span className="font-mono">{formatBRL(Math.max(0, groupedPayment.valorTotal - groupedPayment.valorPago))}</span>
+                              </div>
+                            ) : (
+                              <div className="flex justify-end items-center font-bold text-success">
+                                <span>PAGAMENTO QUITADO</span>
+                              </div>
+                            )}
                           </div>
-
-                          {groupedPayment.status !== 'pago' ? (
-                            <div className="flex justify-end items-center gap-1.5 text-xs font-bold text-warning text-right whitespace-nowrap">
-                              <span>RESTANTE (SALDO)</span>
-                              <span className="font-mono">{Math.max(0, groupedPayment.valorTotal - groupedPayment.valorPago).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-                            </div>
-                          ) : (
-                            <div className="flex justify-end items-center text-xs font-bold text-success text-right whitespace-nowrap">
-                              <span>PAGAMENTO QUITADO</span>
-                            </div>
-                          )}
                         </div>
 
                         {/* Botão Lançar Nova Entrada no Grupo */}
@@ -2168,7 +2189,7 @@ function OSViewModalContent({
                       )}
 
                       {/* Agrupar O.S. (quando O.S. não faz parte de grupo, não está finalizada e cliente tem 2+ O.S. pendentes) */}
-                      {!order.finished && pendingClientOrders.length > 1 && !isEditingStatus && (
+                      {!order.finished && order.paymentStatus !== 'Pago' && !isCancelled && pendingClientOrders.length > 1 && !isEditingStatus && (
                         <Button
                           variant="outline"
                           onClick={() => {
@@ -2443,13 +2464,17 @@ function OSViewModalContent({
                 </p>
 
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                  {pendingClientOrders.map(pOrder => {
+                  {[...pendingClientOrders].sort((a, b) => (a.id === order.id ? -1 : b.id === order.id ? 1 : 0)).map(pOrder => {
                     const pNet = getOrderNetValue(pOrder);
+                    const pPaid = Math.min(pNet, getOrderPaidAmount(pOrder));
+                    const pDue = Math.max(0, pNet - pPaid);
                     const isChecked = selectedOsForGrouping.includes(pOrder.id);
+                    const isCurrent = pOrder.id === order.id;
                     return (
                       <div
                         key={pOrder.id}
                         onClick={() => {
+                          if (isCurrent) return; // a O.S. atual sempre faz parte do grupo
                           if (isChecked) {
                             if (selectedOsForGrouping.length > 1) {
                               setSelectedOsForGrouping(selectedOsForGrouping.filter(id => id !== pOrder.id));
@@ -2460,7 +2485,9 @@ function OSViewModalContent({
                             setSelectedOsForGrouping([...selectedOsForGrouping, pOrder.id]);
                           }
                         }}
-                        className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
+                        className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                          isCurrent ? 'cursor-default' : 'cursor-pointer'
+                        } ${
                           isChecked
                             ? 'border-info bg-info/10 dark:bg-info/20'
                             : 'border-border bg-background hover:bg-secondary'
@@ -2469,12 +2496,16 @@ function OSViewModalContent({
                         <div className="flex items-center gap-3">
                           <input
                             type="checkbox"
-                            checked={isChecked}
+                            checked={isChecked || isCurrent}
+                            disabled={isCurrent}
                             onChange={() => {}}
-                            className="rounded border-border text-info focus:ring-info w-4 h-4 cursor-pointer"
+                            className={`rounded border-border text-info focus:ring-info w-4 h-4 ${isCurrent ? 'opacity-60' : 'cursor-pointer'}`}
                           />
                           <div>
-                            <span className="font-mono font-bold text-xs block text-foreground">O.S. #{pOrder.id}</span>
+                            <span className="flex items-center gap-1.5 font-mono font-bold text-xs text-foreground">
+                              O.S. #{pOrder.osNumber || pOrder.id}
+                              {isCurrent && <span className="px-1.5 py-px rounded bg-info/15 text-info text-[10px] font-sans font-semibold">esta O.S.</span>}
+                            </span>
                             <span className="text-xs text-muted-foreground font-semibold">
                               {pOrder.motorModel} {pOrder.displacement}
                             </span>
@@ -2482,8 +2513,13 @@ function OSViewModalContent({
                         </div>
                         <div className="text-right">
                           <span className="font-mono font-bold text-xs text-foreground block">
-                            {pNet.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                            {pDue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                           </span>
+                          {pPaid > 0 && (
+                            <span className="text-[11px] text-muted-foreground font-semibold block">
+                              Total {pNet.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} · já pago {pPaid.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                            </span>
+                          )}
                           {pOrder.discount && Number(pOrder.discount) > 0 ? (
                             <span className="text-xs text-warning font-semibold block">
                               Desconto: {Number(pOrder.discount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
@@ -2496,11 +2532,11 @@ function OSViewModalContent({
                 </div>
 
                 <div className="bg-secondary/80 p-3 rounded-lg flex justify-between items-center border border-border">
-                  <span className="text-xs font-bold uppercase text-muted-foreground">Valor Total do Grupo ({selectedOsForGrouping.length} O.S.):</span>
+                  <span className="text-xs font-bold uppercase text-muted-foreground">Falta pagar do grupo ({selectedOsForGrouping.length} O.S.):</span>
                   <span className="text-lg font-bold font-mono text-info">
                     {pendingClientOrders
                       .filter(o => selectedOsForGrouping.includes(o.id))
-                      .reduce((sum, o) => sum + getOrderNetValue(o), 0)
+                      .reduce((sum, o) => sum + Math.max(0, getOrderNetValue(o) - getOrderPaidAmount(o)), 0)
                       .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </span>
                 </div>

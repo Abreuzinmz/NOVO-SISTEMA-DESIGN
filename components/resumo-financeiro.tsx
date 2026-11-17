@@ -427,57 +427,54 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
   isSaving = false,
 }) => {
   const initialMethod = normalizeMethodValue(initialData?.method);
+  const toInput = (v: number) => v.toFixed(2).replace('.', ',');
+  const parseInput = (v: string) => parseFloat(v.replace(/\./g, '').replace(',', '.')) || 0;
 
+  // Desconto: ajuste do valor da O.S., fica recolhido atrás de um link
   const [discountInput, setDiscountInput] = useState<string>(() =>
-    showDiscount && discount > 0 ? discount.toFixed(2).replace('.', ',') : ''
+    showDiscount && discount > 0 ? toInput(discount) : ''
   );
-  const parsedDiscount = showDiscount ? (parseFloat(discountInput.replace(/\./g, '').replace(',', '.')) || 0) : 0;
+  const [showDiscountField, setShowDiscountField] = useState<boolean>(showDiscount && discount > 0);
+  const parsedDiscount = showDiscount ? parseInput(discountInput) : 0;
   const netValue = Math.max(0, totalValue - parsedDiscount);
   const remainingBalance = Math.max(0, netValue - paidElsewhere);
 
-  // "Entrada" (partial, freely editable) vs "Pagamento Quitado" (locked to the
-  // full remaining balance) — defaults to whichever matches the entry we're
-  // starting from.
-  // Um lançamento novo começa sempre como "Entrada", com o valor em branco: quitar
-  // tudo exige escolher "Pagamento quitado" de propósito.
-  const [paymentMode, setPaymentMode] = useState<'entrada' | 'quitado'>(() => {
+  // Entrada (valor livre) ou Valor total (trava no que falta pagar).
+  // Lançamento novo começa como Entrada, com o valor em branco.
+  const [paymentMode, setPaymentMode] = useState<'entrada' | 'total'>(() => {
     if (!initialData) return 'entrada';
-    return remainingBalance > 0 && initialData.amount >= remainingBalance ? 'quitado' : 'entrada';
+    return remainingBalance > 0 && initialData.amount >= remainingBalance - 0.004 ? 'total' : 'entrada';
   });
-
   const [amount, setAmount] = useState<string>(() => {
-    if (paymentMode === 'quitado') {
-      return remainingBalance > 0 ? remainingBalance.toFixed(2).replace('.', ',') : '';
-    }
-    return initialData ? initialData.amount.toFixed(2).replace('.', ',') : '';
+    if (paymentMode === 'total') return remainingBalance > 0 ? toInput(remainingBalance) : '';
+    return initialData ? toInput(initialData.amount) : '';
   });
+  // Em "Valor total" o valor acompanha o que falta pagar (ex.: ao mudar o desconto)
+  useEffect(() => {
+    if (paymentMode === 'total') setAmount(remainingBalance > 0 ? toInput(remainingBalance) : '');
+  }, [paymentMode, remainingBalance]);
+
+  const amountInputRef = useRef<HTMLInputElement>(null);
   const [date, setDate] = useState<string>(initialData?.date || getTodayDateString());
   const [method, setMethod] = useState<PaymentMethodType | null>(initialData ? initialMethod.methodKey : null);
   const [installment, setInstallment] = useState<string>(initialMethod.installments || 'À vista');
   const [payer, setPayer] = useState<string>(initialData?.payer || '');
+  const [cashReceived, setCashReceived] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
 
-  // While "Pagamento Quitado" is selected the amount is always the full
-  // remaining balance — keep it in sync as the discount changes.
-  useEffect(() => {
-    if (paymentMode === 'quitado') {
-      setAmount(remainingBalance > 0 ? remainingBalance.toFixed(2).replace('.', ',') : '');
-    }
-  }, [paymentMode, remainingBalance]);
-
-  const handleSelectMode = (next: 'entrada' | 'quitado') => {
-    setPaymentMode(next);
-    if (next === 'quitado') {
-      setAmount(remainingBalance > 0 ? remainingBalance.toFixed(2).replace('.', ',') : '');
-    } else if (paymentMode !== 'entrada') {
-      setAmount('');
-    }
-  };
-
-  const parsedAmount = parseFloat(amount.replace(/\./g, '').replace(',', '.')) || 0;
+  const parsedAmount = parseInput(amount);
   const afterEntryBalance = Math.max(0, remainingBalance - parsedAmount);
-  const willQuitar = paymentMode === 'quitado';
+  const overpay = parsedAmount - remainingBalance;
+  const willQuitar = parsedAmount > 0 && remainingBalance > 0 && parsedAmount >= remainingBalance - 0.004;
+  const parsedCash = parseInput(cashReceived);
+  const change = parsedCash - parsedAmount;
   const busy = submitting || isSaving;
+
+  const selectMode = (next: 'entrada' | 'total') => {
+    if (next === paymentMode) return;
+    setPaymentMode(next);
+    if (next === 'entrada') { setAmount(''); setTimeout(() => amountInputRef.current?.focus(), 0); }
+  };
 
   const handleSubmit = async () => {
     if (parsedAmount <= 0) {
@@ -509,6 +506,11 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
     }
   };
 
+  const methodShort = method ? (method === 'credito' && installment !== 'À vista' ? `no Crédito ${installment}` : method === 'pix' ? 'no PIX' : method === 'dinheiro' ? 'em Dinheiro' : `no ${methodLabels[method]}`) : '';
+  const submitLabel = mode === 'edit'
+    ? 'Salvar alterações'
+    : `${willQuitar ? 'Quitar' : 'Lançar'}${parsedAmount > 0 ? ` ${formatBRL(parsedAmount)}` : ''}${methodShort ? ` ${methodShort}` : ''}`;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm bg-card border border-border p-0 rounded-xl shadow-2xl overflow-hidden">
@@ -520,53 +522,72 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
         </DialogHeader>
 
         <div className="px-5 py-4 space-y-3">
-          {/* Valor Bruto — sempre visível no topo */}
-          <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-secondary/40 border border-border">
-            <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Valor total</span>
-            <span className="text-base font-bold font-mono text-foreground">{formatBRL(totalValue)}</span>
-          </div>
-          {paidElsewhere > 0 && (
-            <div className="flex items-center justify-between px-3 text-sm">
-              <span className="text-muted-foreground">Já pago</span>
-              <span className="font-mono font-bold">{formatBRL(paidElsewhere)}</span>
+          {/* Resumo: total, já pago e quanto falta */}
+          <div className="rounded-lg bg-secondary/40 border border-border px-3 py-2.5 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Valor total</span>
+              <span className="text-base font-bold font-mono text-foreground">
+                {parsedDiscount > 0 && (
+                  <span className="mr-1.5 text-xs font-semibold text-muted-foreground line-through">{formatBRL(totalValue)}</span>
+                )}
+                {formatBRL(netValue)}
+              </span>
             </div>
-          )}
-          <div className="flex items-center justify-between px-3 text-sm">
-            <span className="text-muted-foreground">Falta pagar</span>
-            <span className="font-mono font-bold text-danger">{formatBRL(remainingBalance)}</span>
-          </div>
-
-          {showDiscount && (
-            <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-border">
-              <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-                <Percent className="w-3.5 h-3.5 text-warning" /> Desconto
-              </label>
-              <div className="flex items-center gap-1 h-8 px-2.5 rounded-lg border border-border bg-card">
-                <span className="text-xs font-bold text-muted-foreground">R$</span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={discountInput}
-                  onChange={e => setDiscountInput(e.target.value)}
-                  placeholder="0,00"
-                  className="w-20 bg-transparent text-right font-mono text-sm font-bold outline-none text-warning"
-                />
+            {paidElsewhere > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Já pago</span>
+                <span className="font-mono font-bold">{formatBRL(paidElsewhere)}</span>
               </div>
+            )}
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Falta pagar</span>
+              <span className="font-mono font-bold text-danger">{formatBRL(remainingBalance)}</span>
             </div>
-          )}
+            {showDiscount && !showDiscountField && (
+              <button
+                type="button"
+                onClick={() => setShowDiscountField(true)}
+                className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Percent className="w-3 h-3" /> Aplicar desconto
+              </button>
+            )}
+            {showDiscount && showDiscountField && (
+              <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-dashed border-border animate-in fade-in duration-200">
+                <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                  <Percent className="w-3 h-3 text-warning" /> Desconto
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1 h-7 px-2 rounded-md border border-border bg-card">
+                    <span className="text-xs font-bold text-muted-foreground">R$</span>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      autoFocus={!(discount > 0)}
+                      value={discountInput}
+                      onChange={e => setDiscountInput(e.target.value)}
+                      placeholder="0,00"
+                      className="w-16 bg-transparent text-right font-mono text-xs font-bold outline-none text-warning"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    title="Remover desconto"
+                    onClick={() => { setDiscountInput(''); setShowDiscountField(false); }}
+                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
-          {showDiscount && parsedDiscount > 0 && (
-            <div className="flex items-center justify-end gap-1.5 text-xs font-bold text-muted-foreground -mt-1.5">
-              <span className="uppercase tracking-wider">Total com Desconto</span>
-              <span className="font-mono text-foreground">{formatBRL(netValue)}</span>
-            </div>
-          )}
-
-          {/* Toggle: Entrada (parcial, editável) vs Pagamento Quitado (trava no saldo total) */}
+          {/* Entrada (livre, em laranja) ou Valor total (trava no que falta) */}
           <div className="grid grid-cols-2 gap-1.5 p-1 rounded-lg bg-secondary/60">
             <button
               type="button"
-              onClick={() => handleSelectMode('entrada')}
+              onClick={() => selectMode('entrada')}
               className={cn(
                 'h-7 rounded-md text-xs font-bold uppercase tracking-wider transition-colors',
                 paymentMode === 'entrada'
@@ -578,113 +599,96 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => handleSelectMode('quitado')}
+              onClick={() => selectMode('total')}
               className={cn(
                 'h-7 rounded-md text-xs font-bold uppercase tracking-wider transition-colors',
-                paymentMode === 'quitado'
+                paymentMode === 'total'
                   ? 'bg-success text-success-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              Quitar tudo
+              Valor total
             </button>
           </div>
 
           <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-border">
             <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-              <DollarSign className="w-3.5 h-3.5 text-success" /> Valor
+              <DollarSign className="w-3.5 h-3.5 text-success" /> {paymentMode === 'entrada' ? 'Valor da entrada' : 'Valor'}
             </label>
             <div className={cn(
-              'flex items-center gap-1 h-8 px-2.5 rounded-lg border border-border',
-              paymentMode === 'quitado' ? 'bg-secondary/50' : 'bg-card'
+              'flex items-center gap-1 h-9 px-2.5 rounded-lg border',
+              paymentMode === 'entrada'
+                ? 'border-warning/60 bg-warning/10 focus-within:border-warning'
+                : 'border-border bg-secondary/50'
             )}>
               <span className="text-xs font-bold text-muted-foreground">R$</span>
               <input
+                ref={amountInputRef}
                 type="text"
                 inputMode="decimal"
                 autoFocus={paymentMode === 'entrada'}
-                disabled={paymentMode === 'quitado'}
+                disabled={paymentMode === 'total'}
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
                 placeholder="0,00"
-                className="w-20 bg-transparent text-right font-mono text-sm font-bold outline-none text-foreground disabled:cursor-not-allowed disabled:opacity-70"
+                className={cn(
+                  'w-24 bg-transparent text-right font-mono text-base font-bold outline-none disabled:cursor-not-allowed',
+                  'text-foreground'
+                )}
               />
             </div>
           </div>
 
-          {paymentMode === 'entrada' && parsedAmount > 0 && (
-            <div className="flex items-center justify-end gap-1.5 text-xs font-bold text-warning -mt-1.5">
-              <span className="uppercase tracking-wider">Restante Após Entrada</span>
-              <span className="font-mono">{formatBRL(afterEntryBalance)}</span>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-border">
-            <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-              <CalendarIcon className="w-3.5 h-3.5 text-success" /> Data
-            </label>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <div className="w-[8.25rem] shrink-0">
-                <DatePicker
-                  value={date}
-                  onChange={(dateStr) => setDate(dateStr)}
-                  align="right"
-                  className="h-8 rounded-lg text-xs font-bold bg-card border-border px-2 pr-8"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => setDate(getTodayDateString())}
-                className="h-8 px-1.5 rounded-lg border border-border text-xs font-bold uppercase tracking-wide text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors shrink-0"
-              >
-                Hoje
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-border">
-            <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+          {/* Forma de pagamento em botões */}
+          <div className="space-y-2 py-2 border-b border-dashed border-border">
+            <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               <CreditCard className="w-3.5 h-3.5 text-success" /> Forma de pagamento
             </label>
-            <Select value={method} onValueChange={(val) => setMethod(val as PaymentMethodType | null)}>
-              <SelectTrigger className="h-8 w-[8.75rem] rounded-lg text-xs font-bold bg-card border-border justify-between gap-1.5">
-                <SelectValue placeholder="Selecione">
-                  {(val: PaymentMethodType | null) => val ? (
-                    <span className="flex items-center gap-1.5">
-                      {methodIcons[val]} {methodLabels[val]}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground normal-case font-semibold">Selecione</span>
+            <div className="grid grid-cols-4 gap-1.5">
+              {(['pix', 'dinheiro', 'debito', 'credito'] as PaymentMethodType[]).map(key => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setMethod(key)}
+                  className={cn(
+                    'flex flex-col items-center justify-center gap-1 h-14 rounded-lg border text-[11px] font-bold transition-colors',
+                    method === key
+                      ? 'border-foreground bg-secondary text-foreground ring-1 ring-foreground'
+                      : 'border-border text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
                   )}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="z-[9999] bg-card dark:bg-background border border-border rounded-lg shadow-2xl">
-                {(['pix', 'dinheiro', 'debito', 'credito'] as PaymentMethodType[]).map(key => (
-                  <SelectItem key={key} value={key}>
-                    <span className="flex items-center gap-2">
-                      {methodIcons[key]} {methodLabels[key]}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                >
+                  {methodIcons[key]}
+                  {methodLabels[key]}
+                </button>
+              ))}
+            </div>
           </div>
 
           {method === 'credito' && (
+            <InstallmentsBox selectedInstallment={installment} onSelectInstallment={setInstallment} />
+          )}
+
+          {method === 'dinheiro' && (
             <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-border animate-in fade-in duration-200">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-                Parcelas
+                Recebido
               </label>
-              <Select value={installment} onValueChange={(val) => val && setInstallment(val)}>
-                <SelectTrigger className="h-8 w-[8.75rem] rounded-lg text-xs font-bold bg-card border-border justify-between gap-1.5">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="z-[9999] bg-card dark:bg-background border border-border rounded-lg shadow-2xl">
-                  {['À vista', '2x', '3x', '4x', '5x', '6x', '7x', '8x', '9x', '10x', '11x', '12x'].map(opt => (
-                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-2">
+                {parsedCash > 0 && change >= 0.005 && (
+                  <span className="text-xs font-bold text-success">Troco {formatBRL(change)}</span>
+                )}
+                <div className="flex items-center gap-1 h-8 px-2.5 rounded-lg border border-border bg-card">
+                  <span className="text-xs font-bold text-muted-foreground">R$</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={cashReceived}
+                    onChange={e => setCashReceived(e.target.value)}
+                    placeholder="opcional"
+                    className="w-20 bg-transparent text-right font-mono text-sm font-bold outline-none text-foreground placeholder:font-sans placeholder:font-normal placeholder:text-xs"
+                  />
+                </div>
+              </div>
             </div>
           )}
 
@@ -711,6 +715,51 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
               </div>
             </div>
           )}
+
+          <div className="flex items-center justify-between gap-3 py-2 border-b border-dashed border-border">
+            <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+              <CalendarIcon className="w-3.5 h-3.5 text-success" /> Data
+            </label>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="w-[8.25rem] shrink-0">
+                <DatePicker
+                  value={date}
+                  onChange={(dateStr) => setDate(dateStr)}
+                  align="right"
+                  className="h-8 rounded-lg text-xs font-bold bg-card border-border px-2 pr-8"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setDate(getTodayDateString())}
+                className="h-8 px-1.5 rounded-lg border border-border text-xs font-bold uppercase tracking-wide text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors shrink-0"
+              >
+                Hoje
+              </button>
+            </div>
+          </div>
+
+          {/* Prévia do resultado */}
+          {parsedAmount > 0 && (
+            <div className={cn(
+              'flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs font-bold',
+              willQuitar ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+            )}>
+              {willQuitar ? (
+                <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" /> Após este lançamento: quitado</span>
+              ) : (
+                <>
+                  <span>Após este lançamento falta</span>
+                  <span className="font-mono">{formatBRL(afterEntryBalance)}</span>
+                </>
+              )}
+            </div>
+          )}
+          {overpay >= 0.005 && (
+            <p className="text-xs font-semibold text-danger -mt-1.5">
+              Valor {formatBRL(overpay)} acima do que falta pagar.
+            </p>
+          )}
         </div>
 
         <div className="flex items-center gap-2 p-4 border-t border-border bg-secondary/20">
@@ -719,7 +768,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
             variant="outline"
             disabled={busy}
             onClick={() => onOpenChange(false)}
-            className="flex-1 h-9 rounded-lg font-bold text-xs uppercase tracking-wider"
+            className="h-9 px-3 rounded-lg font-bold text-xs uppercase tracking-wider"
           >
             Cancelar
           </Button>
@@ -727,10 +776,10 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
             type="button"
             disabled={busy}
             onClick={handleSubmit}
-            className="solid-btn flex-1 h-9 rounded-lg font-bold text-sm gap-1.5"
+            className="solid-btn flex-1 min-w-0 h-9 px-3 rounded-lg font-bold text-[13px] gap-1.5"
           >
-            <Check className="w-4 h-4" />
-            {mode === 'edit' ? 'Salvar alterações' : willQuitar ? 'Quitar O.S.' : 'Lançar entrada'}
+            <Check className="w-4 h-4 shrink-0" />
+            <span className="truncate">{submitLabel}</span>
           </Button>
         </div>
       </DialogContent>
