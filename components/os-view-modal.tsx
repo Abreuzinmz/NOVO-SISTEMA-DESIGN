@@ -52,7 +52,7 @@ import { cn, formatMotorDisplay, formatMotorModelAndCylinders, getLocalDateStrin
 import { PrintPreviewModal } from './print-preview-modal';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PaymentEntryModal, PaymentEntryItem, PixIcon, DinheiroIcon, DebitoIcon, CreditoIcon, normalizeMethodValue } from './resumo-financeiro';
-import { ChevronRight, Ban, RotateCcw, MoreHorizontal } from 'lucide-react';
+import { ChevronRight, Ban, RotateCcw, MoreHorizontal, User as UserIcon } from 'lucide-react';
 import { getOrderPaidAmount, formatBRL } from '@/lib/payment';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -75,7 +75,7 @@ function paymentMethodInfo(method?: string) {
 const formatEntryDate = (d?: string) => (d ? new Date(String(d).slice(0, 10) + 'T12:00:00').toLocaleDateString('pt-BR') : '');
 
 /** Linha do histórico de pagamentos: nº da entrada, ícone da forma, valor, data e, embaixo, o pagador */
-function PaymentHistoryRow({ entry, onOpen, number }: { entry: any; onOpen: () => void; number?: number }) {
+function PaymentHistoryRow({ entry, onOpen, highlight }: { entry: any; onOpen: () => void; number?: number; highlight?: boolean }) {
   const amount = parseFloat(entry.amount) || 0;
   const { icon, label } = paymentMethodInfo(entry.method);
   const payer = entry.payer && String(entry.payer).trim();
@@ -84,32 +84,37 @@ function PaymentHistoryRow({ entry, onOpen, number }: { entry: any; onOpen: () =
       type="button"
       onClick={onOpen}
       title="Ver lançamento"
-      className="w-full text-left flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-50 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15 pl-2 pr-1.5 py-2 transition-colors cursor-pointer"
-    >
-      {number !== undefined && (
-        <span className="w-6 h-6 rounded-full bg-emerald-600 text-white text-[0.6875rem] font-extrabold flex items-center justify-center shrink-0 tabular-nums">{number}</span>
+      className={cn(
+        "w-full min-w-0 text-left flex items-center gap-3 rounded-xl border bg-card px-2.5 py-2.5 transition-colors cursor-pointer",
+        highlight
+          ? "border-info/40 border-l-4 border-l-info shadow-sm hover:bg-info/5"
+          : "border-border hover:bg-muted/50"
       )}
-      <span className="w-9 h-9 rounded-lg bg-white dark:bg-white/10 border border-emerald-100 dark:border-emerald-500/20 flex items-center justify-center shrink-0">{icon}</span>
-      <span className="flex-1 min-w-0">
-        {number !== undefined && (
-          <span className={cn(
-            "inline-block mb-0.5 text-[0.5938rem] font-extrabold uppercase tracking-wider rounded px-1.5 py-px",
-            number === 1 ? "bg-emerald-600 text-white" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
-          )}>
-            {number}ª entrada{number === 1 ? ' · primeira' : ''}
+    >
+      <span className="w-11 h-11 rounded-lg bg-muted/60 border border-border flex items-center justify-center shrink-0">{icon}</span>
+      <span className="flex-1 min-w-0 space-y-0.5">
+        <span className="flex items-center gap-2 min-w-0 whitespace-nowrap">
+          <span className="text-base font-extrabold text-foreground tabular-nums truncate">{amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+          <span className="px-2 py-px rounded-md bg-info/10 text-info text-[0.6875rem] font-bold uppercase shrink-0">{label}</span>
+        </span>
+        {entry.date && (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground min-w-0 whitespace-nowrap">
+            <Calendar className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{formatEntryDate(entry.date)}</span>
           </span>
         )}
-        <span className="flex items-baseline gap-1.5 min-w-0">
-          <span className="text-sm font-extrabold text-foreground tabular-nums whitespace-nowrap">{amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-          <span className="text-[0.6875rem] font-semibold uppercase text-muted-foreground whitespace-nowrap truncate">{label}</span>
-        </span>
-        {entry.date && <span className="block text-[0.6875rem] text-muted-foreground">{formatEntryDate(entry.date)}</span>}
-        {payer && <span className="block text-[0.6875rem] font-semibold uppercase text-foreground/75 truncate" title={payer}>{payer}</span>}
+        {payer && (
+          <span className="flex items-center gap-1 text-xs min-w-0 whitespace-nowrap">
+            <UserIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <span className="font-semibold text-foreground truncate" title={payer}>{payer}</span>
+          </span>
+        )}
       </span>
       <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
     </button>
   );
 }
+
 import { getPartImage } from '@/lib/part-images';
 import { detectBrandFromName, getBrandLogoSrc } from '@/lib/motor-brands';
 import { Package, Settings as SettingsIcon, Gauge } from 'lucide-react';
@@ -246,7 +251,7 @@ function OSViewModalContent({
   // Compact "Finalizar/Editar Pagamento" modal: null = closed, otherwise carries
   // which lançamento (if any) is being edited and the values to weigh it against.
   // Lançamento aberto em visualização (com Editar / Excluir)
-  const [viewEntry, setViewEntry] = useState<{ entry: any; index: number } | null>(null);
+  const [viewEntry, setViewEntry] = useState<{ entry: any; index: number; grouped?: boolean } | null>(null);
   const [paymentEntryModal, setPaymentEntryModal] = useState<{
     mode: 'add' | 'edit';
     entry?: PaymentEntryItem;
@@ -1676,9 +1681,42 @@ function OSViewModalContent({
                         const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                         const svcTotal = sum(order.services.filter(s => !isPartItem(s)));
                         const partsTotal = sum(order.services.filter(isPartItem));
+                        const discount = Number(order.discount) || 0;
+                        const finalValue = isEditing ? editNetValue : order.netValue;
+                        const hasParts = partsTotal > 0 || order.services.some(isPartItem);
+                        if (discount > 0) {
+                          return (
+                            <div className="m-2 rounded-lg bg-blue-50/70 dark:bg-blue-500/10 px-3 py-2 space-y-1">
+                              {hasParts && (
+                                <>
+                                  <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
+                                    <span>Serviços</span>
+                                    <span className="font-mono text-sm tabular-nums">{fmt(svcTotal)}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
+                                    <span>Peças</span>
+                                    <span className="font-mono text-sm tabular-nums">{fmt(partsTotal)}</span>
+                                  </div>
+                                </>
+                              )}
+                              <div className={cn("flex items-center justify-between text-xs font-semibold text-muted-foreground", hasParts && "border-t border-blue-200/70 dark:border-blue-500/20 pt-1")}>
+                                <span>Valor total</span>
+                                <span className="font-mono text-sm tabular-nums">{fmt(svcTotal + partsTotal)}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
+                                <span>Desconto</span>
+                                <span className="font-mono text-sm tabular-nums text-danger">- {fmt(discount)}</span>
+                              </div>
+                              <div className="flex items-center justify-between border-t border-blue-200/70 dark:border-blue-500/20 pt-1">
+                                <span className="text-[0.8125rem] font-bold text-foreground">Valor final</span>
+                                <span className="text-base font-extrabold font-mono text-foreground tabular-nums">{fmt(finalValue)}</span>
+                              </div>
+                            </div>
+                          );
+                        }
                         return (
                           <div className="m-2 rounded-lg bg-blue-50/70 dark:bg-blue-500/10 px-3 py-2 space-y-1">
-                            {partsTotal > 0 || order.services.some(isPartItem) ? (
+                            {hasParts ? (
                               <>
                                 <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
                                   <span>Serviços</span>
@@ -1801,7 +1839,7 @@ function OSViewModalContent({
                   </div>
                 )}
 
-              <div className={cn("border border-border rounded-xl bg-background p-3 shadow-sm flex flex-col flex-1 min-w-0", !isEditing && cn("md:col-start-2 md:row-start-2", PAYMENT_ROW_SPAN[partsRows + (hasObservations ? 1 : 0)]))}>
+              <div className={cn("border border-border rounded-xl bg-background p-3 shadow-sm flex flex-col flex-1 min-w-0", !isEditing && cn("md:col-start-2 md:row-start-2 md:self-start", PAYMENT_ROW_SPAN[partsRows + (hasObservations ? 1 : 0)]))}>
                 {!isEditing && (
                   <ViewCardHeader icon={CreditCard} title="Pagamento" right={getPaymentBadge(order.paymentStatus)} />
                 )}
@@ -1810,112 +1848,9 @@ function OSViewModalContent({
                     /* ═══ REFORMULADO: CARD DE PAGAMENTO AGRUPADO ═══ */
                     <div className="space-y-2 animate-in fade-in duration-200">
                       {/* Card com borda arredondada */}
-                      <div className="bg-card border border-border rounded-xl p-4 space-y-3 shadow-xs">
-                        {/* Cabeçalho do Card (Label + Botão Desfazer) */}
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70">
-                            HISTÓRICO DE ENTRADAS ({groupedPayment.entradas?.length || 0})
-                          </span>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger
-                              render={
-                                <Button variant="ghost" size="icon" title="Mais ações do grupo" className="w-7 h-7 rounded-md hover:bg-secondary">
-                                  <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                                </Button>
-                              }
-                            />
-                            <DropdownMenuContent align="end" className="z-[9999] min-w-[10rem] bg-card border-border rounded-lg shadow-lg">
-                              <DropdownMenuItem onClick={() => setIsDissolveModalOpen(true)} className="cursor-pointer rounded mx-1 text-sm text-danger hover:bg-danger/10">
-                                <Unlink className="w-4 h-4 mr-2" /> Desagrupar
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-
-                        {/* Lista de Caixinhas de Entradas */}
-                        {sortedGroupEntradas && sortedGroupEntradas.length > 0 ? (
-                          <div className="space-y-2">
-                            {(showAllEntradas ? sortedGroupEntradas : sortedGroupEntradas.slice(0, 2)).map((e, idx) => (
-                              <div
-                                key={e.id || idx}
-                                className="bg-info/5 dark:bg-info/10 border border-info/15 rounded-xl p-2.5 space-y-1"
-                              >
-                                <div className="flex justify-between items-center gap-2">
-                                  <div className="flex items-center gap-1.5 min-w-0">
-                                    <span className="text-xs font-bold text-info uppercase tracking-wide truncate">
-                                      {e.originalNum}. {e.formaPagamento.toUpperCase()}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-1 shrink-0">
-                                    <span className="text-xs font-bold font-mono text-info">
-                                      {e.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      title="Editar lançamento"
-                                      onClick={() => setPaymentEntryModal({
-                                        mode: 'edit',
-                                        entry: { id: e.id, amount: e.valor, method: e.formaPagamento, date: e.data, payer: e.nomePagador },
-                                        totalValue: groupedPayment.valorTotal,
-                                        paidElsewhere: Math.max(0, groupedPayment.valorPago - e.valor),
-                                      })}
-                                      className="w-5 h-5 rounded flex items-center justify-center text-info/70 hover:text-info hover:bg-info/10 transition-colors ml-1"
-                                    >
-                                      <Pencil className="w-3 h-3" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      title="Remover lançamento"
-                                      onClick={() => e.id && handleGroupedDeleteEntrada(e.id)}
-                                      className="w-5 h-5 rounded flex items-center justify-center text-danger/70 hover:text-danger hover:bg-danger/10 transition-colors"
-                                    >
-                                      <Trash2 className="w-3 h-3" />
-                                    </button>
-                                  </div>
-                                </div>
-
-                                <div className="flex justify-between items-center text-xs pt-1 border-t border-info/10">
-                                  <span className="text-muted-foreground font-bold uppercase">DATA:</span>
-                                  <span className="font-mono font-bold text-foreground">{formatDate(e.data)}</span>
-                                </div>
-
-                                {e.nomePagador && e.nomePagador.trim() !== '' && (
-                                  <div className="pt-1 border-t border-info/10 text-xs">
-                                    <span className="text-muted-foreground font-bold uppercase block">PAGADOR:</span>
-                                    <span className="font-bold text-foreground uppercase break-words leading-tight block mt-0.5">
-                                      {e.nomePagador.toUpperCase()}
-                                    </span>
-                                  </div>
-                                )}
-
-                                {e.observacao && (
-                                  <div className="text-xs text-muted-foreground italic pt-0.5">
-                                    {e.observacao}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-
-                            {sortedGroupEntradas.length > 2 && (
-                              <button
-                                type="button"
-                                onClick={() => setShowAllEntradas(prev => !prev)}
-                                className="text-xs font-bold text-info hover:underline flex items-center justify-center w-full py-1 cursor-pointer transition-colors"
-                              >
-                                {showAllEntradas
-                                  ? 'Ver menos'
-                                  : `Ver todas as entradas (${sortedGroupEntradas.length})`}
-                              </button>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-xs italic text-muted-foreground text-center py-2">
-                            Nenhuma entrada lançada ainda.
-                          </p>
-                        )}
-
+                      <div className="space-y-3">
                         {/* Lista de O.S. do Grupo */}
-                        <div className="space-y-1 pt-2.5 border-t border-dashed border-border text-xs">
+                        <div className="space-y-1 rounded-xl border border-border bg-card px-3 py-2 text-xs">
                           <span className="block text-xs font-bold uppercase tracking-wider text-muted-foreground/70 pb-0.5">
                             O.S. do grupo ({groupedPayment.osIds.length})
                           </span>
@@ -1933,7 +1868,7 @@ function OSViewModalContent({
                                 onClick={() => groupOs && onOpenOrder?.(groupOs)}
                                 title={canOpen ? 'Abrir esta O.S.' : undefined}
                                 className={cn(
-                                  'w-full flex justify-between items-center gap-2 px-2 py-1.5 -mx-2 rounded-md text-left transition-colors',
+                                  'w-[calc(100%+1rem)] flex justify-between items-center gap-2 px-2 py-1.5 -mx-2 rounded-md text-left transition-colors',
                                   canOpen ? 'hover:bg-secondary cursor-pointer' : 'cursor-default'
                                 )}
                               >
@@ -1948,37 +1883,86 @@ function OSViewModalContent({
                                     </span>
                                   )}
                                 </span>
-                                <span className="flex items-center gap-1 shrink-0">
-                                  <span className="font-mono font-bold text-foreground">{formatBRL(Math.max(0, netVal - paidBefore))}</span>
-                                  {canOpen && <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />}
-                                </span>
+                                <span className="font-mono font-bold text-foreground shrink-0">{formatBRL(Math.max(0, netVal - paidBefore))}</span>
                               </button>
                             );
                           })}
 
-                          <div className="space-y-1 pt-2 mt-1 border-t border-border">
-                            <div className="flex justify-between items-center font-bold text-foreground">
-                              <span className="uppercase">Total do grupo</span>
-                              <span className="font-mono">{formatBRL(groupedPayment.valorTotal)}</span>
-                            </div>
-                            {groupedPayment.valorPago > 0 && (
-                              <div className="flex justify-between items-center font-semibold text-muted-foreground">
-                                <span className="uppercase">Pago</span>
-                                <span className="font-mono">{formatBRL(groupedPayment.valorPago)}</span>
-                              </div>
-                            )}
-                            {groupedPayment.status !== 'pago' ? (
-                              <div className="flex justify-between items-center font-bold text-warning">
-                                <span className="uppercase">Falta pagar</span>
-                                <span className="font-mono">{formatBRL(Math.max(0, groupedPayment.valorTotal - groupedPayment.valorPago))}</span>
-                              </div>
-                            ) : (
-                              <div className="flex justify-end items-center font-bold text-success">
-                                <span>PAGAMENTO QUITADO</span>
-                              </div>
-                            )}
+                          <div className="flex justify-between items-center pt-2 mt-1 border-t border-border">
+                            <span className="text-xs font-bold uppercase tracking-wider text-foreground">Total do grupo</span>
+                            <span className="text-xl font-bold font-mono text-foreground tracking-tight">{formatBRL(groupedPayment.valorTotal)}</span>
                           </div>
                         </div>
+
+                        {/* Cabeçalho do Card (Label + Botão Desfazer) */}
+                        <div className="flex justify-between items-center gap-2 min-w-0">
+                          <span className="flex items-center gap-1.5 min-w-0 text-sm font-bold text-foreground whitespace-nowrap">
+                            <Clock className="w-4 h-4 text-info shrink-0" />
+                            <span className="truncate">Pagamentos ({groupedPayment.entradas?.length || 0})</span>
+                          </span>
+                          <span className="flex items-center gap-1 shrink-0">
+                          {(sortedGroupEntradas?.length || 0) > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setShowPaidHistory(true)}
+                              className="flex items-center gap-0.5 shrink-0 whitespace-nowrap text-xs font-bold text-info hover:underline cursor-pointer"
+                            >
+                              Ver todos
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              render={
+                                <Button variant="ghost" size="icon" title="Mais ações do grupo" className="w-7 h-7 rounded-md hover:bg-secondary">
+                                  <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                                </Button>
+                              }
+                            />
+                            <DropdownMenuContent align="end" className="z-[9999] min-w-[10rem] bg-card border-border rounded-lg shadow-lg">
+                              <DropdownMenuItem onClick={() => setIsDissolveModalOpen(true)} className="cursor-pointer rounded mx-1 text-sm text-danger hover:bg-danger/10">
+                                <Unlink className="w-4 h-4 mr-2" /> Desagrupar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          </span>
+                        </div>
+
+                        {/* Lista de Caixinhas de Entradas */}
+                        {sortedGroupEntradas && sortedGroupEntradas.length > 0 ? (
+                          <div className="space-y-1">
+                            {sortedGroupEntradas.slice(0, 1).map((e, idx) => {
+                              const entry = { id: e.id, amount: e.valor, method: e.formaPagamento, date: e.data, payer: e.nomePagador };
+                              return (
+                                <PaymentHistoryRow
+                                  highlight
+                                  key={e.id || idx}
+                                  entry={entry}
+                                  onOpen={() => setViewEntry({ entry, index: (e.originalNum || idx + 1) - 1, grouped: true })}
+                                />
+                              );
+                            })}
+
+                          </div>
+                        ) : (
+                          <p className="text-xs italic text-muted-foreground text-center py-2">
+                            Nenhuma entrada lançada ainda.
+                          </p>
+                        )}
+
+                        {/* Pago / falta pagar (só depois da primeira entrada) */}
+                        {groupedPayment.valorPago > 0 && (
+                          <div className="rounded-xl border border-border bg-card px-3 py-2 flex flex-col gap-1">
+                            <div className={cn("flex justify-between items-center text-xs font-bold", groupedPayment.status === 'pago' ? "text-success" : "text-foreground")}>
+                              <span className="uppercase tracking-wider">Total pago ({groupedPayment.entradas?.length || 0})</span>
+                              <span className="font-mono text-sm">{formatBRL(groupedPayment.valorPago)}</span>
+                            </div>
+                            <div className={cn("flex justify-between items-center font-bold border-t border-border pt-1 mt-0.5", groupedPayment.status === 'pago' ? "text-success" : "text-warning")}>
+                              <span className="text-xs uppercase tracking-wider">{groupedPayment.status === 'pago' ? 'Restante' : 'Falta pagar'}</span>
+                              <span className="font-mono text-lg tracking-tight">{groupedPayment.status === 'pago' ? 'Quitado' : formatBRL(Math.max(0, groupedPayment.valorTotal - groupedPayment.valorPago))}</span>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Botão Lançar Nova Entrada no Grupo */}
                         {groupedPayment.status !== 'pago' && (
@@ -2000,6 +1984,33 @@ function OSViewModalContent({
                     </div>
                   ) : (
                     <>
+                      {(() => {
+                      const brl = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                      const total = isEditing ? editTotalValue : order.totalValue;
+                      const discount = Number(order.discount) || 0;
+                      const finalValue = isEditing ? editNetValue : order.netValue;
+                      const paid = getEntries().reduce((acc: number, curr: any) => acc + (parseFloat(curr.amount) || 0), 0);
+                      const remaining = Math.max(0, finalValue - paid);
+                        return (
+                          <div className="rounded-xl border border-border bg-card px-3 py-2 flex flex-col gap-1">
+                            <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground">
+                              <span>Valor total</span>
+                              <span className="font-mono text-sm">{brl(total)}</span>
+                            </div>
+                            {discount > 0 && (
+                              <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground">
+                                <span>Desconto</span>
+                                <span className="font-mono text-sm text-danger">- {brl(discount)}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between items-center border-t border-border pt-1 mt-0.5">
+                              <span className="text-xs font-bold uppercase tracking-wider text-foreground">Valor final</span>
+                              <span className="text-xl font-bold font-mono text-foreground tracking-tight">{brl(finalValue)}</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
                       {/* ═══ NÃO PAGO ═══ */}
                       {order.paymentStatus === 'Não Pago' && (
                         <div className="space-y-2 text-center py-3">
@@ -2077,50 +2088,42 @@ function OSViewModalContent({
                               </button>
                               )}
 
-                              {/* Modal: registros dos pagamentos */}
-                              <Dialog open={showPaidHistory} onOpenChange={setShowPaidHistory}>
-                                <DialogContent showCloseButton={false} className="sm:max-w-[27.5rem] z-[1100] rounded-2xl bg-popover border border-border ring-1 ring-foreground/15 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] p-0 gap-0 overflow-hidden" overlayClassName="z-[1099] bg-black/55 supports-backdrop-filter:backdrop-blur-[2px]" forceOverlay>
-                                  <div className="flex items-center gap-3 px-5 pt-5 pb-3">
-                                    <span className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300 flex items-center justify-center shrink-0">
-                                      <Clock className="w-[1.125rem] h-[1.125rem]" />
-                                    </span>
-                                    <div className="flex-1 min-w-0">
-                                      <DialogTitle className="text-sm font-extrabold uppercase tracking-wide text-foreground">Histórico de pagamentos</DialogTitle>
-                                      <div className="text-xs text-muted-foreground">O.S. #{String(order.osNumber || order.id).padStart(4, '0')} · {ordered.length} {ordered.length === 1 ? 'pagamento' : 'pagamentos'}</div>
-                                    </div>
-                                    <DialogClose render={
-                                      <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground">
-                                        <X className="w-4 h-4" />
-                                      </Button>
-                                    } />
-                                  </div>
-                                  <div className="px-5 pb-3 space-y-2 max-h-[55vh] overflow-y-auto">
-                                    {ordered.map(({ entry, index }: any, pos: number) => {
-                                      const entryAmount = parseFloat(entry.amount) || 0;
-                                      return (
-                                        <PaymentHistoryRow
-                                          key={entry.id || index}
-                                          entry={entry}
-                                          onOpen={() => { setShowPaidHistory(false); setViewEntry({ entry: { ...entry, amount: entryAmount }, index }); }}
-                                        />
-                                      );
-                                    })}
-                                  </div>
-                                  <div className="px-5 py-3 border-t border-border flex items-center justify-between text-sm font-bold">
-                                    <span className="uppercase tracking-wide text-muted-foreground text-xs">Total pago</span>
-                                    <span className="text-success tabular-nums">{totalPaid.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
                             </div>
                           );
                         }
+                        const newestFirst = [...ordered].reverse();
                         return (
                           <div className="space-y-2 animate-in fade-in duration-200">
-                            <div className="text-xs font-semibold text-muted-foreground">
-                              Histórico de pagamentos - {ordered.length}
+                            <div className="flex items-center justify-between gap-2 min-w-0">
+                            <span className="flex items-center gap-1.5 min-w-0 text-sm font-bold text-foreground whitespace-nowrap">
+                              <Clock className="w-4 h-4 text-info shrink-0" />
+                              <span className="truncate">Pagamentos ({ordered.length})</span>
+                            </span>
+                            {ordered.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => setShowPaidHistory(true)}
+                                className="flex items-center gap-0.5 shrink-0 whitespace-nowrap text-xs font-bold text-info hover:underline cursor-pointer"
+                              >
+                                Ver todos
+                                <ChevronRight className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                            <div className="space-y-1">
+                              {newestFirst.slice(0, 1).map(({ entry, index }: any, pos: number) => (
+                                <PaymentHistoryRow
+                                  highlight
+                                  key={entry.id || index}
+                                  entry={entry}
+                                  onOpen={() => setViewEntry({ entry: { ...entry, amount: parseFloat(entry.amount) || 0 }, index })}
+                                />
+                              ))}
                             </div>
-                            {list}
+                            <div className="flex justify-between items-center px-1 text-xs font-bold text-foreground">
+                              <span className="uppercase tracking-wider">Total pago ({ordered.length})</span>
+                              <span className="font-mono text-sm">{totalPaid.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                            </div>
                           </div>
                         );
                       })()}
@@ -2137,35 +2140,14 @@ function OSViewModalContent({
                       const finalValue = isEditing ? editNetValue : order.netValue;
                       const paid = getEntries().reduce((acc: number, curr: any) => acc + (parseFloat(curr.amount) || 0), 0);
                       const remaining = Math.max(0, finalValue - paid);
+                      // Só com alguma entrada; quitada: o cartão "Pagamento finalizado" já mostra o que foi pago
+                      if (!(paid > 0 && !(order.paymentStatus === 'Pago' && getEntries().length > 0 && !isEditing))) return null;
                       return (
-                        <div className="rounded-xl border border-border bg-muted/30 px-3 py-2 flex flex-col gap-1">
-                          <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground">
-                            <span>Valor total</span>
-                            <span className="font-mono text-sm">{brl(total)}</span>
+                        <div className="rounded-xl border border-border bg-card px-3 py-2 flex flex-col gap-1">
+                          <div className={cn("flex justify-between items-center font-bold", remaining > 0 ? "text-warning" : "text-success")}>
+                            <span className="text-xs uppercase tracking-wider">{remaining > 0 ? 'Falta pagar' : 'Restante'}</span>
+                            <span className="font-mono text-lg tracking-tight">{remaining > 0 ? brl(remaining) : 'Quitado'}</span>
                           </div>
-                          {discount > 0 && (
-                            <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground">
-                              <span>Desconto</span>
-                              <span className="font-mono text-sm text-warning">- {brl(discount)}</span>
-                            </div>
-                          )}
-                          <div className="flex justify-between items-center border-t border-border pt-1 mt-0.5">
-                            <span className="text-xs font-bold uppercase tracking-wider text-foreground">Valor final</span>
-                            <span className="text-xl font-bold font-mono text-foreground tracking-tight">{brl(finalValue)}</span>
-                          </div>
-                          {/* Só com alguma entrada; quitada: o cartão "Pagamento finalizado" já mostra o que foi pago */}
-                          {paid > 0 && !(order.paymentStatus === 'Pago' && getEntries().length > 0 && !isEditing) && (
-                            <>
-                              <div className="flex justify-between items-center text-xs font-bold text-success border-t border-border pt-1 mt-0.5">
-                                <span className="uppercase tracking-wider">Total pago{getEntries().length > 0 ? ` (${getEntries().length})` : ''}</span>
-                                <span className="font-mono text-sm">{brl(paid)}</span>
-                              </div>
-                              <div className={cn("flex justify-between items-center text-xs font-bold", remaining > 0 ? "text-warning" : "text-success")}>
-                                <span className="uppercase tracking-wider">Restante</span>
-                                <span className="font-mono text-sm">{remaining > 0 ? brl(remaining) : 'Quitado'}</span>
-                              </div>
-                            </>
-                          )}
                         </div>
                       );
                     })()}
@@ -2572,6 +2554,61 @@ function OSViewModalContent({
         )}
 
         {/* ═══ VISUALIZAÇÃO DE UM LANÇAMENTO (com Editar / Excluir) ═══ */}
+        {/* ═══ MODAL: HISTÓRICO DE PAGAMENTOS (individual ou do grupo) ═══ */}
+        <Dialog open={showPaidHistory} onOpenChange={setShowPaidHistory}>
+          <DialogContent showCloseButton={false} className="sm:max-w-[27.5rem] z-[1100] rounded-2xl bg-popover border border-border ring-1 ring-foreground/15 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] p-0 gap-0 overflow-hidden" overlayClassName="z-[1099] bg-black/55 supports-backdrop-filter:backdrop-blur-[2px]" forceOverlay>
+            {showPaidHistory && (() => {
+              const items: { entry: any; index: number; grouped: boolean }[] = groupedPayment
+                ? (sortedGroupEntradas || []).map((e, idx) => ({
+                    entry: { id: e.id, amount: e.valor, method: e.formaPagamento, date: e.data, payer: e.nomePagador },
+                    index: (e.originalNum || idx + 1) - 1,
+                    grouped: true,
+                  }))
+                : getEntries()
+                    .map((entry: any, index: number) => ({ entry, index, grouped: false }))
+                    .sort((x: any, y: any) => String(y.entry.date || '').localeCompare(String(x.entry.date || '')) || y.index - x.index);
+              const totalPaid = items.reduce((acc, it) => acc + (parseFloat(it.entry.amount) || 0), 0);
+              const subtitle = groupedPayment
+                ? `Pagamento agrupado · ${groupedPayment.osIds.length} O.S.`
+                : `O.S. #${String(order.osNumber || order.id).padStart(4, '0')}`;
+              return (
+                <>
+                  <div className="flex items-center gap-3 px-5 pt-5 pb-3">
+                    <span className="w-9 h-9 rounded-xl bg-info/10 text-info flex items-center justify-center shrink-0">
+                      <Clock className="w-[1.125rem] h-[1.125rem]" />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <DialogTitle className="text-sm font-extrabold uppercase tracking-wide text-foreground truncate">Histórico de pagamentos</DialogTitle>
+                      <div className="text-xs text-muted-foreground truncate">{subtitle} · {items.length} {items.length === 1 ? 'pagamento' : 'pagamentos'}</div>
+                    </div>
+                    <DialogClose render={
+                      <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground">
+                        <X className="w-4 h-4" />
+                      </Button>
+                    } />
+                  </div>
+                  <div className="px-5 pb-3 space-y-2 max-h-[55vh] overflow-y-auto">
+                    {items.map((it, pos) => (
+                      <PaymentHistoryRow
+                        key={it.entry.id || it.index}
+                        entry={it.entry}
+                        onOpen={() => {
+                          setShowPaidHistory(false);
+                          setViewEntry({ entry: { ...it.entry, amount: parseFloat(it.entry.amount) || 0 }, index: it.index, grouped: it.grouped });
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <div className="px-5 py-3 border-t border-border flex items-center justify-between text-sm font-bold">
+                    <span className="uppercase tracking-wide text-muted-foreground text-xs">Total pago</span>
+                    <span className="text-foreground tabular-nums">{totalPaid.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                  </div>
+                </>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={!!viewEntry} onOpenChange={(o) => { if (!o) setViewEntry(null); }}>
           <DialogContent showCloseButton={false} className="sm:max-w-[25rem] z-[1100] rounded-2xl bg-popover border border-border ring-1 ring-foreground/15 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] p-0 gap-0 overflow-hidden" overlayClassName="z-[1099] bg-black/55 supports-backdrop-filter:backdrop-blur-[2px]" forceOverlay>
             {viewEntry && (() => {
@@ -2607,7 +2644,11 @@ function OSViewModalContent({
                     <Button
                       type="button"
                       variant="ghost"
-                      onClick={() => { const v = viewEntry; setViewEntry(null); handleIndividualDeleteEntrada(v.entry.id, v.index); }}
+                      onClick={() => {
+                        const v = viewEntry; setViewEntry(null);
+                        if (v.grouped) { if (v.entry.id) handleGroupedDeleteEntrada(v.entry.id); }
+                        else handleIndividualDeleteEntrada(v.entry.id, v.index);
+                      }}
                       className="h-9 px-3 rounded-lg text-danger hover:bg-danger/10 gap-1.5 text-xs font-bold uppercase tracking-wider"
                     >
                       <Trash2 className="w-4 h-4" /> Excluir
@@ -2617,6 +2658,15 @@ function OSViewModalContent({
                       onClick={() => {
                         const v = viewEntry;
                         setViewEntry(null);
+                        if (v.grouped && groupedPayment) {
+                          setPaymentEntryModal({
+                            mode: 'edit',
+                            entry: { id: v.entry.id, amount: parseFloat(v.entry.amount) || 0, method: v.entry.method, date: v.entry.date, payer: v.entry.payer },
+                            totalValue: groupedPayment.valorTotal,
+                            paidElsewhere: Math.max(0, groupedPayment.valorPago - (parseFloat(v.entry.amount) || 0)),
+                          });
+                          return;
+                        }
                         setPaymentEntryModal({
                           mode: 'edit',
                           entry: { id: v.entry.id, amount: parseFloat(v.entry.amount) || 0, method: v.entry.method, date: v.entry.date, payer: v.entry.payer },

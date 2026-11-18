@@ -125,6 +125,7 @@
     --success-foreground: #FFFFFF;
     --warning: #FE9A00;
     --warning-foreground: #111111;
+    --warning-text: #D97706; /* laranja mais escuro para texto sobre fundo claro */
     --danger: #FF5A5F;
     --danger-foreground: #FFFFFF;
     --info: #0EA5E9;
@@ -197,6 +198,7 @@
     --success-foreground: #111111;
     --warning: #FE9A00;
     --warning-foreground: #111111;
+    --warning-text: #FE9A00;
     --danger: #FF5A5F;
     --danger-foreground: #111111;
     --info: #38BDF8;
@@ -2013,4 +2015,9 @@ input[type="number"] {
   .total-green-val-rf {
     font-size: 1.375rem;
   }
+}
+
+/* Texto laranja: tom mais escuro no tema claro para dar contraste (fundos e etiquetas seguem com --warning) */
+.text-warning {
+    color: var(--warning-text, var(--warning));
 }

@@ -541,7 +541,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
             )}
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Falta pagar</span>
-              <span className="font-mono font-bold text-danger">{formatBRL(remainingBalance)}</span>
+              <span className="font-mono font-bold text-warning">{formatBRL(remainingBalance)}</span>
             </div>
             {showDiscount && !showDiscountField && (
               <button
@@ -555,7 +555,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
             {showDiscount && showDiscountField && (
               <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-dashed border-border animate-in fade-in duration-200">
                 <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
-                  <Percent className="w-3 h-3 text-warning" /> Desconto
+                  <Percent className="w-3 h-3 text-danger" /> Desconto
                 </span>
                 <div className="flex items-center gap-1.5">
                   <div className="flex items-center gap-1 h-7 px-2 rounded-md border border-border bg-card">
@@ -567,7 +567,7 @@ export const PaymentEntryModal: React.FC<PaymentEntryModalProps> = ({
                       value={discountInput}
                       onChange={e => setDiscountInput(e.target.value)}
                       placeholder="0,00"
-                      className="w-16 bg-transparent text-right font-mono text-xs font-bold outline-none text-warning"
+                      className="w-16 bg-transparent text-right font-mono text-xs font-bold outline-none text-danger"
                     />
                   </div>
                   <button
